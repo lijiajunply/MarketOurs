@@ -6,7 +6,6 @@ using MarketOurs.DataAPI.Services;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Moq;
-using NUnit.Framework;
 
 namespace MarketOurs.Test.Services;
 

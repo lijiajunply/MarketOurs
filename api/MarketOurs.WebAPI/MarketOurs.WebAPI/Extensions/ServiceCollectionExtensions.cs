@@ -1,3 +1,4 @@
+using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.WebAPI.Services;

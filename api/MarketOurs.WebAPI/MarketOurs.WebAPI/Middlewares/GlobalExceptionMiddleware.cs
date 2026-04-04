@@ -74,7 +74,7 @@ public class GlobalExceptionMiddleware
     private static async Task HandleExceptionAsync(HttpContext context, Exception exception, string requestId)
     {
         context.Response.ContentType = "application/json";
-        var env = context.RequestServices.GetRequiredService<IHostEnvironment>();
+        var env = context.RequestServices?.GetService<IHostEnvironment>();
 
         var response = new ApiResponse<object>
         {
@@ -213,7 +213,7 @@ public class GlobalExceptionMiddleware
                 response.Code = (int)HttpStatusCode.BadRequest;
                 response.ErrorCode = ErrorCode.DataProcessingFailed;
                 response.Message = "数据更新失败";
-                if (env.IsDevelopment())
+                if (env?.IsDevelopment() ?? false)
                 {
                     response.Detail = dbUpdateEx.Message;
                 }
@@ -225,7 +225,7 @@ public class GlobalExceptionMiddleware
                 response.Code = (int)HttpStatusCode.ServiceUnavailable;
                 response.ErrorCode = ErrorCode.NetworkError;
                 response.Message = "网络请求失败";
-                if (env.IsDevelopment())
+                if (env?.IsDevelopment() ?? false)
                 {
                     response.Detail = httpEx.Message;
                 }
@@ -236,7 +236,7 @@ public class GlobalExceptionMiddleware
                 response.Code = (int)HttpStatusCode.RequestTimeout;
                 response.ErrorCode = ErrorCode.ExternalServiceTimeout;
                 response.Message = "操作超时";
-                if (env.IsDevelopment())
+                if (env?.IsDevelopment() ?? false)
                 {
                     response.Detail = timeoutEx.Message;
                 }
@@ -247,7 +247,7 @@ public class GlobalExceptionMiddleware
                 response.Code = (int)HttpStatusCode.ServiceUnavailable;
                 response.ErrorCode = ErrorCode.OperationFailed;
                 response.Message = "操作被取消";
-                if (env.IsDevelopment())
+                if (env?.IsDevelopment() ?? false)
                 {
                     response.Detail = canceledEx.Message;
                 }
@@ -256,10 +256,9 @@ public class GlobalExceptionMiddleware
 
             // 处理其他异常
             default:
-                // 生产环境不返回具体异常信息，避免泄露敏感信息
-                if (env.IsDevelopment())
+                response.Message = exception.Message;
+                if (env?.IsDevelopment() ?? false)
                 {
-                    response.Message = exception.Message;
                     response.Detail = exception.StackTrace;
                 }
 

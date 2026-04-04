@@ -1,5 +1,4 @@
 using MarketOurs.DataAPI.Services;
-using NUnit.Framework;
 
 namespace MarketOurs.Test.Services;
 

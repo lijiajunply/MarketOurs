@@ -278,11 +278,38 @@ public class IpBlacklistCacheService(
     }
 
     /// <summary>
+    /// 加载并写入缓存（调用方必须已持有 _refreshLock）
+    /// </summary>
+    private async Task<BlacklistData> LoadBlacklistDataInternalAsync()
+    {
+        var redisData = await GetBlacklistFromRedisAsync();
+        BlacklistData blacklistData;
+
+        if (redisData != null)
+        {
+            blacklistData = redisData;
+        }
+        else
+        {
+            blacklistData = await LoadBlacklistFromSourceAsync();
+            await SaveBlacklistToRedisAsync(blacklistData);
+        }
+
+        memoryCache.Set(MemoryCacheKey, blacklistData, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes)
+        });
+
+        _lastRefreshTime = DateTime.UtcNow;
+        return blacklistData;
+    }
+
+    /// <summary>
     /// 获取黑名单（支持双层缓存和并发控制）
     /// </summary>
     private async Task<BlacklistData> GetOrLoadBlacklistAsync()
     {
-        // 1. 先从内存缓存获取（最快）
+        // 1. 先从内存缓存获取（最快，无锁）
         if (memoryCache.TryGetValue<BlacklistData>(MemoryCacheKey, out var memoryData) && memoryData != null)
         {
             Interlocked.Increment(ref _cacheHits);
@@ -297,37 +324,9 @@ public class IpBlacklistCacheService(
         {
             // 双重检查
             if (memoryCache.TryGetValue(MemoryCacheKey, out memoryData) && memoryData != null)
-            {
                 return memoryData;
-            }
 
-            // 3. 从Redis获取
-            var redisData = await GetBlacklistFromRedisAsync();
-            BlacklistData blacklistData;
-
-            if (redisData != null)
-            {
-                blacklistData = redisData;
-            }
-            else
-            {
-                // 4. 从数据源加载
-                blacklistData = await LoadBlacklistFromSourceAsync();
-
-                // 保存到Redis（优雅降级：Redis失败不影响功能）
-                await SaveBlacklistToRedisAsync(blacklistData);
-            }
-
-            // 5. 保存到内存缓存
-            var memoryCacheOptions = new MemoryCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
-                Size = 1 // 给黑名单整体分配1个空间单位
-            };
-            memoryCache.Set(MemoryCacheKey, blacklistData, memoryCacheOptions);
-
-            _lastRefreshTime = DateTime.UtcNow;
-            return blacklistData;
+            return await LoadBlacklistDataInternalAsync();
         }
         finally
         {
@@ -388,22 +387,9 @@ public class IpBlacklistCacheService(
         try
         {
             logger.LogInformation("开始刷新IP黑名单缓存");
-
-            // 从数据源重新加载
-            var blacklistData = await LoadBlacklistFromSourceAsync();
-
-            // 保存到Redis
-            await SaveBlacklistToRedisAsync(blacklistData);
-
-            // 保存到内存缓存
-            var memoryCacheOptions = new MemoryCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
-                Size = 1
-            };
-            memoryCache.Set(MemoryCacheKey, blacklistData, memoryCacheOptions);
-
-            _lastRefreshTime = DateTime.UtcNow;
+            // 主动失效内存缓存，强制从数据源重新加载
+            memoryCache.Remove(MemoryCacheKey);
+            await LoadBlacklistDataInternalAsync();
             logger.LogInformation("IP黑名单缓存刷新完成");
         }
         catch (Exception ex)
@@ -429,16 +415,16 @@ public class IpBlacklistCacheService(
         await _refreshLock.WaitAsync();
         try
         {
-            var blacklistData = await GetOrLoadBlacklistAsync();
+            // 锁内直接获取数据，避免重入死锁
+            var blacklistData = memoryCache.TryGetValue<BlacklistData>(MemoryCacheKey, out var cached) && cached != null
+                ? cached
+                : await LoadBlacklistDataInternalAsync();
 
             if (ip.Contains('/'))
             {
-                // CIDR格式
                 var cidrRange = ParseCidr(ip);
                 if (cidrRange == null)
-                {
                     throw new ArgumentException($"无效的CIDR格式: {ip}", nameof(ip));
-                }
 
                 if (blacklistData.CidrRanges.All(r => r.Cidr != ip))
                 {
@@ -448,21 +434,15 @@ public class IpBlacklistCacheService(
             }
             else
             {
-                // 精确IP
                 if (blacklistData.ExactIps.Add(ip))
-                {
                     logger.LogInformation("添加IP到黑名单: {Ip}", ip);
-                }
             }
 
-            // 更新缓存
             await SaveBlacklistToRedisAsync(blacklistData);
-            var memoryCacheOptions = new MemoryCacheEntryOptions
+            memoryCache.Set(MemoryCacheKey, blacklistData, new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
-                Size = 1
-            };
-            memoryCache.Set(MemoryCacheKey, blacklistData, memoryCacheOptions);
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes)
+            });
         }
         finally
         {
@@ -483,34 +463,26 @@ public class IpBlacklistCacheService(
         await _refreshLock.WaitAsync();
         try
         {
-            var blacklistData = await GetOrLoadBlacklistAsync();
+            var blacklistData = memoryCache.TryGetValue<BlacklistData>(MemoryCacheKey, out var cached) && cached != null
+                ? cached
+                : await LoadBlacklistDataInternalAsync();
 
             if (ip.Contains('/'))
             {
-                // CIDR格式
-                var removed = blacklistData.CidrRanges.RemoveAll(r => r.Cidr == ip);
-                if (removed > 0)
-                {
+                if (blacklistData.CidrRanges.RemoveAll(r => r.Cidr == ip) > 0)
                     logger.LogInformation("从黑名单移除CIDR范围: {Cidr}", ip);
-                }
             }
             else
             {
-                // 精确IP
                 if (blacklistData.ExactIps.Remove(ip))
-                {
                     logger.LogInformation("从黑名单移除IP: {Ip}", ip);
-                }
             }
 
-            // 更新缓存
             await SaveBlacklistToRedisAsync(blacklistData);
-            var memoryCacheOptions = new MemoryCacheEntryOptions
+            memoryCache.Set(MemoryCacheKey, blacklistData, new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
-                Size = 1
-            };
-            memoryCache.Set(MemoryCacheKey, blacklistData, memoryCacheOptions);
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes)
+            });
         }
         finally
         {

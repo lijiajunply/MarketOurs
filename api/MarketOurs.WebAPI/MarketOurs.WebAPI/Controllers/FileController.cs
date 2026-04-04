@@ -15,7 +15,7 @@ public class FileController(IStorageService storageService, ILogger<FileControll
     /// </summary>
     [HttpPost("upload/image")]
     [Authorize]
-    public async Task<ApiResponse<string>> UploadImage(IFormFile file)
+    public async Task<ApiResponse<string>> UploadImage(IFormFile? file)
     {
         if (file == null || file.Length == 0)
         {
@@ -47,7 +47,7 @@ public class FileController(IStorageService storageService, ILogger<FileControll
     /// </summary>
     [HttpPost("upload/images")]
     [Authorize]
-    public async Task<ApiResponse<List<string>>> UploadImages(List<IFormFile> files)
+    public async Task<ApiResponse<List<string>>> UploadImages(List<IFormFile>? files)
     {
         if (files == null || files.Count == 0)
         {

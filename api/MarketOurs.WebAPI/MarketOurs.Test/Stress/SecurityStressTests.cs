@@ -1,3 +1,4 @@
+using MarketOurs.DataAPI.Configs;
 using MarketOurs.WebAPI.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -14,9 +15,9 @@ public class SecurityStressTests
     [SetUp]
     public void Setup()
     {
-        var config = new RateLimitConfig();
+        var config = new RateLimitConfig { EnableRedis = false }; // Disable Redis for unit tests
         _mockLogger = new Mock<ILogger<RateLimitService>>();
-        _rateLimitService = new RateLimitService(config, _mockLogger.Object);
+        _rateLimitService = new RateLimitService(config, _mockLogger.Object, Enumerable.Empty<StackExchange.Redis.IConnectionMultiplexer>());
     }
 
     [TearDown]
@@ -33,23 +34,21 @@ public class SecurityStressTests
         const string loginPath = "/auth/login";
         var policy = _rateLimitService.GetMatchingPolicy(loginPath);
         
-        // Assert policy is indeed the login policy
-        Assert.That(policy.Name, Is.EqualTo("login"));
-        int limit = policy.TokenLimit; // Should be 30 based on RateLimitConfig.cs
+        // Assert policy is indeed the auth policy (renamed from login to auth in new config)
+        Assert.That(policy.Name, Is.EqualTo("auth"));
+        int limit = policy.PermitLimit; // Should be 30 based on new RateLimitConfig.cs
 
         // Act & Assert
         // First 30 requests should succeed
         for (int i = 0; i < limit; i++)
         {
-            var lease = await _rateLimitService.TryAcquireTokenAsync(policy, clientIp);
-            Assert.That(lease.IsAcquired, Is.True, $"Request {i+1} should have been allowed.");
-            lease.Dispose();
+            var result = await _rateLimitService.CheckRateLimitAsync(loginPath, clientIp);
+            Assert.That(result.IsAllowed, Is.True, $"Request {i+1} should have been allowed.");
         }
 
         // The 31st request should be blocked
-        var blockedLease = await _rateLimitService.TryAcquireTokenAsync(policy, clientIp);
-        Assert.That(blockedLease.IsAcquired, Is.False, "Request 31 should have been blocked.");
-        blockedLease.Dispose();
+        var blockedResult = await _rateLimitService.CheckRateLimitAsync(loginPath, clientIp);
+        Assert.That(blockedResult.IsAllowed, Is.False, "Request 31 should have been blocked.");
     }
 
     [Test]
@@ -58,21 +57,20 @@ public class SecurityStressTests
         // Arrange
         const int numUniqueIps = 10000;
         const string path = "/api/any";
-        var policy = _rateLimitService.GetMatchingPolicy(path);
 
         // Act
-        var tasks = new List<ValueTask<System.Threading.RateLimiting.RateLimitLease>>();
+        var tasks = new List<Task<RateLimitResult>>();
         for (int i = 0; i < numUniqueIps; i++)
         {
             var ip = $"10.0.{i / 256}.{i % 256}";
-            tasks.Add(_rateLimitService.TryAcquireTokenAsync(policy, ip));
+            tasks.Add(_rateLimitService.CheckRateLimitAsync(path, ip));
         }
 
         // Assert
-        foreach (var task in tasks)
+        var results = await Task.WhenAll(tasks);
+        foreach (var result in results)
         {
-            using var lease = await task;
-            Assert.That(lease.IsAcquired, Is.True);
+            Assert.That(result.IsAllowed, Is.True);
         }
         
         await TestContext.Out.WriteLineAsync($"Successfully handled {numUniqueIps} unique IP limiters.");
