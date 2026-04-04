@@ -41,8 +41,8 @@ public class FullWorkflowIntegrationTests : IntegrationTestBase
         // 2. Setup Redis & Lock
         _redis = CreateRedisConnection();
         _redis.GetDatabase().Execute("FLUSHDB");
-        services.AddSingleton<IConnectionMultiplexer>(_redis);
-        services.AddSingleton<IEnumerable<IConnectionMultiplexer>>(new[] { _redis });
+        services.AddSingleton(_redis);
+        services.AddSingleton<IEnumerable<IConnectionMultiplexer>>([_redis]);
         services.AddScoped<ILockService, RedisLockService>();
 
         // 3. Setup Like Management
@@ -62,7 +62,7 @@ public class FullWorkflowIntegrationTests : IntegrationTestBase
 
         // Clear DB
         using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<IDbContextFactory<MarketContext>>().CreateDbContext();
+        var context = await scope.ServiceProvider.GetRequiredService<IDbContextFactory<MarketContext>>().CreateDbContextAsync();
         context.Database.ExecuteSqlRaw("TRUNCATE TABLE \"users\" CASCADE");
         context.Database.ExecuteSqlRaw("TRUNCATE TABLE \"posts\" CASCADE");
 

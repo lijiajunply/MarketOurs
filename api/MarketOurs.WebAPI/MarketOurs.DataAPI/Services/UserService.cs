@@ -82,8 +82,8 @@ public class UserService(
             Password = createDto.Password.StringToHash(),
             Name = createDto.Name,
             Role = createDto.Role,
-            CreatedAt = DateTime.Now,
-            LastLoginAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
+            LastLoginAt = DateTime.UtcNow,
             IsActive = true, // 初始化默认激活，不需要强制验证
             IsEmailVerified = false,
             IsPhoneVerified = false

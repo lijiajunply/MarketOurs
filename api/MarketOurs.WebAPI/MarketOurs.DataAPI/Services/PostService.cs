@@ -241,9 +241,8 @@ public class PostService(
             Content = createDto.Content,
             Images = createDto.Images,
             UserId = createDto.UserId,
-            User = user,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
             Likes = 0,
             Dislikes = 0,
             Watch = 0
@@ -262,7 +261,7 @@ public class PostService(
         post.Title = updateDto.Title;
         post.Content = updateDto.Content;
         post.Images = updateDto.Images;
-        post.UpdatedAt = DateTime.Now;
+        post.UpdatedAt = DateTime.UtcNow;
 
         await postRepo.UpdateAsync(post);
         InvalidateCache(id);

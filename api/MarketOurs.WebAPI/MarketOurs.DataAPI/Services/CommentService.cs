@@ -112,11 +112,10 @@ public class CommentService(
             Content = createDto.Content,
             Images = createDto.Images,
             UserId = createDto.UserId,
-            User = user,
             PostId = createDto.PostId,
             ParentCommentId = createDto.ParentCommentId,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
             Likes = 0,
             Dislikes = 0
         };
