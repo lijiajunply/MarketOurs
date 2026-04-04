@@ -26,6 +26,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+DotNetEnv.Env.Load();
+
 #region 控制器基本设置
 
 // 配置请求大小限制
@@ -70,11 +72,11 @@ var jwtConfig = new JwtConfig
 
 var emailConfig = new EmailConfig()
 {
-    Host =  Environment.GetEnvironmentVariable("EMAIL_HOST") ?? "localhost",
+    Host = Environment.GetEnvironmentVariable("EMAIL_HOST") ?? "localhost",
     Port = Convert.ToInt32(Environment.GetEnvironmentVariable("EMAIL_PORT") ?? "564"),
-    Username =  Environment.GetEnvironmentVariable("EMAIL_USERNAME"),
-    Password =  Environment.GetEnvironmentVariable("EMAIL_PASSWORD"),
-    Email = Environment.GetEnvironmentVariable("EMAIL"),
+    Username = Environment.GetEnvironmentVariable("EMAIL_USERNAME"),
+    Password = Environment.GetEnvironmentVariable("EMAIL_PASSWORD"),
+    Email = Environment.GetEnvironmentVariable("EMAIL")
 };
 
 builder.Services.AddSingleton(jwtConfig);
@@ -164,23 +166,29 @@ builder.Services.AddAuthentication(options =>
     })
     .AddGitHub(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"] ?? "default";
-        options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"] ?? "default";
-        options.CallbackPath = "/api/auth/signin-github";
+        options.ClientId = Environment.GetEnvironmentVariable("GitHub_ClientId", EnvironmentVariableTarget.Process) ??
+                           "default";
+        options.ClientSecret =
+            Environment.GetEnvironmentVariable("GitHub_ClientSecret", EnvironmentVariableTarget.Process) ?? "default";
+        options.CallbackPath = "/Auth/signin-github";
         options.SignInScheme = "OAuth2";
     })
     .AddGoogle(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "default";
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "default";
-        options.CallbackPath = "/api/auth/signin-google";
+        options.ClientId = Environment.GetEnvironmentVariable("Google_ClientId", EnvironmentVariableTarget.Process) ??
+                           "default";
+        options.ClientSecret =
+            Environment.GetEnvironmentVariable("Google_ClientSecret", EnvironmentVariableTarget.Process) ?? "default";
+        options.CallbackPath = "/Auth/signin-google";
         options.SignInScheme = "OAuth2";
     })
     .AddWeixin(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:Weixin:ClientId"] ?? "default";
-        options.ClientSecret = builder.Configuration["Authentication:Weixin:ClientSecret"] ?? "default";
-        options.CallbackPath = "/api/auth/signin-weixin";
+        options.ClientId = Environment.GetEnvironmentVariable("Weixin_ClientId", EnvironmentVariableTarget.Process) ??
+                           "default";
+        options.ClientSecret =
+            Environment.GetEnvironmentVariable("Weixin_ClientSecret", EnvironmentVariableTarget.Process) ?? "default";
+        options.CallbackPath = "/Auth/signin-weixin";
         options.SignInScheme = "OAuth2";
     });
 
@@ -274,10 +282,6 @@ else
 }
 
 var redis = Environment.GetEnvironmentVariable("REDIS", EnvironmentVariableTarget.Process);
-if (string.IsNullOrEmpty(redis) && builder.Environment.IsDevelopment())
-{
-    redis = builder.Configuration["Redis"];
-}
 
 if (!string.IsNullOrEmpty(redis))
 {
