@@ -64,7 +64,7 @@ public class ServiceStressTests
         const int count = 10;
         const int totalRequests = 10000;
         var posts = new List<PostModel> { new PostModel { Id = "1", Title = "Post 1" } };
-        
+
         // Mock DB to return data (this should only be called once if cache works)
         _mockPostRepo.Setup(r => r.GetHotAsync(count)).ReturnsAsync(posts);
         _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
@@ -74,18 +74,21 @@ public class ServiceStressTests
         var tasks = new List<Task<List<PostDto>>>();
         for (int i = 0; i < totalRequests; i++)
         {
-            tasks.Add(_postService.GetHotAsync(count));
+            tasks.Add(_postService.GetHotAsync());
         }
+
         await Task.WhenAll(tasks);
         stopwatch.Stop();
 
         // Assert
         // We expect only 1 call to the repository because of MemoryCache
         _mockPostRepo.Verify(r => r.GetHotAsync(count), Times.Once);
-        
-        TestContext.Out.WriteLine($"Processed {totalRequests} requests in {stopwatch.ElapsedMilliseconds}ms");
-        TestContext.Out.WriteLine($"Throughput: {totalRequests / (stopwatch.Elapsed.TotalSeconds):F2} req/s");
-        
+
+        await TestContext.Out.WriteLineAsync(
+            $"Processed {totalRequests} requests in {stopwatch.ElapsedMilliseconds}ms");
+        await TestContext.Out.WriteLineAsync(
+            $"Throughput: {totalRequests / (stopwatch.Elapsed.TotalSeconds):F2} req/s");
+
         Assert.That(stopwatch.ElapsedMilliseconds, Is.LessThan(5000), "Stress test took too long.");
     }
 
@@ -101,7 +104,8 @@ public class ServiceStressTests
 
         _mockPostRepo.Setup(r => r.GetByIdAsync(It.IsAny<string>()))
             .ReturnsAsync((string id) => postModels.FirstOrDefault(p => p.Id == id));
-        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), default)).ReturnsAsync((byte[]?)null);
+        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), CancellationToken.None))
+            .ReturnsAsync((byte[]?)null);
 
         // Act
         var stopwatch = Stopwatch.StartNew();
@@ -113,13 +117,15 @@ public class ServiceStressTests
                 tasks.Add(_postService.GetByIdAsync(post.Id));
             }
         }
+
         await Task.WhenAll(tasks);
         stopwatch.Stop();
 
         // Assert
         // Each unique post should hit DB once
         _mockPostRepo.Verify(r => r.GetByIdAsync(It.IsAny<string>()), Times.Exactly(numUniquePosts));
-        
-        TestContext.Out.WriteLine($"Processed {numUniquePosts * requestsPerPost} requests for {numUniquePosts} unique keys in {stopwatch.ElapsedMilliseconds}ms");
+
+        await TestContext.Out.WriteLineAsync(
+            $"Processed {numUniquePosts * requestsPerPost} requests for {numUniquePosts} unique keys in {stopwatch.ElapsedMilliseconds}ms");
     }
 }

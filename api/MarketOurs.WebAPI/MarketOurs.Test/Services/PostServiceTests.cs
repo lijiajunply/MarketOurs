@@ -68,10 +68,10 @@ public class PostServiceTests
             new PostModel { Id = "2", Title = "Post 2", Content = "Content 2" }
         };
         _mockPostRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(posts);
-        
+
         _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(10);
         _mockLikeManager.Setup(m => m.GetPostDislikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(2);
-        
+
         _mockDatabase.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(new RedisValue("100"));
 
@@ -93,9 +93,10 @@ public class PostServiceTests
         // Arrange
         var post = new PostModel { Id = "1", Title = "Test Post" };
         _mockPostRepo.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(post);
-        
+
         // Mock redis missing the distributed cache
-        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), default)).ReturnsAsync((byte[]?)null);
+        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), CancellationToken.None))
+            .ReturnsAsync((byte[]?)null);
 
         // Act
         var result = await _postService.GetByIdAsync("1");
@@ -136,7 +137,7 @@ public class PostServiceTests
         // Arrange
         var post = new PostModel { Id = "1", Title = "Old Title", Content = "Old Content" };
         var updateDto = new PostUpdateDto { Title = "New Title", Content = "New Content" };
-        
+
         _mockPostRepo.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(post);
         _mockPostRepo.Setup(r => r.UpdateAsync(It.IsAny<PostModel>())).Returns(Task.CompletedTask);
 

@@ -72,7 +72,7 @@ public class CacheAvalancheTests
                 return post;
             });
 
-        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), default)).ReturnsAsync((byte[]?)null);
+        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), CancellationToken.None)).ReturnsAsync((byte[]?)null);
         _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
 
         // Act

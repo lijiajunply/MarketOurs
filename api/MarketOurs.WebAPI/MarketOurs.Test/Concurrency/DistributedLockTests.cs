@@ -18,7 +18,7 @@ public class DistributedLockTests
         _mockRedis = new Mock<IConnectionMultiplexer>();
         _mockDatabase = new Mock<IDatabase>();
         _mockRedis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_mockDatabase.Object);
-        
+
         _lockService = new RedisLockService(new List<IConnectionMultiplexer> { _mockRedis.Object });
     }
 
@@ -26,7 +26,8 @@ public class DistributedLockTests
     public async Task AcquireAsync_WhenRedisReturnsTrue_ShouldReturnTrue()
     {
         // Arrange
-        _mockDatabase.Setup(db => db.LockTakeAsync("test-key", "test-val", It.IsAny<TimeSpan>(), It.IsAny<CommandFlags>()))
+        _mockDatabase.Setup(db =>
+                db.LockTakeAsync("test-key", "test-val", It.IsAny<TimeSpan>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
 
         // Act
@@ -41,12 +42,9 @@ public class DistributedLockTests
     {
         // Arrange
         int callCount = 0;
-        _mockDatabase.Setup(db => db.LockTakeAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<CommandFlags>()))
-            .ReturnsAsync(() => 
-            {
-                // Simulate Redis atomicity: only first call returns true
-                return Interlocked.Increment(ref callCount) == 1;
-            });
+        _mockDatabase.Setup(db => db.LockTakeAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(),
+                It.IsAny<CommandFlags>()))
+            .ReturnsAsync(() => Interlocked.Increment(ref callCount) == 1);
 
         // Act
         var tasks = new List<Task<bool>>();
@@ -54,11 +52,12 @@ public class DistributedLockTests
         {
             tasks.Add(_lockService.AcquireAsync("lock-key", Guid.NewGuid().ToString(), TimeSpan.FromSeconds(5)));
         }
+
         var results = await Task.WhenAll(tasks);
 
         // Assert
-        Assert.That(results.Count(r => r == true), Is.EqualTo(1));
-        Assert.That(results.Count(r => r == false), Is.EqualTo(99));
+        Assert.That(results.Count(r => r), Is.EqualTo(1));
+        Assert.That(results.Count(r => !r), Is.EqualTo(99));
     }
 
     [Test]
