@@ -26,7 +26,7 @@ public class LikeMessageQueue
     /// 写入队列
     /// </summary>
     /// <param name="message"></param>
-    public async ValueTask EnqueueAsync(LikeMessage message)
+    public virtual async ValueTask EnqueueAsync(LikeMessage message)
     {
         await _channel.Writer.WriteAsync(message);
     }
@@ -36,7 +36,7 @@ public class LikeMessageQueue
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public IAsyncEnumerable<LikeMessage> DequeueAllAsync(CancellationToken cancellationToken)
+    public virtual IAsyncEnumerable<LikeMessage> DequeueAllAsync(CancellationToken cancellationToken)
     {
         return _channel.Reader.ReadAllAsync(cancellationToken);
     }
