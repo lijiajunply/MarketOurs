@@ -112,19 +112,3 @@ public class DataMaskingMiddleware(
         }
     }
 }
-
-/// <summary>
-/// 中间件扩展方法
-/// </summary>
-public static class DataMaskingMiddlewareExtensions
-{
-    /// <summary>
-    /// 添加数据脱敏中间件
-    /// </summary>
-    /// <param name="app">应用构建器</param>
-    /// <returns>应用构建器</returns>
-    public static IApplicationBuilder UseDataMasking(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<DataMaskingMiddleware>();
-    }
-}

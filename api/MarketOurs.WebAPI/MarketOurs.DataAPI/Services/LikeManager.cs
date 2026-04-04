@@ -31,16 +31,16 @@ public class LikeManager(
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
 
     public async Task<int> GetPostLikesAsync(string postId, int fallbackCount) =>
-        await GetCountAsync($"post:{postId}:likes", fallbackCount, () => postRepo.GetLikeUsersAsync(postId));
+        await GetCountAsync($"post:{postId}:likes", fallbackCount);
 
     public async Task<int> GetPostDislikesAsync(string postId, int fallbackCount) =>
-        await GetCountAsync($"post:{postId}:dislikes", fallbackCount, () => postRepo.GetDislikeUsersAsync(postId));
+        await GetCountAsync($"post:{postId}:dislikes", fallbackCount);
 
     public async Task<int> GetCommentLikesAsync(string commentId, int fallbackCount) =>
-        await GetCountAsync($"comment:{commentId}:likes", fallbackCount, () => commentRepo.GetLikeUsersAsync(commentId));
+        await GetCountAsync($"comment:{commentId}:likes", fallbackCount);
 
     public async Task<int> GetCommentDislikesAsync(string commentId, int fallbackCount) =>
-        await GetCountAsync($"comment:{commentId}:dislikes", fallbackCount, () => commentRepo.GetDislikeUsersAsync(commentId));
+        await GetCountAsync($"comment:{commentId}:dislikes", fallbackCount);
 
     public async Task SetPostLikeAsync(string postId, string userId) =>
         await ProcessActionAsync($"post:{postId}:likes", userId, new LikeMessage(TargetType.Post, ActionType.Like, postId, userId), () => postRepo.GetLikeUsersAsync(postId));
@@ -54,7 +54,14 @@ public class LikeManager(
     public async Task SetCommentDislikeAsync(string commentId, string userId) =>
         await ProcessActionAsync($"comment:{commentId}:dislikes", userId, new LikeMessage(TargetType.Comment, ActionType.Dislike, commentId, userId), () => commentRepo.GetDislikeUsersAsync(commentId));
 
-    private async Task<int> GetCountAsync(string key, int fallbackCount, Func<Task<List<UserModel>?>> dbFetcher)
+    
+    /// <summary>
+    /// 查看Count
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="fallbackCount"></param>
+    /// <returns></returns>
+    private async Task<int> GetCountAsync(string key, int fallbackCount)
     {
         if (_redis == null) return fallbackCount;
 
@@ -74,6 +81,14 @@ public class LikeManager(
         return fallbackCount;
     }
 
+    
+    /// <summary>
+    /// 添加数据
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="userId"></param>
+    /// <param name="message"></param>
+    /// <param name="dbFetcher"></param>
     private async Task ProcessActionAsync(string key, string userId, LikeMessage message, Func<Task<List<UserModel>?>> dbFetcher)
     {
         if (_redis == null)
@@ -91,7 +106,7 @@ public class LikeManager(
             if (!await db.KeyExistsAsync(key))
             {
                 var users = await dbFetcher();
-                if (users != null && users.Count > 0)
+                if (users is { Count: > 0 })
                 {
                     var redisValues = users.Select(u => (RedisValue)u.Id).ToArray();
                     await db.SetAddAsync(key, redisValues);

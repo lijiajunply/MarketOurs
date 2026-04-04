@@ -300,9 +300,7 @@ else
 
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
-// builder.Services.AddScoped<GlobalAuthorizationFilter>();
-// // 注册ITokenGenerator服务
-// builder.Services.AddScoped<ITokenGenerator, JwtGenerator>();
+builder.Services.AddScoped<GlobalAuthorizationFilter>();
 
 // 使用扩展方法注册服务
 builder.Services.RegisterRepositoriesAndServices();

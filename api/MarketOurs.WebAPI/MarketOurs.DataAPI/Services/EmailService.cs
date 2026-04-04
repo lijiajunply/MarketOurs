@@ -25,7 +25,7 @@ public class EmailService(EmailConfig emailConfig, ILogger<EmailService> logger)
     {
         logger.LogInformation("开始发送邮件，收件人: {To}, 主题: {Subject}", to, subject);
 
-        var smtpServer = emailConfig.Host ?? "smtp.gmail.com";;
+        var smtpServer = emailConfig.Host ?? "smtp.gmail.com";
         var port = emailConfig.Port;
 
         var username = emailConfig.Username ?? "iOS Club";
