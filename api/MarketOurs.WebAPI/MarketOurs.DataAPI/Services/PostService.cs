@@ -243,6 +243,7 @@ public class PostService(
         {
             Title = createDto.Title,
             Content = createDto.Content,
+            Images = createDto.Images,
             UserId = createDto.UserId,
             User = user,
             CreatedAt = DateTime.Now,
@@ -264,6 +265,7 @@ public class PostService(
 
         post.Title = updateDto.Title;
         post.Content = updateDto.Content;
+        post.Images = updateDto.Images;
         post.UpdatedAt = DateTime.Now;
 
         await postRepo.UpdateAsync(post);
@@ -349,6 +351,7 @@ public class PostService(
             Id = post.Id,
             Title = post.Title,
             Content = post.Content,
+            Images = post.Images,
             CreatedAt = post.CreatedAt,
             UpdatedAt = post.UpdatedAt,
             UserId = post.UserId,

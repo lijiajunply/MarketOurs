@@ -41,6 +41,9 @@ public static class ServiceCollectionExtensions
         {
             services.AddSingleton<LogAuditService>();
 
+            // 注册存储服务
+            services.AddScoped<IStorageService, LocalStorageService>();
+
             // 注册IP黑名单缓存服务
             services.AddSingleton<IIpBlacklistCacheService, IpBlacklistCacheService>();
             services.AddScoped<RateLimitService>();

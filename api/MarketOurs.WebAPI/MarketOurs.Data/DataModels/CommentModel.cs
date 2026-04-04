@@ -12,6 +12,7 @@ public class CommentModel : DataModel
     [Required]
     [MaxLength(512)]
     public string Content { get; set; } = "";
+    public List<string> Images { get; set; } = [];
     public int Likes { get; set; }
     public int Dislikes { get; set; }
     public List<CommentModel> Comments = [];
@@ -44,6 +45,7 @@ public class CommentModel : DataModel
         
         Id = commitModel.Id;
         Content = commitModel.Content;
+        Images = commitModel.Images;
         Likes = commitModel.Likes;
         Dislikes = commitModel.Dislikes;
         

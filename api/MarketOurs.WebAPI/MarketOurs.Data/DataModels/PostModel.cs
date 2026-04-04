@@ -9,6 +9,7 @@ public class PostModel : DataModel
     [Required] [MaxLength(128)] public string Title { get; set; } = "";
 
     [Required] [MaxLength(1024)] public string Content { get; set; } = "";
+    public List<string> Images { get; set; } = [];
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
@@ -31,6 +32,7 @@ public class PostModel : DataModel
         Id = postModel.Id;
         Title = postModel.Title;
         Content = postModel.Content;
+        Images = postModel.Images;
         CreatedAt = postModel.CreatedAt;
         UpdatedAt = postModel.UpdatedAt;
         UserId = postModel.UserId;

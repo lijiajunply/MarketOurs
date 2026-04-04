@@ -451,6 +451,9 @@ using (var scope = app.Services.CreateScope())
 // 别动
 app.MapOpenApi();
 
+// 启用静态文件支持 (用于访问上传的图片)
+app.UseStaticFiles();
+
 // 先配置会话中间件
 app.UseSession(); // 会话中间件应该在认证和跨域中间件之前
 

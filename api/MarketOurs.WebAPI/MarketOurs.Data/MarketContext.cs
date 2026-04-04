@@ -15,6 +15,18 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PostModel>()
+            .Property(e => e.Images)
+            .HasConversion(
+                v => string.Join(';', v),
+                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList());
+
+        modelBuilder.Entity<CommentModel>()
+            .Property(e => e.Images)
+            .HasConversion(
+                v => string.Join(';', v),
+                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList());
+
         modelBuilder.Entity<UserModel>()
             .HasMany(u => u.Posts)
             .WithOne(p => p.User)

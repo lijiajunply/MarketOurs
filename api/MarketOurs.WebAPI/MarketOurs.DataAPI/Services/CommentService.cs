@@ -49,6 +49,7 @@ public class CommentService(ICommentRepo commentRepo, IUserRepo userRepo, ILikeM
         var comment = new CommentModel
         {
             Content = createDto.Content,
+            Images = createDto.Images,
             UserId = createDto.UserId,
             User = user,
             PostId = createDto.PostId,
@@ -69,6 +70,7 @@ public class CommentService(ICommentRepo commentRepo, IUserRepo userRepo, ILikeM
         if (comment == null) return null;
 
         comment.Content = updateDto.Content;
+        comment.Images = updateDto.Images;
         comment.UpdatedAt = DateTime.Now;
 
         await commentRepo.UpdateAsync(comment);
@@ -104,6 +106,7 @@ public class CommentService(ICommentRepo commentRepo, IUserRepo userRepo, ILikeM
         {
             Id = comment.Id,
             Content = comment.Content,
+            Images = comment.Images,
             Likes = comment.Likes,
             Dislikes = comment.Dislikes,
             CreatedAt = comment.CreatedAt,
