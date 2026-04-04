@@ -1,3 +1,4 @@
+using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Exceptions;
 using StackExchange.Redis;
@@ -6,7 +7,7 @@ namespace MarketOurs.DataAPI.Services;
 
 public interface ILoginService
 {
-    public Task<string> Login(string account, string password, string deviceType);
+    public Task<TokenDto> Login(string account, string password, string deviceType);
 
     /// <summary>
     /// 根据 RefToken 进行登录
@@ -14,12 +15,17 @@ public interface ILoginService
     /// <param name="token"></param>
     /// <param name="deviceType"></param>
     /// <returns></returns>
-    public Task<string> Login(string token, string deviceType);
+    public Task<TokenDto> Login(string token, string deviceType);
 
     /// <summary>
     /// OAuth2 第三方登录
     /// </summary>
-    public Task<string> LoginWithOAuthAsync(string email, string name, string avatar, string deviceType);
+    /// <param name="account">验证方式，包括 EMail 和 Phone</param>
+    /// <param name="name">姓名</param>
+    /// <param name="avatar">头像</param>
+    /// <param name="deviceType">设备类型</param>
+    /// <returns> Token </returns>
+    public Task<TokenDto> LoginWithOAuthAsync(string account, string name, string avatar, string deviceType);
 
     public Task<bool> Logout(string id, string deviceType);
     public Task<bool> ValidateToken(string userId, string token, string deviceType);
@@ -32,7 +38,7 @@ public class LoginService(
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
 
-    public async Task<string> Login(string account, string password, string deviceType)
+    public async Task<TokenDto> Login(string account, string password, string deviceType)
     {
         var user = await userService.LoginAsync(account, password);
         if (user == null)
@@ -43,7 +49,7 @@ public class LoginService(
         return await GenerateTokenForUser(user, deviceType);
     }
 
-    public async Task<string> LoginWithOAuthAsync(string account, string name, string avatar, string deviceType)
+    public async Task<TokenDto> LoginWithOAuthAsync(string account, string name, string avatar, string deviceType)
     {
         var user = await userService.GetByAccountAsync(account);
         if (user == null)
@@ -82,24 +88,36 @@ public class LoginService(
     /// <param name="user"></param>
     /// <param name="deviceType"></param>
     /// <returns></returns>
-    private async Task<string> GenerateTokenForUser(Data.DTOs.UserDto user, string deviceType)
+    private async Task<TokenDto> GenerateTokenForUser(Data.DTOs.UserDto user, string deviceType)
     {
         // 无论如何，每次登录都签发一个具有完整有效期的新 Token
         var token = await jwtService.GetAccessToken(user, deviceType.GetDeviceTypeEnum());
 
         var db = _redis?.GetDatabase();
-        if (db == null) return token;
-        var key = CacheKeys.UserAccessToken(user.Id, deviceType);
         var refreshToken = await jwtService.GetRefreshToken(deviceType.GetDeviceTypeEnum());
+        if (db == null)
+        {
+            return new TokenDto
+            {
+                AccessToken = token,
+                RefreshToken = refreshToken
+            };
+        }
+
+        var key = CacheKeys.UserAccessToken(user.Id, deviceType);
 
         // 使用异步方法将新 Token 存入 Redis，直接覆盖旧值 (可用于踢掉旧设备的会话)
         await db.StringSetAsync(key, token, TimeSpan.FromHours(2));
         await db.StringSetAsync(CacheKeys.UserRefreshToken(refreshToken), user.Id, TimeSpan.FromDays(3));
 
-        return token;
+        return new TokenDto
+        {
+            AccessToken = token,
+            RefreshToken = refreshToken
+        };
     }
 
-    public async Task<string> Login(string token, string deviceType)
+    public async Task<TokenDto> Login(string token, string deviceType)
     {
         var db = _redis?.GetDatabase();
 
@@ -111,10 +129,16 @@ public class LoginService(
             id = idRedis;
         }
 
-        if (string.IsNullOrEmpty(id)) return "";
-        var key = CacheKeys.UserAccessToken(id, deviceType);
-        var accessToken = await db.StringGetAsync(key);
-        return accessToken.HasValue ? accessToken.ToString() : "";
+        if (string.IsNullOrEmpty(id)) return new TokenDto();
+
+        var user = await userService.GetByIdAsync(id);
+        if (user == null || !user.IsActive)
+        {
+            return new TokenDto();
+        }
+
+        // 刷新 Token 时重新生成一对令牌
+        return await GenerateTokenForUser(user, deviceType);
     }
 
     public async Task<bool> Logout(string id, string deviceType)

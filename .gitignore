@@ -60,9 +60,6 @@ project.fragment.lock.json
 .idea/
 *.sln.iml
 
-# Entity Framework
-Migrations/
-
 # Publish
 **/publish/
 **/PublishScripts/

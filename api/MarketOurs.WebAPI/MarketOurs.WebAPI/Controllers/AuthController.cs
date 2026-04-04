@@ -18,11 +18,11 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<ApiResponse<string>> Login([FromBody] LoginRequest request)
+    public async Task<ApiResponse<TokenDto>> Login([FromBody] LoginRequest request)
     {
         logger.LogInformation("用户尝试登录: {Account}", request.Account);
         var token = await loginService.Login(request.Account, request.Password, request.DeviceType);
-        return ApiResponse<string>.Success(token, "登录成功");
+        return ApiResponse<TokenDto>.Success(token, "登录成功");
     }
 
     /// <summary>
@@ -42,13 +42,13 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// </summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
-    public async Task<ApiResponse<string>> Refresh([FromBody] RefreshRequest request)
+    public async Task<ApiResponse<TokenDto>> Refresh([FromBody] RefreshRequest request)
     {
         logger.LogInformation("刷新令牌, 设备类型: {DeviceType}", request.DeviceType);
         var token = await loginService.Login(request.RefreshToken, request.DeviceType);
-        return string.IsNullOrEmpty(token)
-            ? ApiResponse<string>.Fail(401, "刷新令牌无效或已过期")
-            : ApiResponse<string>.Success(token, "刷新成功");
+        return string.IsNullOrEmpty(token.AccessToken)
+            ? ApiResponse<TokenDto>.Fail(401, "刷新令牌无效或已过期")
+            : ApiResponse<TokenDto>.Success(token, "刷新成功");
     }
 
     /// <summary>
@@ -275,7 +275,7 @@ public class AuthController(ILoginService loginService, IUserService userService
             // 登录成功后注销外部cookie，保持状态清晰
             await HttpContext.SignOutAsync("OAuth2");
 
-            return Redirect($"{returnUrl}?token={Uri.EscapeDataString(token)}");
+            return Redirect($"{returnUrl}?accessToken={Uri.EscapeDataString(token.AccessToken)}&refreshToken={Uri.EscapeDataString(token.RefreshToken)}");
         }
         catch (Exception ex)
         {
