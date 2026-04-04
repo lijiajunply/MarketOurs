@@ -2,5 +2,7 @@
   <Folder Name="/Solution Items/">
     <File Path="compose.yaml" />
   </Folder>
+  <Project Path="MarketOurs.Data/MarketOurs.Data.csproj" />
+  <Project Path="MarketOurs.DataAPI/MarketOurs.DataAPI.csproj" />
   <Project Path="MarketOurs.WebAPI/MarketOurs.WebAPI.csproj" />
 </Solution>
