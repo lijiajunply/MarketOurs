@@ -1,0 +1,7 @@
+﻿services:
+  marketours.webapi:
+    image: marketours.webapi
+    build:
+      context: .
+      dockerfile: MarketOurs.WebAPI/Dockerfile
+

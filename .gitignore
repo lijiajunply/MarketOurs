@@ -1,0 +1,75 @@
+# ASP.NET
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Local.json
+wwwroot/lib/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+artifacts/
+
+# Runtime
+*.dll
+*.pdb
+*.exe
+*.exe.config
+
+# NuGet
+.nuget/
+packages/
+*.nupkg
+*.snupkg
+*.nuspec
+project.lock.json
+project.fragment.lock.json
+
+# Database & logs
+*.db
+*.log
+*.cache
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.rsuser
+*.pidb
+*.svclog
+*.scc
+*.vspscc
+*.vssscc
+*.vsp
+*.vspx
+*.sap
+*.bak
+*.tmp
+.builds
+
+# Rider
+.idea/
+*.sln.iml
+
+# Entity Framework
+Migrations/
+
+# Publish
+**/publish/
+**/PublishScripts/
+
+# Test results
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
