@@ -181,4 +181,20 @@ public class PostController(IPostService postService) : ControllerBase
     {
         return ApiResponse<List<CommentDto>>.Success(await postService.GetCommentsAsync(id, type ?? ""));
     }
+
+    /// <summary>
+    /// 全文检索帖子
+    /// </summary>
+    [HttpGet("search")]
+    [AllowAnonymous]
+    public async Task<ApiResponse<List<PostDto>>> Search([FromQuery] string keyword)
+    {
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            return ApiResponse<List<PostDto>>.Success([], "关键词不能为空");
+        }
+
+        var results = await postService.SearchAsync(keyword);
+        return ApiResponse<List<PostDto>>.Success(results, $"成功找到 {results.Count} 条相关内容");
+    }
 }

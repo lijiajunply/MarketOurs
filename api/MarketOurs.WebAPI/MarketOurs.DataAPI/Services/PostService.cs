@@ -21,6 +21,7 @@ public interface IPostService
     Task SetLikesAsync(string userId, string postId);
     Task SetDislikesAsync(string userId, string postId);
     Task<List<CommentDto>> GetCommentsAsync(string id, string type);
+    Task<List<PostDto>> SearchAsync(string keyword);
 }
 
 public class PostService(
@@ -305,6 +306,23 @@ public class PostService(
         return comments == null ? [] : comments.Select(CommentService.MapToDto).ToList();
     }
 
+    public async Task<List<PostDto>> SearchAsync(string keyword)
+    {
+        if (string.IsNullOrWhiteSpace(keyword)) return [];
+        
+        var posts = await postRepo.SearchAsync(keyword);
+        var dtos = posts.Select(MapToDto).ToList();
+
+        foreach (var dto in dtos)
+        {
+            dto.Likes = await likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
+            dto.Dislikes = await likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
+            dto.Watch = await GetPostWatchAsync(dto.Id, dto.Watch);
+        }
+
+        return dtos;
+    }
+    
     /// <summary>
     /// 从 Redis 获取帖子浏览量
     /// </summary>

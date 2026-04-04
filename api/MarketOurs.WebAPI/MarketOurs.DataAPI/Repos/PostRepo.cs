@@ -16,6 +16,7 @@ public interface IPostRepo
     Task<List<UserModel>?> GetDislikeUsersAsync(string id, DateTime before, DateTime after);
     Task<UserModel?> GetAuthorAsync(string id);
     Task<List<CommentModel>?> GetCommentsAsync(string id, string type);
+    Task<List<PostModel>> SearchAsync(string keyword);
 
     Task CreateAsync(PostModel post);
     Task UpdateAsync(PostModel post);
@@ -137,6 +138,34 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
             .OrderByDescending(x => x.UpdatedAt)
             .Select(x => x.Comments)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<PostModel>> SearchAsync(string keyword)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        
+        // 分词搜索逻辑：优先使用 PostgreSQL 的 tsvector，如果无法识别则回退
+        var query = context.Posts.AsQueryable();
+
+        if (context.Database.IsNpgsql())
+        {
+            // PostgreSQL 全文搜索：搜索 Title 和 Content
+            // 注意：此处需要 Npgsql.EntityFrameworkCore.PostgreSQL 支持
+            // 我们将关键词转换为 tsquery，使用 plainto_tsquery 自动处理空格和标点
+            query = query.Where(x => 
+                EF.Functions.ToTsVector("chinese", x.Title + " " + x.Content)
+                .Matches(EF.Functions.PlainToTsQuery("chinese", keyword)));
+        }
+        else
+        {
+            // SQLite 或其他数据库回退：简单关键词匹配
+            query = query.Where(x => x.Title.Contains(keyword) || x.Content.Contains(keyword));
+        }
+
+        return await query
+            .Include(x => x.User)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task CreateAsync(PostModel post)
