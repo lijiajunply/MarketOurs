@@ -1,3 +1,4 @@
+using MarketOurs.DataAPI.Configs;
 using StackExchange.Redis;
 using Microsoft.Extensions.Logging;
 using MarketOurs.DataAPI.Repos;
@@ -31,16 +32,16 @@ public class LikeManager(
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
 
     public async Task<int> GetPostLikesAsync(string postId, int fallbackCount) =>
-        await GetCountAsync($"post:{postId}:likes", fallbackCount);
+        await GetCountAsync(CacheKeys.PostLikes(postId), fallbackCount);
 
     public async Task<int> GetPostDislikesAsync(string postId, int fallbackCount) =>
-        await GetCountAsync($"post:{postId}:dislikes", fallbackCount);
+        await GetCountAsync(CacheKeys.PostDislikes(postId), fallbackCount);
 
     public async Task<int> GetCommentLikesAsync(string commentId, int fallbackCount) =>
-        await GetCountAsync($"comment:{commentId}:likes", fallbackCount);
+        await GetCountAsync(CacheKeys.CommentLikes(commentId), fallbackCount);
 
     public async Task<int> GetCommentDislikesAsync(string commentId, int fallbackCount) =>
-        await GetCountAsync($"comment:{commentId}:dislikes", fallbackCount);
+        await GetCountAsync(CacheKeys.CommentDislikes(commentId), fallbackCount);
 
     public async Task SetPostLikeAsync(string postId, string userId) =>
         await ToggleActionAsync(TargetType.Post, ActionType.Like, postId, userId, 
@@ -88,11 +89,15 @@ public class LikeManager(
         Func<Task<List<UserModel>?>> primaryDbFetcher,
         Func<Task<List<UserModel>?>> oppositeDbFetcher)
     {
-        var targetPrefix = target.ToString().ToLower();
         var isLike = action == ActionType.Like;
         
-        var primaryKey = $"{targetPrefix}:{targetId}:{(isLike ? "likes" : "dislikes")}";
-        var oppositeKey = $"{targetPrefix}:{targetId}:{(isLike ? "dislikes" : "likes")}";
+        var primaryKey = target == TargetType.Post 
+            ? (isLike ? CacheKeys.PostLikes(targetId) : CacheKeys.PostDislikes(targetId))
+            : (isLike ? CacheKeys.CommentLikes(targetId) : CacheKeys.CommentDislikes(targetId));
+            
+        var oppositeKey = target == TargetType.Post 
+            ? (isLike ? CacheKeys.PostDislikes(targetId) : CacheKeys.PostLikes(targetId))
+            : (isLike ? CacheKeys.CommentDislikes(targetId) : CacheKeys.CommentLikes(targetId));
         
         var cancelAction = isLike ? ActionType.Unlike : ActionType.Undislike;
         var oppositeCancelAction = isLike ? ActionType.Undislike : ActionType.Unlike;

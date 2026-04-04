@@ -1,3 +1,4 @@
+using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Exceptions;
 using StackExchange.Redis;
 
@@ -39,7 +40,7 @@ public class LoginService(
 
         var db = _redis?.GetDatabase();
         if (db == null) return token;
-        var key = $"access_token:{user.Id}_{deviceType}";
+        var key = CacheKeys.UserAccessToken(user.Id, deviceType);
         var refreshToken = await jwtService.GetRefreshToken(deviceType.GetDeviceTypeEnum());
 
         // 使用异步方法将新 Token 存入 Redis，直接覆盖旧值 (可用于踢掉旧设备的会话)
@@ -62,7 +63,7 @@ public class LoginService(
         }
 
         if (string.IsNullOrEmpty(id)) return "";
-        var key = $"access_token:{id}_{deviceType}";
+        var key = CacheKeys.UserAccessToken(id, deviceType);
         var accessToken = await db.StringGetAsync(key);
         return accessToken.HasValue ? accessToken.ToString() : "";
     }
@@ -75,7 +76,7 @@ public class LoginService(
 
         if (string.IsNullOrEmpty(deviceType)) deviceType = "*";
 
-        var key = $"access_token:{id}_{deviceType}";
+        var key = CacheKeys.UserAccessToken(id, deviceType);
 
         return await db.KeyDeleteAsync(key);
     }
@@ -86,7 +87,7 @@ public class LoginService(
 
         if (db == null) return jwtService.ValidateAccessToken(token).isValid;
 
-        var t = await db.StringGetAsync($"access_token:{userId}_{deviceType}");
+        var t = await db.StringGetAsync(CacheKeys.UserAccessToken(userId, deviceType));
 
         if (!t.HasValue) return false;
 

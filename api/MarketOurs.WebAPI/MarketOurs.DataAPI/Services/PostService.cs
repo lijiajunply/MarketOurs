@@ -1,3 +1,4 @@
+using MarketOurs.DataAPI.Configs;
 using System.Text.Json;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
@@ -40,7 +41,7 @@ public class PostService(
     private static readonly TimeSpan LocalPostCacheTtl = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan DistHotCacheTtl = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan DistPostCacheTtl = TimeSpan.FromMinutes(10);
-    private const int WatchSyncThreshold = 10; // 多少次浏览量后同步一次数据库
+    private const int WatchSyncThreshold = 10;
 
     public async Task<List<PostDto>> GetAllAsync()
     {
@@ -48,101 +49,74 @@ public class PostService(
         var dtos = posts.Select(MapToDto).ToList();
         foreach (var dto in dtos)
         {
-            dto.Likes = await likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
-            dto.Dislikes = await likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
-            dto.Watch = await GetPostWatchAsync(dto.Id, dto.Watch);
+            await FillDynamicData(dto);
         }
-
         return dtos;
     }
 
     public async Task<List<PostDto>> GetHotAsync(int count = 10)
     {
-        var memCacheKey = $"hot_posts_mem_{count}";
-
-        // 1. 本地 LRU 缓存检查 (极高并发拦截)
+        var memCacheKey = CacheKeys.HotPostsMem(count);
         if (memoryCache.TryGetValue<List<PostDto>>(memCacheKey, out var memCachedList) && memCachedList != null)
         {
-            logger.LogDebug("命中本地 LRU 热榜缓存 (count={Count})", count);
+            foreach (var dto in memCachedList) await FillDynamicData(dto);
             return memCachedList;
         }
 
-        var distCacheKey = $"hot_posts_dist_{count}";
+        var distCacheKey = CacheKeys.HotPostsDist(count);
         List<PostDto>? dtos = null;
 
-        // 2. Redis 分布式缓存检查
         try
         {
             var cachedData = await distributedCache.GetStringAsync(distCacheKey);
             if (!string.IsNullOrEmpty(cachedData))
             {
                 dtos = JsonSerializer.Deserialize<List<PostDto>>(cachedData);
-                if (dtos != null)
-                {
-                    logger.LogInformation("命中 Redis 分布式热榜缓存 (count={Count})", count);
-                }
             }
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "读取 Redis 分布式热榜缓存失败");
+            logger.LogWarning(ex, "Failed to read hot posts from Redis");
         }
 
-        // 3. 缓存穿透，读取数据库
         if (dtos == null)
         {
             var posts = await postRepo.GetHotAsync(count);
             dtos = posts.Select(MapToDto).ToList();
-
-            foreach (var dto in dtos)
-            {
-                dto.Likes = await likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
-                dto.Dislikes = await likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
-                dto.Watch = await GetPostWatchAsync(dto.Id, dto.Watch);
-            }
-
             try
             {
-                var serializedData = JsonSerializer.Serialize(dtos);
-                await distributedCache.SetStringAsync(distCacheKey, serializedData, new DistributedCacheEntryOptions
+                await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dtos), new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = DistHotCacheTtl
                 });
-                logger.LogInformation("已将热榜数据写入 Redis 缓存 (count={Count})", count);
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "写入 Redis 热榜缓存失败");
+                logger.LogWarning(ex, "Failed to write hot posts to Redis");
             }
         }
 
-        // 更新本地 LRU 缓存 (设置 Size 触发驱逐策略)
         memoryCache.Set(memCacheKey, dtos, new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = LocalHotCacheTtl,
-            Priority = CacheItemPriority.High,
-            Size = 1 // 每个热榜列表作为1个单位
+            Size = 1
         });
 
+        foreach (var dto in dtos) await FillDynamicData(dto);
         return dtos;
     }
 
     public async Task<PostDto?> GetByIdAsync(string id)
     {
-        var memCacheKey = $"post_mem_{id}";
-
-        // 1. 本地 LRU 缓存检查
+        var memCacheKey = CacheKeys.PostMem(id);
         if (memoryCache.TryGetValue<PostDto>(memCacheKey, out var memCachedDto) && memCachedDto != null)
         {
-            // 对于单个帖子详情，实时从 Redis 拉取最新的浏览量以保证数据展示的时效性
-            memCachedDto.Watch = await GetPostWatchAsync(id, memCachedDto.Watch);
-            return memCachedDto;
+            return await FillDynamicData(memCachedDto);
         }
 
-        var distCacheKey = $"post_dist_{id}";
+        var distCacheKey = CacheKeys.PostDist(id);
         PostDto? dto = null;
 
-        // 2. Redis 分布式缓存检查
         try
         {
             var cachedData = await distributedCache.GetStringAsync(distCacheKey);
@@ -156,41 +130,39 @@ public class PostService(
             logger.LogWarning(ex, "Failed to read post cache from Redis");
         }
 
-        // 3. 缓存穿透，读取数据库
         if (dto == null)
         {
             var post = await postRepo.GetByIdAsync(id);
             if (post == null) return null;
             dto = MapToDto(post);
-        }
 
-        // 填充动态数据 (点赞/点踩/浏览量)
-        dto.Likes = await likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
-        dto.Dislikes = await likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
-        dto.Watch = await GetPostWatchAsync(dto.Id, dto.Watch);
-
-        // 更新 Redis 缓存
-        try
-        {
-            var serializedData = JsonSerializer.Serialize(dto);
-            await distributedCache.SetStringAsync(distCacheKey, serializedData, new DistributedCacheEntryOptions
+            try
             {
-                AbsoluteExpirationRelativeToNow = DistPostCacheTtl
-            });
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to write post cache to Redis");
+                await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dto), new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = DistPostCacheTtl
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to write post cache to Redis");
+            }
         }
 
-        // 更新本地 LRU 缓存 (设置 Size 触发驱逐策略)
         memoryCache.Set(memCacheKey, dto, new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = LocalPostCacheTtl,
-            Priority = CacheItemPriority.Normal,
-            Size = 1 // 帖子详情作为1个单位
+            Size = 1
         });
 
+        return await FillDynamicData(dto);
+    }
+
+    private async Task<PostDto> FillDynamicData(PostDto dto)
+    {
+        dto.Likes = await likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
+        dto.Dislikes = await likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
+        dto.Watch = await GetPostWatchAsync(dto.Id, dto.Watch);
         return dto;
     }
 
@@ -205,32 +177,27 @@ public class PostService(
         try
         {
             var db = _redis.GetDatabase();
-            var watchKey = $"post:{id}:watch";
-
-            // 原子自增 Redis 浏览量
+            var watchKey = CacheKeys.PostWatch(id);
             var currentWatch = await db.StringIncrementAsync(watchKey);
 
-            // 浏览量每满 WatchSyncThreshold 次，异步写入一次数据库 (削峰填谷)
             if (currentWatch > 0 && currentWatch % WatchSyncThreshold == 0)
             {
-                // Fire and forget 后台异步更新，不阻塞当前请求
                 _ = Task.Run(async () =>
                 {
                     try
                     {
                         await postRepo.AddWatchCountAsync(id, WatchSyncThreshold);
-                        logger.LogDebug("成功异步同步 {Count} 次浏览量到数据库, 帖子: {PostId}", WatchSyncThreshold, id);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "异步同步帖子浏览量到数据库失败: {PostId}", id);
+                        logger.LogError(ex, "Failed to async sync watch count: {PostId}", id);
                     }
                 });
             }
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "在 Redis 自增浏览量失败，将直接访问数据库，帖子: {PostId}", id);
+            logger.LogWarning(ex, "Failed to increment watch in Redis: {PostId}", id);
             await postRepo.IncrementWatchAsync(id);
         }
     }
@@ -255,7 +222,7 @@ public class PostService(
         };
 
         await postRepo.CreateAsync(post);
-        ClearLocalAndDistCache(post.Id);
+        InvalidateGlobalCaches();
         return MapToDto(post);
     }
 
@@ -270,14 +237,14 @@ public class PostService(
         post.UpdatedAt = DateTime.Now;
 
         await postRepo.UpdateAsync(post);
-        ClearLocalAndDistCache(id);
+        InvalidateCache(id);
         return MapToDto(post);
     }
 
     public async Task DeleteAsync(string id)
     {
         await postRepo.DeleteAsync(id);
-        ClearLocalAndDistCache(id);
+        InvalidateCache(id);
     }
 
     public async Task SetLikesAsync(string userId, string postId)
@@ -286,7 +253,7 @@ public class PostService(
         if (post != null)
         {
             await likeManager.SetPostLikeAsync(postId, userId);
-            ClearLocalAndDistCache(postId); // 互动后也清除详细页缓存，以尽早展示新状态
+            // Dynamic data fills automatically, no need to invalidate DTO cache
         }
     }
 
@@ -296,14 +263,23 @@ public class PostService(
         if (post != null)
         {
             await likeManager.SetPostDislikeAsync(postId, userId);
-            ClearLocalAndDistCache(postId);
         }
     }
 
     public async Task<List<CommentDto>> GetCommentsAsync(string id, string type)
     {
+        // 尝试从本地缓存读取评论列表
+        var cacheKey = CacheKeys.PostComments(id);
+        if (memoryCache.TryGetValue<List<CommentDto>>(cacheKey, out var cachedComments) && cachedComments != null)
+        {
+            return cachedComments;
+        }
+
         var comments = await postRepo.GetCommentsAsync(id, type);
-        return comments == null ? [] : comments.Select(CommentService.MapToDto).ToList();
+        var dtos = comments == null ? [] : comments.Select(CommentService.MapToDto).ToList();
+        
+        memoryCache.Set(cacheKey, dtos, TimeSpan.FromMinutes(2));
+        return dtos;
     }
 
     public async Task<List<PostDto>> SearchAsync(string keyword)
@@ -315,51 +291,53 @@ public class PostService(
 
         foreach (var dto in dtos)
         {
-            dto.Likes = await likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
-            dto.Dislikes = await likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
-            dto.Watch = await GetPostWatchAsync(dto.Id, dto.Watch);
+            await FillDynamicData(dto);
         }
 
         return dtos;
     }
-    
-    /// <summary>
-    /// 从 Redis 获取帖子浏览量
-    /// </summary>
+
     private async Task<int> GetPostWatchAsync(string postId, int fallbackCount)
     {
         if (_redis == null) return fallbackCount;
         try
         {
             var db = _redis.GetDatabase();
-            var watchKey = $"post:{postId}:watch";
+            var watchKey = CacheKeys.PostWatch(postId);
             var val = await db.StringGetAsync(watchKey);
             if (val.HasValue && int.TryParse(val.ToString(), out var count))
             {
-                // 取 Redis 与 DB 数据中的最大值，以保证显示的数据不会发生回退
                 return Math.Max(count, fallbackCount);
             }
             else if (fallbackCount > 0)
             {
-                // 如果 Redis 里没有，就将数据库里最新的值初始化到 Redis
                 await db.StringSetAsync(watchKey, fallbackCount.ToString());
             }
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "从 Redis 获取浏览量失败，帖子: {PostId}", postId);
+            logger.LogWarning(ex, "Failed to get watch count from Redis: {PostId}", postId);
         }
 
         return fallbackCount;
     }
 
-    /// <summary>
-    /// 缓存失效处理
-    /// </summary>
-    private void ClearLocalAndDistCache(string postId)
+    private void InvalidateCache(string postId)
     {
-        memoryCache.Remove($"post_mem_{postId}");
-        _ = distributedCache.RemoveAsync($"post_dist_{postId}");
+        memoryCache.Remove(CacheKeys.PostMem(postId));
+        _ = distributedCache.RemoveAsync(CacheKeys.PostDist(postId));
+        InvalidateGlobalCaches();
+    }
+
+    private void InvalidateGlobalCaches()
+    {
+        // 清除所有热门列表缓存，因为贴子变更会影响排名
+        // 注意：实际生产中可以使用通配符或 CacheTag，这里简单起见清除常见 count 值的缓存
+        for (int i = 5; i <= 20; i += 5)
+        {
+            memoryCache.Remove(CacheKeys.HotPostsMem(i));
+            _ = distributedCache.RemoveAsync(CacheKeys.HotPostsDist(i));
+        }
     }
 
     public static PostDto MapToDto(PostModel post)
