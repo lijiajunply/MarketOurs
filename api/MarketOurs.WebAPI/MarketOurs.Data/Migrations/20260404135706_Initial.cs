@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MarketOurs.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPhoneToUser : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,7 +42,7 @@ namespace MarketOurs.Data.Migrations
                     Id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     Title = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Content = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
-                    Images = table.Column<string>(type: "text", nullable: false),
+                    Images = table.Column<List<string>>(type: "text[]", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -66,7 +67,7 @@ namespace MarketOurs.Data.Migrations
                 {
                     Id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     Content = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
-                    Images = table.Column<string>(type: "text", nullable: false),
+                    Images = table.Column<List<string>>(type: "text[]", nullable: false),
                     Likes = table.Column<int>(type: "integer", nullable: false),
                     Dislikes = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),

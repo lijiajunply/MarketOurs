@@ -103,34 +103,3 @@ public class SensitiveDataFilter : ILogEventEnricher
         }
     }
 }
-
-/// <summary>
-/// 日志审计服务，用于定期检查日志内容
-/// </summary>
-public class LogAuditService(ILogger<LogAuditService> logger)
-{
-    /// <summary>
-    /// 审计日志内容，检查是否包含未过滤的敏感信息
-    /// </summary>
-    /// <param name="logContent">日志内容</param>
-    public void AuditLog(string logContent)
-    {
-        // 检查是否包含未过滤的敏感信息
-        var sensitivePatterns = new List<Regex>
-        {
-            new(@"(?i)(password|pwd|passwd)\s*[:=]\s*(['""`]?)(?!\[REDACTED\])(.*?)\2", RegexOptions.Compiled),
-            new(
-                @"(?i)(token|access_token|refresh_token|jwt|bearer)\s*[:=]\s*(['""`]?)(?!\[REDACTED\])([a-zA-Z0-9_\-\.]+)\2",
-                RegexOptions.Compiled),
-            new(
-                @"(?i)(api_key|api_secret|api_token|secret_key|access_key|secret)\s*[:=]\s*(['""`]?)(?!\[REDACTED\])(.*?)\2",
-                RegexOptions.Compiled)
-        };
-
-        if (sensitivePatterns.Any(pattern => pattern.IsMatch(logContent)))
-        {
-            logger.LogWarning("发现未过滤的敏感信息: {LogContent}",
-                logContent[..Math.Min(200, logContent.Length)]);
-        }
-    }
-}

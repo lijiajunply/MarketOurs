@@ -45,6 +45,7 @@ builder.Services.Configure<KestrelServerOptions>(options =>
     options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
 });
 
+builder.Services.AddControllers();
 builder.Services.AddOpenApi(opt => { opt.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
 
 #endregion
@@ -87,7 +88,7 @@ builder.Services.AddSingleton<RsaKeyManager>();
 
 #region 身份验证
 
-builder.Services.AddAuthorizationCore();
+builder.Services.AddAuthorization();
 
 // 配置JWT认证 - 注意：在测试环境中，我们将使用服务注入的方式获取RsaKeyManager，
 // 而不是直接创建实例，这样可以允许测试代码替换该服务
@@ -166,28 +167,28 @@ builder.Services.AddAuthentication(options =>
     })
     .AddGitHub(options =>
     {
-        options.ClientId = Environment.GetEnvironmentVariable("GitHub_ClientId", EnvironmentVariableTarget.Process) ??
+        options.ClientId = Environment.GetEnvironmentVariable("GITHUB_CLIENTID", EnvironmentVariableTarget.Process) ??
                            "default";
         options.ClientSecret =
-            Environment.GetEnvironmentVariable("GitHub_ClientSecret", EnvironmentVariableTarget.Process) ?? "default";
+            Environment.GetEnvironmentVariable("GITHUB_CLIENTSECRET", EnvironmentVariableTarget.Process) ?? "default";
         options.CallbackPath = "/Auth/signin-github";
         options.SignInScheme = "OAuth2";
     })
     .AddGoogle(options =>
     {
-        options.ClientId = Environment.GetEnvironmentVariable("Google_ClientId", EnvironmentVariableTarget.Process) ??
+        options.ClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENTID", EnvironmentVariableTarget.Process) ??
                            "default";
         options.ClientSecret =
-            Environment.GetEnvironmentVariable("Google_ClientSecret", EnvironmentVariableTarget.Process) ?? "default";
+            Environment.GetEnvironmentVariable("GOOGLE_CLIENTSECRET", EnvironmentVariableTarget.Process) ?? "default";
         options.CallbackPath = "/Auth/signin-google";
         options.SignInScheme = "OAuth2";
     })
     .AddWeixin(options =>
     {
-        options.ClientId = Environment.GetEnvironmentVariable("Weixin_ClientId", EnvironmentVariableTarget.Process) ??
+        options.ClientId = Environment.GetEnvironmentVariable("WEIXIN_CLIENTID", EnvironmentVariableTarget.Process) ??
                            "default";
         options.ClientSecret =
-            Environment.GetEnvironmentVariable("Weixin_ClientSecret", EnvironmentVariableTarget.Process) ?? "default";
+            Environment.GetEnvironmentVariable("WEIXIN_CLIENTSECRET", EnvironmentVariableTarget.Process) ?? "default";
         options.CallbackPath = "/Auth/signin-weixin";
         options.SignInScheme = "OAuth2";
     });
@@ -262,8 +263,11 @@ if (string.IsNullOrEmpty(sql))
 if (string.IsNullOrEmpty(sql))
 {
     builder.Services.AddDbContextFactory<MarketContext>(opt =>
+    {
         opt.UseSqlite("Data Source=Data.db",
-            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
+            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+        opt.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+    });
 
     builder.Services.AddDataProtection()
         .PersistKeysToFileSystem(new DirectoryInfo("./keys"));

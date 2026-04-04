@@ -4,4 +4,60 @@
     build:
       context: .
       dockerfile: MarketOurs.WebAPI/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    env_file:
+      - .env
+    environment:
+      # 覆盖 .env 中的 localhost，在 Docker 网络中指向对应的服务名
+      - REDIS=redis:6379
+      - EMAIL_HOST=mailpit
+      - EMAIL_PORT=1025
+      - EMAIL_USERNAME=mock_user
+      - EMAIL_PASSWORD=mock_pass
+      - EMAIL=noreply@marketours.localhost
+      # 如果取消注释下方的 postgres 服务，请同时取消注释这里的环境变量覆盖
+      - SQL=Host=postgres;Database=marketours;Username=postgres;Password=postgres
+    depends_on:
+      - redis
+      - mailpit
+    volumes:
+      # 映射 JWT 密钥目录以持久化保存 (根据 .env 中的 ./app/keys 路径，容器内工作目录为 /app，因此对应 /app/app/keys)
+      - ./app/keys:/app/app/keys
+      # 如果希望持久化 SQLite 数据，可以取消注释下面这行（需要宿主机创建空的 Data.db 文件，或修改代码映射到单独的目录）
+      # - ./Data.db:/app/Data.db
 
+  redis:
+    image: redis:alpine
+    container_name: marketours_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: marketours_mailpit
+    ports:
+      - "8025:8025" # Web UI (可以通过 http://localhost:8025 访问邮件)
+      - "1025:1025" # SMTP 服务器端口
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: marketours_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: marketours
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+#  postgres_data:

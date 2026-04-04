@@ -39,14 +39,19 @@ public static class ServiceCollectionExtensions
         /// </summary>
         public void RegisterSecurityServices()
         {
-            services.AddSingleton<LogAuditService>();
-
             // 注册存储服务
             services.AddScoped<IStorageService, LocalStorageService>();
 
             // 注册IP黑名单缓存服务
             services.AddSingleton<IIpBlacklistCacheService, IpBlacklistCacheService>();
-            services.AddScoped<RateLimitService>();
+            
+            // 注册速率限制服务及配置
+            services.AddSingleton<RateLimitConfig>();
+            services.AddSingleton<RateLimitService>();
+            
+            // 注册数据脱敏服务及配置
+            services.AddSingleton<MaskingConfig>();
+            services.AddSingleton<DataMaskingService>();
         }
     }
 }

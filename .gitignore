@@ -38,6 +38,8 @@ project.fragment.lock.json
 *.db
 *.log
 *.cache
+*.db-shm
+*.db-wal
 
 # Visual Studio
 .vs/
@@ -72,3 +74,5 @@ TestResults/
 *.coveragexml
 
 .env
+
+/keys
