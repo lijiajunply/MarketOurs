@@ -67,7 +67,7 @@ public class LikeSyncBackgroundServiceTests
         var runTask = _service.StartAsync(cts.Token);
 
         // Wait a bit for processing
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await _service.StopAsync(CancellationToken.None);
 
         // Assert
@@ -91,7 +91,7 @@ public class LikeSyncBackgroundServiceTests
         // Act
         var runTask = _service.StartAsync(cts.Token);
 
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await _service.StopAsync(CancellationToken.None);
 
         // Assert
@@ -115,7 +115,7 @@ public class LikeSyncBackgroundServiceTests
         // Act
         var runTask = _service.StartAsync(cts.Token);
 
-        await Task.Delay(100);
+        await Task.Delay(100, cts.Token);
         await _service.StopAsync(CancellationToken.None);
 
         // Assert

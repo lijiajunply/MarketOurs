@@ -17,18 +17,18 @@ public class CommentModel : DataModel
     public List<string> Images { get; set; } = [];
     public int Likes { get; set; }
     public int Dislikes { get; set; }
-    public List<CommentModel> Comments = [];
-    public UserModel User = new();
+    public List<CommentModel> Comments { get; set; } = [];
+    public UserModel User { get; set; } = null!;
     
-    public List<UserModel> LikeUsers = [];
-    public List<UserModel> DislikeUsers = [];
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public List<UserModel> LikeUsers { get; set; } = [];
+    public List<UserModel> DislikeUsers { get; set; } = [];
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     [MaxLength(64)]
     public string UserId { get; set; } = "";
     
-    public PostModel Post = new();
+    public PostModel Post { get; set; } = null!;
     
     [MaxLength(64)]
     public string PostId { get; set; } = "";

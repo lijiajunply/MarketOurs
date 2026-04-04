@@ -77,7 +77,7 @@ public class LikeSyncErrorRecoveryTests
         var runTask = _service.StartAsync(cts.Token);
 
         // 等待足够的时间处理两条消息
-        await Task.Delay(200);
+        await Task.Delay(200, cts.Token);
         await _service.StopAsync(CancellationToken.None);
 
         // Assert
@@ -117,7 +117,7 @@ public class LikeSyncErrorRecoveryTests
         // Act
         var runTask = _service.StartAsync(cts.Token);
 
-        await Task.Delay(200);
+        await Task.Delay(200, cts.Token);
         await _service.StopAsync(CancellationToken.None);
 
         // Assert

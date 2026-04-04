@@ -41,8 +41,8 @@ public class UserModel : DataModel
     
     public List<PostModel> DislikesPosts { get; set; } = [];
     public List<CommentModel> DislikesComments { get; set; } = [];
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime LastLoginAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime LastLoginAt { get; set; } = DateTime.UtcNow;
 
     public bool IsActive { get; set; } = true;
 

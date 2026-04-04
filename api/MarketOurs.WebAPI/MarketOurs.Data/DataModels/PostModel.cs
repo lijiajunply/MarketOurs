@@ -12,16 +12,16 @@ public class PostModel : DataModel
 
     [Required] [MaxLength(1024)] public string Content { get; set; } = "";
     public List<string> Images { get; set; } = [];
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     [MaxLength(64)] public string UserId { get; set; } = "";
-    public UserModel User { get; set; } = new();
+    public UserModel User { get; set; } = null!;
 
-    public List<CommentModel> Comments = [];
+    public List<CommentModel> Comments { get; set; } = [];
 
-    public List<UserModel> LikeUsers = [];
-    public List<UserModel> DislikeUsers = [];
+    public List<UserModel> LikeUsers { get; set; } = [];
+    public List<UserModel> DislikeUsers { get; set; } = [];
     public int Likes { get; set; }
     public int Dislikes { get; set; }
 
