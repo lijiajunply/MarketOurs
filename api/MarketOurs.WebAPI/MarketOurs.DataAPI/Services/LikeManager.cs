@@ -27,6 +27,7 @@ public class LikeManager(
     LikeMessageQueue queue,
     IPostRepo postRepo,
     ICommentRepo commentRepo,
+    ILockService lockService,
     ILogger<LikeManager> logger) : ILikeManager
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
@@ -89,28 +90,38 @@ public class LikeManager(
         Func<Task<List<UserModel>?>> primaryDbFetcher,
         Func<Task<List<UserModel>?>> oppositeDbFetcher)
     {
-        var isLike = action == ActionType.Like;
-        
-        var primaryKey = target == TargetType.Post 
-            ? (isLike ? CacheKeys.PostLikes(targetId) : CacheKeys.PostDislikes(targetId))
-            : (isLike ? CacheKeys.CommentLikes(targetId) : CacheKeys.CommentDislikes(targetId));
-            
-        var oppositeKey = target == TargetType.Post 
-            ? (isLike ? CacheKeys.PostDislikes(targetId) : CacheKeys.PostLikes(targetId))
-            : (isLike ? CacheKeys.CommentDislikes(targetId) : CacheKeys.CommentLikes(targetId));
-        
-        var cancelAction = isLike ? ActionType.Unlike : ActionType.Undislike;
-        var oppositeCancelAction = isLike ? ActionType.Undislike : ActionType.Unlike;
+        var lockKey = $"lock:like:{targetId}:{userId}";
+        var lockValue = Guid.NewGuid().ToString();
 
-        if (_redis == null)
+        // 尝试获取分布式锁，防止用户连续快速点击
+        if (!await lockService.AcquireAsync(lockKey, lockValue, TimeSpan.FromSeconds(5)))
         {
-            // Fallback: just enqueue and let DB handle potential duplicates/mutual exclusivity
-            await queue.EnqueueAsync(new LikeMessage(target, action, targetId, userId));
+            logger.LogWarning("Failed to acquire lock for user {UserId} on {Target} {TargetId}", userId, target, targetId);
             return;
         }
 
         try
         {
+            var isLike = action == ActionType.Like;
+            
+            var primaryKey = target == TargetType.Post 
+                ? (isLike ? CacheKeys.PostLikes(targetId) : CacheKeys.PostDislikes(targetId))
+                : (isLike ? CacheKeys.CommentLikes(targetId) : CacheKeys.CommentDislikes(targetId));
+                
+            var oppositeKey = target == TargetType.Post 
+                ? (isLike ? CacheKeys.PostDislikes(targetId) : CacheKeys.PostLikes(targetId))
+                : (isLike ? CacheKeys.CommentDislikes(targetId) : CacheKeys.CommentLikes(targetId));
+            
+            var cancelAction = isLike ? ActionType.Unlike : ActionType.Undislike;
+            var oppositeCancelAction = isLike ? ActionType.Undislike : ActionType.Unlike;
+
+            if (_redis == null)
+            {
+                // Fallback: just enqueue and let DB handle potential duplicates/mutual exclusivity
+                await queue.EnqueueAsync(new LikeMessage(target, action, targetId, userId));
+                return;
+            }
+
             var db = _redis.GetDatabase();
 
             await EnsureCacheAsync(db, primaryKey, primaryDbFetcher);
@@ -141,6 +152,10 @@ public class LikeManager(
         {
             logger.LogWarning(ex, "Error toggling {Action} for {Target} {TargetId}", action, target, targetId);
             await queue.EnqueueAsync(new LikeMessage(target, action, targetId, userId));
+        }
+        finally
+        {
+            await lockService.ReleaseAsync(lockKey, lockValue);
         }
     }
 

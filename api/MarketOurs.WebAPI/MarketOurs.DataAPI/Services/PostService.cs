@@ -35,6 +35,7 @@ public class PostService(
     ILogger<PostService> logger) : IPostService
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
+    private static readonly SemaphoreSlim CacheLock = new(1, 1);
 
     // 缓存过期时间配置
     private static readonly TimeSpan LocalHotCacheTtl = TimeSpan.FromSeconds(30);
@@ -63,47 +64,61 @@ public class PostService(
             return memCachedList;
         }
 
-        var distCacheKey = CacheKeys.HotPostsDist(count);
-        List<PostDto>? dtos = null;
-
+        await CacheLock.WaitAsync();
         try
         {
-            var cachedData = await distributedCache.GetStringAsync(distCacheKey);
-            if (!string.IsNullOrEmpty(cachedData))
+            if (memoryCache.TryGetValue<List<PostDto>>(memCacheKey, out var retryMemCachedList) && retryMemCachedList != null)
             {
-                dtos = JsonSerializer.Deserialize<List<PostDto>>(cachedData);
+                foreach (var dto in retryMemCachedList) await FillDynamicData(dto);
+                return retryMemCachedList;
             }
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to read hot posts from Redis");
-        }
 
-        if (dtos == null)
-        {
-            var posts = await postRepo.GetHotAsync(count);
-            dtos = posts.Select(MapToDto).ToList();
+            var distCacheKey = CacheKeys.HotPostsDist(count);
+            List<PostDto>? dtos = null;
+
             try
             {
-                await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dtos), new DistributedCacheEntryOptions
+                var cachedData = await distributedCache.GetStringAsync(distCacheKey);
+                if (!string.IsNullOrEmpty(cachedData))
                 {
-                    AbsoluteExpirationRelativeToNow = DistHotCacheTtl
-                });
+                    dtos = JsonSerializer.Deserialize<List<PostDto>>(cachedData);
+                }
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Failed to write hot posts to Redis");
+                logger.LogWarning(ex, "Failed to read hot posts from Redis");
             }
+
+            if (dtos == null)
+            {
+                var posts = await postRepo.GetHotAsync(count);
+                dtos = posts.Select(MapToDto).ToList();
+                try
+                {
+                    await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dtos), new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = DistHotCacheTtl
+                    });
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to write hot posts to Redis");
+                }
+            }
+
+            memoryCache.Set(memCacheKey, dtos, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = LocalHotCacheTtl,
+                Size = 1
+            });
+
+            foreach (var dto in dtos) await FillDynamicData(dto);
+            return dtos;
         }
-
-        memoryCache.Set(memCacheKey, dtos, new MemoryCacheEntryOptions
+        finally
         {
-            AbsoluteExpirationRelativeToNow = LocalHotCacheTtl,
-            Size = 1
-        });
-
-        foreach (var dto in dtos) await FillDynamicData(dto);
-        return dtos;
+            CacheLock.Release();
+        }
     }
 
     public async Task<PostDto?> GetByIdAsync(string id)
@@ -114,48 +129,61 @@ public class PostService(
             return await FillDynamicData(memCachedDto);
         }
 
-        var distCacheKey = CacheKeys.PostDist(id);
-        PostDto? dto = null;
-
+        await CacheLock.WaitAsync();
         try
         {
-            var cachedData = await distributedCache.GetStringAsync(distCacheKey);
-            if (!string.IsNullOrEmpty(cachedData))
+            if (memoryCache.TryGetValue<PostDto>(memCacheKey, out var retryMemCachedDto) && retryMemCachedDto != null)
             {
-                dto = JsonSerializer.Deserialize<PostDto>(cachedData);
+                return await FillDynamicData(retryMemCachedDto);
             }
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to read post cache from Redis");
-        }
 
-        if (dto == null)
-        {
-            var post = await postRepo.GetByIdAsync(id);
-            if (post == null) return null;
-            dto = MapToDto(post);
+            var distCacheKey = CacheKeys.PostDist(id);
+            PostDto? dto = null;
 
             try
             {
-                await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dto), new DistributedCacheEntryOptions
+                var cachedData = await distributedCache.GetStringAsync(distCacheKey);
+                if (!string.IsNullOrEmpty(cachedData))
                 {
-                    AbsoluteExpirationRelativeToNow = DistPostCacheTtl
-                });
+                    dto = JsonSerializer.Deserialize<PostDto>(cachedData);
+                }
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Failed to write post cache to Redis");
+                logger.LogWarning(ex, "Failed to read post cache from Redis");
             }
+
+            if (dto == null)
+            {
+                var post = await postRepo.GetByIdAsync(id);
+                if (post == null) return null;
+                dto = MapToDto(post);
+
+                try
+                {
+                    await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dto), new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = DistPostCacheTtl
+                    });
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to write post cache to Redis");
+                }
+            }
+
+            memoryCache.Set(memCacheKey, dto, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = LocalPostCacheTtl,
+                Size = 1
+            });
+
+            return await FillDynamicData(dto);
         }
-
-        memoryCache.Set(memCacheKey, dto, new MemoryCacheEntryOptions
+        finally
         {
-            AbsoluteExpirationRelativeToNow = LocalPostCacheTtl,
-            Size = 1
-        });
-
-        return await FillDynamicData(dto);
+            CacheLock.Release();
+        }
     }
 
     private async Task<PostDto> FillDynamicData(PostDto dto)
