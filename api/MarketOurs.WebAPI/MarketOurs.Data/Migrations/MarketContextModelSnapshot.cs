@@ -102,7 +102,7 @@ namespace MarketOurs.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Commits");
+                    b.ToTable("comments");
                 });
 
             modelBuilder.Entity("MarketOurs.Data.DataModels.PostModel", b =>
@@ -149,7 +149,7 @@ namespace MarketOurs.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Posts");
+                    b.ToTable("posts");
                 });
 
             modelBuilder.Entity("MarketOurs.Data.DataModels.UserModel", b =>
@@ -211,7 +211,7 @@ namespace MarketOurs.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("users");
                 });
 
             modelBuilder.Entity("PostModelUserModel", b =>

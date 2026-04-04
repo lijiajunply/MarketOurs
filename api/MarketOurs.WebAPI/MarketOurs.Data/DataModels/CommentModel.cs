@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MarketOurs.Data.DataModels;
 
+[Table("comments")]
 public class CommentModel : DataModel
 {
     [Key]

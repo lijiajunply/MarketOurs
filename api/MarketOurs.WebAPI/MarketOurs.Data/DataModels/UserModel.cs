@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MarketOurs.Data.DataModels;
 
+[Table("users")]
 public class UserModel : DataModel
 {
     [Key]

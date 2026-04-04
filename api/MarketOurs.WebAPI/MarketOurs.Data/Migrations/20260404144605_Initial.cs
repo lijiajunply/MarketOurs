@@ -13,7 +13,7 @@ namespace MarketOurs.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "users",
                 columns: table => new
                 {
                     id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -32,11 +32,11 @@ namespace MarketOurs.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.id);
+                    table.PrimaryKey("PK_users", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Posts",
+                name: "posts",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -52,17 +52,17 @@ namespace MarketOurs.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Posts", x => x.Id);
+                    table.PrimaryKey("PK_posts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Posts_Users_UserId",
+                        name: "FK_posts_users_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Commits",
+                name: "comments",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -78,23 +78,23 @@ namespace MarketOurs.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Commits", x => x.Id);
+                    table.PrimaryKey("PK_comments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Commits_Commits_ParentCommentId",
+                        name: "FK_comments_comments_ParentCommentId",
                         column: x => x.ParentCommentId,
-                        principalTable: "Commits",
+                        principalTable: "comments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Commits_Posts_PostId",
+                        name: "FK_comments_posts_PostId",
                         column: x => x.PostId,
-                        principalTable: "Posts",
+                        principalTable: "posts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Commits_Users_UserId",
+                        name: "FK_comments_users_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -110,15 +110,15 @@ namespace MarketOurs.Data.Migrations
                 {
                     table.PrimaryKey("PK_PostModelUserModel", x => new { x.LikePostsId, x.LikeUsersId });
                     table.ForeignKey(
-                        name: "FK_PostModelUserModel_Posts_LikePostsId",
+                        name: "FK_PostModelUserModel_posts_LikePostsId",
                         column: x => x.LikePostsId,
-                        principalTable: "Posts",
+                        principalTable: "posts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PostModelUserModel_Users_LikeUsersId",
+                        name: "FK_PostModelUserModel_users_LikeUsersId",
                         column: x => x.LikeUsersId,
-                        principalTable: "Users",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -134,15 +134,15 @@ namespace MarketOurs.Data.Migrations
                 {
                     table.PrimaryKey("PK_PostModelUserModel1", x => new { x.DislikeUsersId, x.DislikesPostsId });
                     table.ForeignKey(
-                        name: "FK_PostModelUserModel1_Posts_DislikesPostsId",
+                        name: "FK_PostModelUserModel1_posts_DislikesPostsId",
                         column: x => x.DislikesPostsId,
-                        principalTable: "Posts",
+                        principalTable: "posts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PostModelUserModel1_Users_DislikeUsersId",
+                        name: "FK_PostModelUserModel1_users_DislikeUsersId",
                         column: x => x.DislikeUsersId,
-                        principalTable: "Users",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -158,15 +158,15 @@ namespace MarketOurs.Data.Migrations
                 {
                     table.PrimaryKey("PK_CommentModelUserModel", x => new { x.LikeCommentsId, x.LikeUsersId });
                     table.ForeignKey(
-                        name: "FK_CommentModelUserModel_Commits_LikeCommentsId",
+                        name: "FK_CommentModelUserModel_comments_LikeCommentsId",
                         column: x => x.LikeCommentsId,
-                        principalTable: "Commits",
+                        principalTable: "comments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CommentModelUserModel_Users_LikeUsersId",
+                        name: "FK_CommentModelUserModel_users_LikeUsersId",
                         column: x => x.LikeUsersId,
-                        principalTable: "Users",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -182,15 +182,15 @@ namespace MarketOurs.Data.Migrations
                 {
                     table.PrimaryKey("PK_CommentModelUserModel1", x => new { x.DislikeUsersId, x.DislikesCommentsId });
                     table.ForeignKey(
-                        name: "FK_CommentModelUserModel1_Commits_DislikesCommentsId",
+                        name: "FK_CommentModelUserModel1_comments_DislikesCommentsId",
                         column: x => x.DislikesCommentsId,
-                        principalTable: "Commits",
+                        principalTable: "comments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CommentModelUserModel1_Users_DislikeUsersId",
+                        name: "FK_CommentModelUserModel1_users_DislikeUsersId",
                         column: x => x.DislikeUsersId,
-                        principalTable: "Users",
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -206,18 +206,18 @@ namespace MarketOurs.Data.Migrations
                 column: "DislikesCommentsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Commits_ParentCommentId",
-                table: "Commits",
+                name: "IX_comments_ParentCommentId",
+                table: "comments",
                 column: "ParentCommentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Commits_PostId",
-                table: "Commits",
+                name: "IX_comments_PostId",
+                table: "comments",
                 column: "PostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Commits_UserId",
-                table: "Commits",
+                name: "IX_comments_UserId",
+                table: "comments",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -231,8 +231,8 @@ namespace MarketOurs.Data.Migrations
                 column: "DislikesPostsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Posts_UserId",
-                table: "Posts",
+                name: "IX_posts_UserId",
+                table: "posts",
                 column: "UserId");
         }
 
@@ -252,13 +252,13 @@ namespace MarketOurs.Data.Migrations
                 name: "PostModelUserModel1");
 
             migrationBuilder.DropTable(
-                name: "Commits");
+                name: "comments");
 
             migrationBuilder.DropTable(
-                name: "Posts");
+                name: "posts");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "users");
         }
     }
 }

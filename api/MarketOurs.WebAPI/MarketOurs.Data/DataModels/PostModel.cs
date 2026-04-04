@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MarketOurs.Data.DataModels;
 
+[Table("posts")]
 public class PostModel : DataModel
 {
     [Key] [Required] [MaxLength(64)] public string Id { get; set; } = "";
