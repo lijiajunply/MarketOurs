@@ -44,6 +44,8 @@ public class UserModel : DataModel
 
     public bool IsActive { get; set; } = true;
 
+    public bool IsEmailVerified { get; set; } = false;
+
     public override void Update(DataModel model)
     {
         if (model is not UserModel userModel)
@@ -55,5 +57,6 @@ public class UserModel : DataModel
         Avatar = userModel.Avatar;
         Info = userModel.Info;
         IsActive = userModel.IsActive;
+        IsEmailVerified = userModel.IsEmailVerified;
     }
 }

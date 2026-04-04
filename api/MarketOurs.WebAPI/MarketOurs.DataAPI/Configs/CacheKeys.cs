@@ -45,5 +45,11 @@ public static class CacheKeys
     // 用户访问令牌 (Redis)
     public static string UserAccessToken(string userId, string deviceType) => $"access_token:{userId}_{deviceType}";
 
+    // 邮箱验证码 (Redis) - Key 为验证码，Value 为 UserId
+    public static string VerificationToken(string token) => $"verify_token:{token}";
+
+    // 重置密码验证码 (Redis) - Key 为验证码，Value 为 UserId
+    public static string ResetToken(string token) => $"reset_token:{token}";
+
     #endregion
 }
