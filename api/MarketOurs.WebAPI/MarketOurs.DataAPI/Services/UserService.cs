@@ -39,6 +39,31 @@ public class UserService(
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
 
+    private const string VerificationEmailTemplate = @"
+        <div style='font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 5px;'>
+            <h2 style='color: #333;'>欢迎加入 MarketOurs</h2>
+            <p>感谢您的注册！请使用以下验证码完成邮箱验证：</p>
+            <div style='background: #f4f4f4; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 5px; color: #007bff;'>
+                {{ token }}
+            </div>
+            <p style='color: #666; font-size: 14px; margin-top: 20px;'>
+                该验证码 24 小时内有效。如果您没有注册过 MarketOurs，请忽略此邮件。
+            </p>
+        </div>";
+
+    private const string PasswordResetTemplate = @"
+        <div style='font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 5px;'>
+            <h2 style='color: #333;'>重置您的密码</h2>
+            <p>您好 {{ name }}，我们收到了重置您 MarketOurs 账号密码的请求。</p>
+            <p>请使用以下验证码进行重置：</p>
+            <div style='background: #fff3cd; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 5px; color: #856404;'>
+                {{ token }}
+            </div>
+            <p style='color: #666; font-size: 14px; margin-top: 20px;'>
+                该验证码 1 小时内有效。如果您没有申请过重置密码，请务必检查您的账号安全。
+            </p>
+        </div>";
+
     public async Task<List<UserDto>> GetAllAsync()
     {
         var users = await userRepo.GetAllAsync();
@@ -113,8 +138,7 @@ public class UserService(
         }
 
         var subject = "欢迎加入 MarketOurs - 邮箱验证";
-        var body = $"您的验证码是: <b>{token}</b><br/>该验证码 24 小时内有效。";
-        return await emailService.SendEmailAsync(user.Email, subject, body, true);
+        return await emailService.SendEmailWithTemplateAsync(user.Email, subject, VerificationEmailTemplate, new { token });
     }
 
     public async Task<bool> VerifyEmailAsync(string token)
@@ -204,8 +228,8 @@ public class UserService(
         if (!string.IsNullOrEmpty(user.Email) && account.Contains('@'))
         {
             var subject = "MarketOurs - 重置密码";
-            var body = $"您正在申请重置密码，验证码是: <b>{token}</b><br/>该验证码 1 小时内有效。";
-            return await emailService.SendEmailAsync(user.Email, subject, body, true);
+            return await emailService.SendEmailWithTemplateAsync(user.Email, subject, PasswordResetTemplate, 
+                new { name = user.Name ?? "用户", token });
         }
 
         if (!string.IsNullOrEmpty(user.Phone))

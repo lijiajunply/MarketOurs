@@ -26,6 +26,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<ITemplateService, FluidTemplateService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ILoginService, LoginService>();
         
