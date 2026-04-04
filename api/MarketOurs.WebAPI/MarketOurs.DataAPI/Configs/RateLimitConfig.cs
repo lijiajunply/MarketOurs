@@ -53,40 +53,54 @@ public class RateLimitConfig
 
     public List<RateLimitPolicy> Policies { get; set; } =
     [
+        // 全局默认：令牌桶算法。允许适度突发，平滑限流（最大突发100，每10秒恢复20，稳态120/分）
         new()
         {
             Name = "default",
             PathPattern = "*",
             Algorithm = RateLimitAlgorithm.TokenBucket,
-            PermitLimit = 200,
-            ReplenishmentPeriod = TimeSpan.FromMinutes(1),
-            TokensPerPeriod = 200,
+            PermitLimit = 100,
+            ReplenishmentPeriod = TimeSpan.FromSeconds(10),
+            TokensPerPeriod = 20,
             Priority = 100
         },
+        // 登录认证：滑动窗口。严格限制防暴力破解（每分钟30次）
         new()
         {
             Name = "auth",
             PathPattern = "/auth/*",
-            Algorithm = RateLimitAlgorithm.FixedWindow,
+            Algorithm = RateLimitAlgorithm.SlidingWindow,
             PermitLimit = 30,
             Window = TimeSpan.FromMinutes(1),
             Priority = 10
         },
+        // 账号注册：固定窗口。防止机器批量恶意注册（每4分钟10次）
         new()
         {
             Name = "register",
-            PathPattern = "/users/register",
+            PathPattern = "/auth/register",
             Algorithm = RateLimitAlgorithm.FixedWindow,
             PermitLimit = 10,
-            Window = TimeSpan.FromMinutes(5),
+            Window = TimeSpan.FromMinutes(4),
             Priority = 10
         },
+        // 文件上传：防止恶意消耗服务器带宽和I/O（每分钟10次）
+        new()
+        {
+            Name = "upload",
+            PathPattern = "/file/*",
+            Algorithm = RateLimitAlgorithm.SlidingWindow,
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            Priority = 20
+        },
+        // 管理后台：管理员或内部调用通常需要较高的操作配额（每分钟300次）
         new()
         {
             Name = "admin",
             PathPattern = "/admin/*",
             Algorithm = RateLimitAlgorithm.SlidingWindow,
-            PermitLimit = 100,
+            PermitLimit = 300,
             Window = TimeSpan.FromMinutes(1),
             Priority = 50
         }
