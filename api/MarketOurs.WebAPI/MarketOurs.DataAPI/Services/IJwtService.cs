@@ -1,18 +1,20 @@
 using System.Security.Claims;
 using MarketOurs.Data.DTOs;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MarketOurs.DataAPI.Services;
 
 public interface IJwtService
 {
-    public Task<string> GetAccessToken(UserDto user);
-    public Task<string> GetRefreshToken(string token, string deviceType);
-    (bool isValid, IEnumerable<Claim> claims) ValidateAccessToken(string token);
+    public Task<string> GetAccessToken(UserDto user, DeviceType deviceType);
+    public Task<string> GetRefreshToken(DeviceType deviceType);
+
+    (bool isValid, IEnumerable<Claim> claims) ValidateAccessToken(string token,
+        TokenValidationParameters? validationParameters = null);
 }
 
 public enum DeviceType
 {
-    WeChat,
     Mobile,
     Desktop,
     Web,
@@ -26,13 +28,8 @@ public static class DeviceTypeExtensions
         return deviceType.ToString();
     }
 
-    public static DeviceType? GetDeviceTypeEnum(this string type)
+    public static DeviceType GetDeviceTypeEnum(this string type)
     {
-        if (Enum.TryParse(type, out DeviceType result))
-        {
-            return result;
-        }
-
-        return null;
+        return Enum.TryParse(type, out DeviceType result) ? result : DeviceType.Unknown;
     }
 }

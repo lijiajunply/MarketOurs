@@ -35,18 +35,16 @@ public class LoginService(
         }
 
         // 无论如何，每次登录都签发一个具有完整有效期的新 Token
-        var token = await jwtService.GetAccessToken(user);
+        var token = await jwtService.GetAccessToken(user, deviceType.GetDeviceTypeEnum());
 
         var db = _redis?.GetDatabase();
-        if (db != null)
-        {
-            var key = $"access_token:{user.Id}_{deviceType}";
-            var refreshToken = await jwtService.GetRefreshToken(token, deviceType);
+        if (db == null) return token;
+        var key = $"access_token:{user.Id}_{deviceType}";
+        var refreshToken = await jwtService.GetRefreshToken(deviceType.GetDeviceTypeEnum());
 
-            // 使用异步方法将新 Token 存入 Redis，直接覆盖旧值 (可用于踢掉旧设备的会话)
-            await db.StringSetAsync(key, token, TimeSpan.FromHours(2));
-            await db.StringSetAsync(refreshToken, user.Id, TimeSpan.FromDays(3));
-        }
+        // 使用异步方法将新 Token 存入 Redis，直接覆盖旧值 (可用于踢掉旧设备的会话)
+        await db.StringSetAsync(key, token, TimeSpan.FromHours(2));
+        await db.StringSetAsync(refreshToken, user.Id, TimeSpan.FromDays(3));
 
         return token;
     }

@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Mvc;
+
 namespace MarketOurs.WebAPI.Controllers;
 
-public class PostController
+[ApiController]
+[Route("[controller]")]
+public class PostController : ControllerBase
 {
-    
 }

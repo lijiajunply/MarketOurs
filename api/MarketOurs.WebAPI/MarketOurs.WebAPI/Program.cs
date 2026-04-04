@@ -79,44 +79,37 @@ builder.Services.AddAuthorizationCore();
 
 // 配置JWT认证 - 注意：在测试环境中，我们将使用服务注入的方式获取RsaKeyManager，
 // 而不是直接创建实例，这样可以允许测试代码替换该服务
-var rsaKeyManager = new RsaKeyManager(jwtConfig,
-    LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole()).CreateLogger<RsaKeyManager>());
-
-// 尝试确保密钥有效，但如果失败（例如在测试环境中），我们将使用临时密钥
-RSAParameters rsaParams;
-try
-{
-    rsaKeyManager.EnsureKeysValid();
-    var publicKey = rsaKeyManager.GetCurrentPublicKey();
-    rsaParams = publicKey.ExportParameters(false);
-}
-catch (Exception)
-{
-    // 在测试环境或无法访问文件系统的环境中，生成临时密钥
-    using var rsa = RSA.Create(2048);
-    rsaParams = rsa.ExportParameters(false);
-}
-
-// 从RSA密钥中导出公钥的SHA256哈希值作为KeyId，与生成令牌时使用的KeyId保持一致
-var publicKeyBytes = RSA.Create(rsaParams).ExportRSAPublicKey();
-var keyId = Convert.ToBase64String(SHA256.HashData(publicKeyBytes))[..16];
-var rsaSecurityKey = new RsaSecurityKey(rsaParams) { KeyId = keyId };
-
-builder.Services.AddAuthentication(options =>
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<RsaKeyManager, JwtConfig>((options, rsaKeyManager, config) =>
     {
-        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
+        // 尝试确保密钥有效，但如果失败（例如在测试环境中），我们将使用临时密钥
+        RSAParameters rsaParams;
+        try
+        {
+            rsaKeyManager.EnsureKeysValid();
+            var publicKey = rsaKeyManager.GetCurrentPublicKey();
+            rsaParams = publicKey.ExportParameters(false);
+        }
+        catch (Exception)
+        {
+            // 在测试环境或无法访问文件系统的环境中，生成临时密钥
+            using var rsa = RSA.Create(2048);
+            rsaParams = rsa.ExportParameters(false);
+        }
+
+        // 从RSA密钥中导出公钥的SHA256哈希值作为KeyId，与生成令牌时使用的KeyId保持一致
+        var publicKeyBytes = RSA.Create(rsaParams).ExportRSAPublicKey();
+        var keyId = Convert.ToBase64String(SHA256.HashData(publicKeyBytes))[..16];
+        var rsaSecurityKey = new RsaSecurityKey(rsaParams) { KeyId = keyId };
+
         options.TokenValidationParameters = new TokenValidationParameters()
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = rsaSecurityKey,
             ValidateIssuer = true,
-            ValidIssuer = jwtConfig.Issuer,
+            ValidIssuer = config.Issuer,
             ValidateAudience = true,
-            ValidAudience = jwtConfig.Audience,
+            ValidAudience = config.Audience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1),
             RequireExpirationTime = true,
@@ -140,7 +133,14 @@ builder.Services.AddAuthentication(options =>
                 return Task.CompletedTask;
             }
         };
+    });
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
+    .AddJwtBearer()
     .AddCookie("OAuth2", options =>
     {
         options.LoginPath = "/OAuth/login";
@@ -339,6 +339,9 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // 注册数据脱敏中间件
 app.UseMiddleware<DataMaskingMiddleware>();
+
+// 限流中间件
+app.UseMiddleware<RateLimitMiddleware>();
 
 // 配置安全响应头
 app.Use(async (context, next) =>

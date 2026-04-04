@@ -1,6 +1,10 @@
+using Microsoft.AspNetCore.Mvc;
+
 namespace MarketOurs.WebAPI.Controllers;
 
-public class CommentController
+[ApiController]
+[Route("[controller]")]
+public class CommentController : ControllerBase
 {
     
 }
