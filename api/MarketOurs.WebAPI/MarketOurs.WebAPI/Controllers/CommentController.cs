@@ -103,14 +103,15 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         
-        // 验证要修改的评论是否属于当前用户
+        // 验证要修改的评论是否属于当前用户或具有Admin权限
         var existingComment = await commentService.GetByIdAsync(id);
         if (existingComment == null)
         {
             return ApiResponse<CommentDto>.Fail(404, "评论不存在");
         }
         
-        if (existingComment.UserId != userId)
+        var isAdmin = User.IsInRole("Admin");
+        if (existingComment.UserId != userId && !isAdmin)
         {
             return ApiResponse<CommentDto>.Fail(403, "无权修改他人的评论");
         }
@@ -133,14 +134,15 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         
-        // 验证要删除的评论是否属于当前用户
+        // 验证要删除的评论是否属于当前用户或具有Admin权限
         var existingComment = await commentService.GetByIdAsync(id);
         if (existingComment == null)
         {
             return ApiResponse.Fail(404, "评论不存在");
         }
         
-        if (existingComment.UserId != userId)
+        var isAdmin = User.IsInRole("Admin");
+        if (existingComment.UserId != userId && !isAdmin)
         {
             return ApiResponse.Fail(403, "无权删除他人的评论");
         }

@@ -45,11 +45,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     {
         logger.LogInformation("刷新令牌, 设备类型: {DeviceType}", request.DeviceType);
         var token = await loginService.Login(request.RefreshToken, request.DeviceType);
-        if (string.IsNullOrEmpty(token))
-        {
-            return ApiResponse<string>.Fail(401, "刷新令牌无效或已过期");
-        }
-        return ApiResponse<string>.Success(token, "刷新成功");
+        return string.IsNullOrEmpty(token)
+            ? ApiResponse<string>.Fail(401, "刷新令牌无效或已过期")
+            : ApiResponse<string>.Success(token, "刷新成功");
     }
 
     /// <summary>
@@ -64,11 +62,11 @@ public class AuthController(ILoginService loginService, IUserService userService
         {
             return ApiResponse.Fail(401, "未授权");
         }
-        
+
         logger.LogInformation("用户注销: {UserId}, 设备类型: {DeviceType}", userId, deviceType);
         var result = await loginService.Logout(userId, deviceType);
-        return result 
-            ? ApiResponse.Success("注销成功") 
+        return result
+            ? ApiResponse.Success("注销成功")
             : ApiResponse.Fail(500, "注销失败");
     }
 
@@ -97,20 +95,16 @@ public class AuthController(ILoginService loginService, IUserService userService
 
 public class LoginRequest
 {
-    [Required]
-    [EmailAddress]
-    public string Email { get; set; } = string.Empty;
+    [Required] [EmailAddress] public string Email { get; set; } = string.Empty;
 
-    [Required]
-    public string Password { get; set; } = string.Empty;
+    [Required] public string Password { get; set; } = string.Empty;
 
     public string DeviceType { get; set; } = "Web";
 }
 
 public class RefreshRequest
 {
-    [Required]
-    public string RefreshToken { get; set; } = string.Empty;
+    [Required] public string RefreshToken { get; set; } = string.Empty;
 
     public string DeviceType { get; set; } = "Web";
 }

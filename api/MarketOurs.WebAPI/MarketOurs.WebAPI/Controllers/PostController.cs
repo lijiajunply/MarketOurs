@@ -86,7 +86,8 @@ public class PostController(IPostService postService) : ControllerBase
             return ApiResponse<PostDto>.Fail(404, "帖子不存在");
         }
 
-        if (existingPost.UserId != userId)
+        var isAdmin = User.IsInRole("Admin");
+        if (existingPost.UserId != userId && !isAdmin)
         {
             return ApiResponse<PostDto>.Fail(403, "无权修改他人的帖子");
         }
@@ -119,7 +120,8 @@ public class PostController(IPostService postService) : ControllerBase
             return ApiResponse.Fail(404, "帖子不存在");
         }
 
-        if (existingPost.UserId != userId)
+        var isAdmin = User.IsInRole("Admin");
+        if (existingPost.UserId != userId && !isAdmin)
         {
             return ApiResponse.Fail(403, "无权删除他人的帖子");
         }
