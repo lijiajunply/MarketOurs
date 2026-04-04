@@ -25,50 +25,52 @@ public class LikeSyncBackgroundService(
                 var user = await userRepo.GetByIdAsync(message.UserId);
                 if (user == null)
                 {
-                    logger.LogWarning("User {UserId} not found when syncing {Action} for {Target} {TargetId}", 
+                    logger.LogWarning("User {UserId} not found when syncing {Action} for {Target} {TargetId}",
                         message.UserId, message.Action, message.Target, message.TargetId);
                     continue;
                 }
 
                 if (message.Target == TargetType.Post)
                 {
-                    if (message.Action == ActionType.Like)
+                    switch (message.Action)
                     {
-                        await postRepo.SetLikesAsync(user, message.TargetId);
-                    }
-                    else if (message.Action == ActionType.Dislike)
-                    {
-                        await postRepo.SetDislikesAsync(user, message.TargetId);
-                    }
-                    else if (message.Action == ActionType.Unlike)
-                    {
-                        await postRepo.DeleteLikesAsync(message.TargetId, user.Id);
-                    }
-                    else if (message.Action == ActionType.Undislike)
-                    {
-                        await postRepo.DeleteDislikesAsync(message.TargetId, user.Id);
+                        case ActionType.Like:
+                            await postRepo.SetLikesAsync(user, message.TargetId);
+                            break;
+                        case ActionType.Dislike:
+                            await postRepo.SetDislikesAsync(user, message.TargetId);
+                            break;
+                        case ActionType.Unlike:
+                            await postRepo.DeleteLikesAsync(message.TargetId, user.Id);
+                            break;
+                        case ActionType.Undislike:
+                            await postRepo.DeleteDislikesAsync(message.TargetId, user.Id);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
                 else if (message.Target == TargetType.Comment)
                 {
-                    if (message.Action == ActionType.Like)
+                    switch (message.Action)
                     {
-                        await commentRepo.SetLikesAsync(user, message.TargetId);
-                    }
-                    else if (message.Action == ActionType.Dislike)
-                    {
-                        await commentRepo.SetDislikesAsync(user, message.TargetId);
-                    }
-                    else if (message.Action == ActionType.Unlike)
-                    {
-                        await commentRepo.DeleteLikesAsync(message.TargetId, user.Id);
-                    }
-                    else if (message.Action == ActionType.Undislike)
-                    {
-                        await commentRepo.DeleteDislikesAsync(message.TargetId, user.Id);
+                        case ActionType.Like:
+                            await commentRepo.SetLikesAsync(user, message.TargetId);
+                            break;
+                        case ActionType.Dislike:
+                            await commentRepo.SetDislikesAsync(user, message.TargetId);
+                            break;
+                        case ActionType.Unlike:
+                            await commentRepo.DeleteLikesAsync(message.TargetId, user.Id);
+                            break;
+                        case ActionType.Undislike:
+                            await commentRepo.DeleteDislikesAsync(message.TargetId, user.Id);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
-                
+
                 logger.LogDebug("Successfully synced {Action} for {Target} {TargetId} by user {UserId}",
                     message.Action, message.Target, message.TargetId, message.UserId);
             }
@@ -77,7 +79,7 @@ public class LikeSyncBackgroundService(
                 logger.LogError(ex, "Error occurred executing like/dislike sync logic for message {@Message}", message);
             }
         }
-        
+
         logger.LogInformation("LikeSyncBackgroundService is stopping.");
     }
 }

@@ -23,11 +23,6 @@ public enum DeviceType
 
 public static class DeviceTypeExtensions
 {
-    public static string GetString(this DeviceType deviceType)
-    {
-        return deviceType.ToString();
-    }
-
     public static DeviceType GetDeviceTypeEnum(this string type)
     {
         return Enum.TryParse(type, out DeviceType result) ? result : DeviceType.Unknown;

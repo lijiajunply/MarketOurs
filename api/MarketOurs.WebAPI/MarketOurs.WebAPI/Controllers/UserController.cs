@@ -47,12 +47,12 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     [Authorize(Roles = "Admin")]
     public async Task<ApiResponse<UserDto>> CreateUser([FromBody] UserCreateDto request)
     {
-        logger.LogInformation("Admin creating user: {Email}, Role: {Role}", request.Email, request.Role);
+        logger.LogInformation("Admin creating user: {Account}, Role: {Role}", request.Account, request.Role);
         
-        var existingUser = await userService.GetByEmailAsync(request.Email);
+        var existingUser = await userService.GetByAccountAsync(request.Account);
         if (existingUser != null)
         {
-            return ApiResponse<UserDto>.Fail(400, "该邮箱已被注册");
+            return ApiResponse<UserDto>.Fail(400, "该账号已被注册");
         }
 
         var user = await userService.CreateAsync(request);

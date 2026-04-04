@@ -1,5 +1,6 @@
 using MarketOurs.Data;
 using MarketOurs.Data.DataModels;
+using MarketOurs.DataAPI.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketOurs.DataAPI.Repos;
@@ -8,7 +9,7 @@ public interface IUserRepo
 {
     Task<List<UserModel>> GetAllAsync();
     Task<UserModel?> GetByIdAsync(string id);
-    Task<UserModel?> GetByEmailAsync(string email);
+    Task<UserModel?> GetByAccountAsync(string account);
     Task<List<UserModel>> GetByDateAsync(DateTime before, DateTime after);
     Task<List<PostModel>?> GetPostsAsync(string id);
     Task<List<CommentModel>?> GetCommentsAsync(string id);
@@ -38,11 +39,14 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
             .FirstOrDefaultAsync();
     }
 
-    public async Task<UserModel?> GetByEmailAsync(string email)
+    public async Task<UserModel?> GetByAccountAsync(string account)
     {
+        if (string.IsNullOrWhiteSpace(account)) return null;
+
         await using var context = await factory.CreateDbContextAsync();
+        
         return await context.Users
-            .Where(x => x.Email == email)
+            .Where(x => account.Contains('@') ? x.Email == account : x.Phone == account) // 如果含有 @ 的话就是 email
             .FirstOrDefaultAsync();
     }
 
@@ -117,6 +121,14 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
     public async Task CreateAsync(UserModel user)
     {
         await using var context = await factory.CreateDbContextAsync();
+        
+        var account = string.IsNullOrEmpty(user.Email)  ? user.Phone : user.Email;
+
+        if (await context.Users.AnyAsync(x => account.Contains('@') ? x.Email == account : x.Phone == account))
+        {
+            throw new AuthException(ErrorCode.ResourceAlreadyExists, "已有相关验证");
+        }
+        
         user.Id = user.GetHashKey();
         await context.Users.AddAsync(user);
         await context.SaveChangesAsync();

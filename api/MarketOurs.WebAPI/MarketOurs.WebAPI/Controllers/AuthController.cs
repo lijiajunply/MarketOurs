@@ -4,6 +4,7 @@ using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
 
 namespace MarketOurs.WebAPI.Controllers;
 
@@ -19,8 +20,8 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse<string>> Login([FromBody] LoginRequest request)
     {
-        logger.LogInformation("用户尝试登录: {Email}", request.Email);
-        var token = await loginService.Login(request.Email, request.Password, request.DeviceType);
+        logger.LogInformation("用户尝试登录: {Account}", request.Account);
+        var token = await loginService.Login(request.Account, request.Password, request.DeviceType);
         return ApiResponse<string>.Success(token, "登录成功");
     }
 
@@ -31,7 +32,7 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse<UserDto>> Register([FromBody] UserCreateDto request)
     {
-        logger.LogInformation("新用户注册: {Email}", request.Email);
+        logger.LogInformation("新用户注册: {Account}", request.Account);
         var user = await userService.CreateAsync(request);
         return ApiResponse<UserDto>.Success(user, "注册成功");
     }
@@ -106,17 +107,30 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
+    /// 验证手机号
+    /// </summary>
+    [HttpPost("verify-phone")]
+    [AllowAnonymous]
+    public async Task<ApiResponse> VerifyPhone([FromBody] VerifyCodeRequest request)
+    {
+        var result = await userService.VerifyPhoneCodeAsync(request.Code);
+        return result
+            ? ApiResponse.Success("手机号验证成功，账号已激活")
+            : ApiResponse.Fail(400, "验证码无效或已过期");
+    }
+
+    /// <summary>
     /// 忘记密码 - 发送重置码
     /// </summary>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     public async Task<ApiResponse> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
-        var result = await userService.ForgotPasswordAsync(request.Email);
-        // 处于安全考虑，无论邮箱是否存在都返回相同消息 (或者简单点直接告诉用户)
+        var result = await userService.ForgotPasswordAsync(request.Account);
+        // 处于安全考虑，无论账号是否存在都返回相同消息 (或者简单点直接告诉用户)
         return result
-            ? ApiResponse.Success("重置密码验证码已发送至您的邮箱")
-            : ApiResponse.Fail(404, "该邮箱未注册");
+            ? ApiResponse.Success("重置密码验证码已发送至您的邮箱或手机")
+            : ApiResponse.Fail(404, "该账号未注册");
     }
 
     /// <summary>
@@ -133,58 +147,147 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 重新发送验证邮件
+    /// 重新发送验证邮件或短信 (根据账号)
     /// </summary>
     [HttpPost("resend-verification")]
     [AllowAnonymous]
     public async Task<ApiResponse> ResendVerification([FromBody] ForgotPasswordRequest request)
     {
-        var user = await userService.GetByEmailAsync(request.Email);
+        var user = await userService.GetByAccountAsync(request.Account);
         if (user == null) return ApiResponse.Fail(404, "用户不存在");
         if (user.IsActive) return ApiResponse.Fail(400, "账号已激活");
 
-        await userService.SendVerificationEmailAsync(user.Id);
-        return ApiResponse.Success("激活邮件已重新发送");
+        if (!string.IsNullOrEmpty(user.Email) && request.Account.Contains('@'))
+        {
+            await userService.SendVerificationEmailAsync(user.Id);
+            return ApiResponse.Success("激活邮件已重新发送");
+        }
+
+        if (!string.IsNullOrEmpty(user.Phone))
+        {
+            await userService.SendPhoneVerificationCodeAsync(user.Id);
+            return ApiResponse.Success("激活短信已重新发送");
+        }
+
+        return ApiResponse.Fail(400, "无法发送验证码");
     }
 
     /// <summary>
-    /// 发送当前账号的验证码 (需登录)
+    /// 发送当前账号的邮箱验证码 (需登录)
     /// </summary>
-    [HttpPost("send-code")]
+    [HttpPost("send-email-code")]
     [Authorize]
-    public async Task<ApiResponse> SendCode()
+    public async Task<ApiResponse> SendEmailCode()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
 
         var result = await userService.SendVerificationEmailAsync(userId);
-        return result 
-            ? ApiResponse.Success("验证码已发送至您的邮箱") 
+        return result
+            ? ApiResponse.Success("验证码已发送至您的邮箱")
             : ApiResponse.Fail(500, "发送失败，请稍后重试");
     }
 
     /// <summary>
-    /// 校验当前账号的验证码 (需登录)
+    /// 发送当前账号的手机验证码 (需登录)
     /// </summary>
-    [HttpPost("verify-code")]
+    [HttpPost("send-phone-code")]
     [Authorize]
-    public async Task<ApiResponse> VerifyCode([FromBody] VerifyCodeRequest request)
+    public async Task<ApiResponse> SendPhoneCode()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
 
-        // 我们复用已有的 VerifyEmailAsync，但它是全局查 Token 的
-        // 为了安全，后续可以优化为 VerifyUserCodeAsync(userId, token)
+        var result = await userService.SendPhoneVerificationCodeAsync(userId);
+        return result
+            ? ApiResponse.Success("验证码已发送至您的手机")
+            : ApiResponse.Fail(500, "发送失败，请稍后重试");
+    }
+
+    /// <summary>
+    /// 校验当前账号的邮箱验证码 (需登录)
+    /// </summary>
+    [HttpPost("verify-email-code")]
+    [Authorize]
+    public async Task<ApiResponse> VerifyEmailCode([FromBody] VerifyCodeRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
+
         var result = await userService.VerifyEmailAsync(request.Code);
-        return result 
-            ? ApiResponse.Success("邮箱验证成功") 
+        return result
+            ? ApiResponse.Success("邮箱验证成功")
             : ApiResponse.Fail(400, "验证码无效或已过期");
+    }
+
+    /// <summary>
+    /// 第三方登录入口
+    /// </summary>
+    [HttpGet("external-login")]
+    [AllowAnonymous]
+    public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string returnUrl = "/")
+    {
+        var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Auth", new { returnUrl });
+        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        return Challenge(properties, provider);
+    }
+
+    /// <summary>
+    /// 第三方登录回调
+    /// </summary>
+    [HttpGet("external-login-callback")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ExternalLoginCallback([FromQuery] string returnUrl = "/",
+        [FromQuery] string? remoteError = null)
+    {
+        if (remoteError != null)
+        {
+            return Redirect($"{returnUrl}?error={Uri.EscapeDataString(remoteError)}");
+        }
+
+        var result = await HttpContext.AuthenticateAsync("OAuth2");
+        if (!result.Succeeded || result.Principal == null)
+        {
+            return Redirect($"{returnUrl}?error={Uri.EscapeDataString("认证失败")}");
+        }
+
+        var email = result.Principal.FindFirstValue(ClaimTypes.Email);
+        var name = result.Principal.FindFirstValue(ClaimTypes.Name) ?? email?.Split('@')[0];
+        var avatar = result.Principal.FindFirstValue("urn:github:avatar")
+                     ?? result.Principal.FindFirstValue("image")
+                     ?? string.Empty;
+
+        if (string.IsNullOrEmpty(email))
+        {
+            var nameIdentifier = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(nameIdentifier))
+            {
+                return Redirect($"{returnUrl}?error={Uri.EscapeDataString("无法获取用户邮箱信息")}");
+            }
+
+            email = $"{nameIdentifier}@external.local";
+        }
+
+        try
+        {
+            var token = await loginService.LoginWithOAuthAsync(email, name ?? "User", avatar, "Web");
+
+            // 登录成功后注销外部cookie，保持状态清晰
+            await HttpContext.SignOutAsync("OAuth2");
+
+            return Redirect($"{returnUrl}?token={Uri.EscapeDataString(token)}");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "第三方登录失败");
+            return Redirect($"{returnUrl}?error={Uri.EscapeDataString("登录处理失败")}");
+        }
     }
 }
 
 public class LoginRequest
 {
-    [Required] [EmailAddress] public string Email { get; set; } = string.Empty;
+    [Required] public string Account { get; set; } = string.Empty;
 
     [Required] public string Password { get; set; } = string.Empty;
 
@@ -200,7 +303,7 @@ public class RefreshRequest
 
 public class ForgotPasswordRequest
 {
-    [Required] [EmailAddress] public string Email { get; set; } = string.Empty;
+    [Required] public string Account { get; set; } = string.Empty;
 }
 
 public class ResetPasswordRequest

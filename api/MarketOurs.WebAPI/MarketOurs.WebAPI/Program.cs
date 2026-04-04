@@ -153,14 +153,35 @@ builder.Services.AddAuthentication(options =>
     .AddJwtBearer()
     .AddCookie("OAuth2", options =>
     {
-        options.LoginPath = "/OAuth/login";
-        options.LogoutPath = "/OAuth/logout";
-        options.AccessDeniedPath = "/OAuth/access-denied";
+        options.LoginPath = "/Auth/login";
+        options.LogoutPath = "/Auth/logout";
+        options.AccessDeniedPath = "/Auth/access-denied";
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.SlidingExpiration = true;
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.None;
+    })
+    .AddGitHub(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"] ?? "default";
+        options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"] ?? "default";
+        options.CallbackPath = "/api/auth/signin-github";
+        options.SignInScheme = "OAuth2";
+    })
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "default";
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "default";
+        options.CallbackPath = "/api/auth/signin-google";
+        options.SignInScheme = "OAuth2";
+    })
+    .AddWeixin(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Weixin:ClientId"] ?? "default";
+        options.ClientSecret = builder.Configuration["Authentication:Weixin:ClientSecret"] ?? "default";
+        options.CallbackPath = "/api/auth/signin-weixin";
+        options.SignInScheme = "OAuth2";
     });
 
 #endregion

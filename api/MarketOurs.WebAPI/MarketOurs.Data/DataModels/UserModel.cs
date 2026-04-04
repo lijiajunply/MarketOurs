@@ -10,10 +10,11 @@ public class UserModel : DataModel
     [MaxLength(64)]
     public string Id { get; set; } = "";
 
-    [Required]
-    [EmailAddress]
     [MaxLength(128)]
     public string Email { get; set; } = "";
+
+    [MaxLength(32)]
+    public string Phone { get; set; } = "";
 
     [Required] [MaxLength(128)] public string Password { get; set; } = "";
 
@@ -44,13 +45,16 @@ public class UserModel : DataModel
 
     public bool IsActive { get; set; } = true;
 
-    public bool IsEmailVerified { get; set; } = false;
+    public bool IsEmailVerified { get; set; }
+    
+    public bool IsPhoneVerified { get; set; }
 
     public override void Update(DataModel model)
     {
         if (model is not UserModel userModel)
             return;
         Email = userModel.Email;
+        Phone = userModel.Phone;
         Password = userModel.Password;
         Name = userModel.Name;
         Role = userModel.Role;
@@ -58,5 +62,6 @@ public class UserModel : DataModel
         Info = userModel.Info;
         IsActive = userModel.IsActive;
         IsEmailVerified = userModel.IsEmailVerified;
+        IsPhoneVerified = userModel.IsPhoneVerified;
     }
 }
