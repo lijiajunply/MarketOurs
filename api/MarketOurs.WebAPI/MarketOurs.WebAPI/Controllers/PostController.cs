@@ -41,11 +41,7 @@ public class PostController(IPostService postService) : ControllerBase
     {
         await postService.IncrementWatchAsync(id);
         var post = await postService.GetByIdAsync(id);
-        if (post == null)
-        {
-            return ApiResponse<PostDto>.Fail(404, "帖子不存在");
-        }
-        return ApiResponse<PostDto>.Success(post, "获取成功");
+        return post == null ? ApiResponse<PostDto>.Fail(404, "帖子不存在") : ApiResponse<PostDto>.Success(post, "获取成功");
     }
 
     /// <summary>
@@ -67,7 +63,7 @@ public class PostController(IPostService postService) : ControllerBase
         {
             return ApiResponse<PostDto>.Fail(500, "创建失败，用户可能不存在");
         }
-        
+
         return ApiResponse<PostDto>.Success(post, "创建成功");
     }
 
@@ -176,5 +172,11 @@ public class PostController(IPostService postService) : ControllerBase
 
         await postService.SetDislikesAsync(userId, id);
         return ApiResponse.Success("操作成功");
+    }
+
+    [HttpGet("{id}/comments/{type?}")]
+    public async Task<ApiResponse<List<CommentDto>>> GetComments(string id, string? type)
+    {
+        return ApiResponse<List<CommentDto>>.Success(await postService.GetCommentsAsync(id, type ?? ""));
     }
 }

@@ -15,7 +15,7 @@ public interface IPostRepo
     Task<List<UserModel>?> GetDislikeUsersAsync(string id);
     Task<List<UserModel>?> GetDislikeUsersAsync(string id, DateTime before, DateTime after);
     Task<UserModel?> GetAuthorAsync(string id);
-    Task<List<CommentModel>?> GetCommentsAsync(string id);
+    Task<List<CommentModel>?> GetCommentsAsync(string id, string type);
 
     Task CreateAsync(PostModel post);
     Task UpdateAsync(PostModel post);
@@ -117,12 +117,24 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
             .FirstOrDefaultAsync();
     }
 
-    public async Task<List<CommentModel>?> GetCommentsAsync(string id)
+    public async Task<List<CommentModel>?> GetCommentsAsync(string id, string type)
     {
         await using var context = await factory.CreateDbContextAsync();
+
+        if (type == "Like")
+        {
+            return await context.Posts
+                .Include(x => x.Comments)
+                .Where(x => x.Id == id)
+                .OrderByDescending(x => x.Likes)
+                .Select(x => x.Comments)
+                .FirstOrDefaultAsync();
+        }
+
         return await context.Posts
             .Include(x => x.Comments)
             .Where(x => x.Id == id)
+            .OrderByDescending(x => x.UpdatedAt)
             .Select(x => x.Comments)
             .FirstOrDefaultAsync();
     }

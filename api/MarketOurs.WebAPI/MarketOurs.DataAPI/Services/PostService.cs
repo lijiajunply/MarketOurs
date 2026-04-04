@@ -20,6 +20,7 @@ public interface IPostService
     Task IncrementWatchAsync(string id);
     Task SetLikesAsync(string userId, string postId);
     Task SetDislikesAsync(string userId, string postId);
+    Task<List<CommentDto>> GetCommentsAsync(string id, string type);
 }
 
 public class PostService(
@@ -50,13 +51,14 @@ public class PostService(
             dto.Dislikes = await likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
             dto.Watch = await GetPostWatchAsync(dto.Id, dto.Watch);
         }
+
         return dtos;
     }
 
     public async Task<List<PostDto>> GetHotAsync(int count = 10)
     {
         var memCacheKey = $"hot_posts_mem_{count}";
-        
+
         // 1. 本地 LRU 缓存检查 (极高并发拦截)
         if (memoryCache.TryGetValue<List<PostDto>>(memCacheKey, out var memCachedList) && memCachedList != null)
         {
@@ -90,7 +92,7 @@ public class PostService(
         {
             var posts = await postRepo.GetHotAsync(count);
             dtos = posts.Select(MapToDto).ToList();
-            
+
             foreach (var dto in dtos)
             {
                 dto.Likes = await likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
@@ -127,7 +129,7 @@ public class PostService(
     public async Task<PostDto?> GetByIdAsync(string id)
     {
         var memCacheKey = $"post_mem_{id}";
-        
+
         // 1. 本地 LRU 缓存检查
         if (memoryCache.TryGetValue<PostDto>(memCacheKey, out var memCachedDto) && memCachedDto != null)
         {
@@ -175,7 +177,10 @@ public class PostService(
                 AbsoluteExpirationRelativeToNow = DistPostCacheTtl
             });
         }
-        catch (Exception ex) { logger.LogWarning(ex, "Failed to write post cache to Redis"); }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to write post cache to Redis");
+        }
 
         // 更新本地 LRU 缓存 (设置 Size 触发驱逐策略)
         memoryCache.Set(memCacheKey, dto, new MemoryCacheEntryOptions
@@ -200,10 +205,10 @@ public class PostService(
         {
             var db = _redis.GetDatabase();
             var watchKey = $"post:{id}:watch";
-            
+
             // 原子自增 Redis 浏览量
             var currentWatch = await db.StringIncrementAsync(watchKey);
-            
+
             // 浏览量每满 WatchSyncThreshold 次，异步写入一次数据库 (削峰填谷)
             if (currentWatch > 0 && currentWatch % WatchSyncThreshold == 0)
             {
@@ -292,6 +297,12 @@ public class PostService(
         }
     }
 
+    public async Task<List<CommentDto>> GetCommentsAsync(string id, string type)
+    {
+        var comments = await postRepo.GetCommentsAsync(id, type);
+        return comments == null ? [] : comments.Select(CommentService.MapToDto).ToList();
+    }
+
     /// <summary>
     /// 从 Redis 获取帖子浏览量
     /// </summary>
@@ -306,7 +317,7 @@ public class PostService(
             if (val.HasValue && int.TryParse(val.ToString(), out var count))
             {
                 // 取 Redis 与 DB 数据中的最大值，以保证显示的数据不会发生回退
-                return Math.Max(count, fallbackCount); 
+                return Math.Max(count, fallbackCount);
             }
             else if (fallbackCount > 0)
             {
@@ -318,6 +329,7 @@ public class PostService(
         {
             logger.LogWarning(ex, "从 Redis 获取浏览量失败，帖子: {PostId}", postId);
         }
+
         return fallbackCount;
     }
 
