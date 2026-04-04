@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Services;
@@ -89,7 +84,7 @@ public class KeyRotationStressTests
         await Task.WhenAll(issuanceTask, concurrentIssuanceTask);
 
         // Assert
-        TestContext.Out.WriteLine($"Successfully issued {tokensIssued + totalTokens} tokens during key rotation simulation.");
+        await TestContext.Out.WriteLineAsync($"Successfully issued {tokensIssued + totalTokens} tokens during key rotation simulation.");
         Assert.That(rotationTriggered, Is.True);
         Assert.That(tokensIssued, Is.EqualTo(totalTokens));
     }
@@ -117,7 +112,7 @@ public class KeyRotationStressTests
         // 5. Validate Token A (Failure expected if system only keeps 1 key)
         var (isValidA, _) = _jwtService.ValidateAccessToken(tokenA);
         
-        TestContext.Out.WriteLine($"Old token valid after rotation: {isValidA}");
+        await TestContext.Out.WriteLineAsync($"Old token valid after rotation: {isValidA}");
         // Current implementation uses ONE key at a time, so old tokens become invalid immediately.
         // This test documents that behavior.
         Assert.That(isValidA, Is.False, "Old token should be invalid immediately after rotation in current implementation.");

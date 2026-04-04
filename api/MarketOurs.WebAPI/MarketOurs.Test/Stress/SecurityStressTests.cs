@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using MarketOurs.WebAPI.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -80,6 +75,6 @@ public class SecurityStressTests
             Assert.That(lease.IsAcquired, Is.True);
         }
         
-        TestContext.Out.WriteLine($"Successfully handled {numUniqueIps} unique IP limiters.");
+        await TestContext.Out.WriteLineAsync($"Successfully handled {numUniqueIps} unique IP limiters.");
     }
 }

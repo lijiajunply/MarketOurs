@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Repos;
@@ -78,8 +74,8 @@ public class BulkCommentStressTests
         stopwatch.Stop();
 
         // Assert
-        TestContext.Out.WriteLine($"Bulk Comment Creation: {totalComments} comments in {stopwatch.ElapsedMilliseconds}ms");
-        TestContext.Out.WriteLine($"Throughput: {totalComments / stopwatch.Elapsed.TotalSeconds:F2} comments/s");
+        await TestContext.Out.WriteLineAsync($"Bulk Comment Creation: {totalComments} comments in {stopwatch.ElapsedMilliseconds}ms");
+        await TestContext.Out.WriteLineAsync($"Throughput: {totalComments / stopwatch.Elapsed.TotalSeconds:F2} comments/s");
         
         Assert.That(dbInsertCount, Is.EqualTo(totalComments), "Not all comments were sent to the repository!");
         _mockMemoryCache.Verify(m => m.Remove(It.IsAny<object>()), Times.AtLeast(totalComments));
