@@ -22,7 +22,7 @@ public interface ILikeManager
 }
 
 public class LikeManager(
-    IEnumerable<IConnectionMultiplexer> redisEnumerable, // Inject IEnumerable to handle optional gracefully
+    IEnumerable<IConnectionMultiplexer> redisEnumerable,
     LikeMessageQueue queue,
     IPostRepo postRepo,
     ICommentRepo commentRepo,
@@ -43,28 +43,28 @@ public class LikeManager(
         await GetCountAsync($"comment:{commentId}:dislikes", fallbackCount);
 
     public async Task SetPostLikeAsync(string postId, string userId) =>
-        await ProcessActionAsync($"post:{postId}:likes", userId, new LikeMessage(TargetType.Post, ActionType.Like, postId, userId), () => postRepo.GetLikeUsersAsync(postId));
+        await ToggleActionAsync(TargetType.Post, ActionType.Like, postId, userId, 
+            () => postRepo.GetLikeUsersAsync(postId), 
+            () => postRepo.GetDislikeUsersAsync(postId));
 
     public async Task SetPostDislikeAsync(string postId, string userId) =>
-        await ProcessActionAsync($"post:{postId}:dislikes", userId, new LikeMessage(TargetType.Post, ActionType.Dislike, postId, userId), () => postRepo.GetDislikeUsersAsync(postId));
+        await ToggleActionAsync(TargetType.Post, ActionType.Dislike, postId, userId, 
+            () => postRepo.GetDislikeUsersAsync(postId), 
+            () => postRepo.GetLikeUsersAsync(postId));
 
     public async Task SetCommentLikeAsync(string commentId, string userId) =>
-        await ProcessActionAsync($"comment:{commentId}:likes", userId, new LikeMessage(TargetType.Comment, ActionType.Like, commentId, userId), () => commentRepo.GetLikeUsersAsync(commentId));
+        await ToggleActionAsync(TargetType.Comment, ActionType.Like, commentId, userId, 
+            () => commentRepo.GetLikeUsersAsync(commentId), 
+            () => commentRepo.GetDislikeUsersAsync(commentId));
 
     public async Task SetCommentDislikeAsync(string commentId, string userId) =>
-        await ProcessActionAsync($"comment:{commentId}:dislikes", userId, new LikeMessage(TargetType.Comment, ActionType.Dislike, commentId, userId), () => commentRepo.GetDislikeUsersAsync(commentId));
+        await ToggleActionAsync(TargetType.Comment, ActionType.Dislike, commentId, userId, 
+            () => commentRepo.GetDislikeUsersAsync(commentId), 
+            () => commentRepo.GetLikeUsersAsync(commentId));
 
-    
-    /// <summary>
-    /// 查看Count
-    /// </summary>
-    /// <param name="key"></param>
-    /// <param name="fallbackCount"></param>
-    /// <returns></returns>
     private async Task<int> GetCountAsync(string key, int fallbackCount)
     {
         if (_redis == null) return fallbackCount;
-
         try
         {
             var db = _redis.GetDatabase();
@@ -75,26 +75,32 @@ public class LikeManager(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to read count from Redis for key {Key}. Falling back to DB count.", key);
+            logger.LogWarning(ex, "Failed to read count from Redis for key {Key}", key);
         }
-
         return fallbackCount;
     }
 
-    
-    /// <summary>
-    /// 添加数据
-    /// </summary>
-    /// <param name="key"></param>
-    /// <param name="userId"></param>
-    /// <param name="message"></param>
-    /// <param name="dbFetcher"></param>
-    private async Task ProcessActionAsync(string key, string userId, LikeMessage message, Func<Task<List<UserModel>?>> dbFetcher)
+    private async Task ToggleActionAsync(
+        TargetType target, 
+        ActionType action, 
+        string targetId, 
+        string userId, 
+        Func<Task<List<UserModel>?>> primaryDbFetcher,
+        Func<Task<List<UserModel>?>> oppositeDbFetcher)
     {
+        var targetPrefix = target.ToString().ToLower();
+        var isLike = action == ActionType.Like;
+        
+        var primaryKey = $"{targetPrefix}:{targetId}:{(isLike ? "likes" : "dislikes")}";
+        var oppositeKey = $"{targetPrefix}:{targetId}:{(isLike ? "dislikes" : "likes")}";
+        
+        var cancelAction = isLike ? ActionType.Unlike : ActionType.Undislike;
+        var oppositeCancelAction = isLike ? ActionType.Undislike : ActionType.Unlike;
+
         if (_redis == null)
         {
-            // If no Redis, just queue to DB background worker immediately
-            await queue.EnqueueAsync(message);
+            // Fallback: just enqueue and let DB handle potential duplicates/mutual exclusivity
+            await queue.EnqueueAsync(new LikeMessage(target, action, targetId, userId));
             return;
         }
 
@@ -102,29 +108,48 @@ public class LikeManager(
         {
             var db = _redis.GetDatabase();
 
-            // Ensure cache is hot before modifying
-            if (!await db.KeyExistsAsync(key))
-            {
-                var users = await dbFetcher();
-                if (users is { Count: > 0 })
-                {
-                    var redisValues = users.Select(u => (RedisValue)u.Id).ToArray();
-                    await db.SetAddAsync(key, redisValues);
-                }
-            }
+            await EnsureCacheAsync(db, primaryKey, primaryDbFetcher);
+            await EnsureCacheAsync(db, oppositeKey, oppositeDbFetcher);
 
-            var added = await db.SetAddAsync(key, userId);
-            if (added)
+            if (await db.SetContainsAsync(primaryKey, userId))
             {
-                // Give it a 7-day TTL if it's inactive
-                await db.KeyExpireAsync(key, TimeSpan.FromDays(7));
-                await queue.EnqueueAsync(message);
+                // Already has this action, so toggle it OFF
+                await db.SetRemoveAsync(primaryKey, userId);
+                await queue.EnqueueAsync(new LikeMessage(target, cancelAction, targetId, userId));
+            }
+            else
+            {
+                // Toggle ON
+                // 1. Remove opposite if exists
+                if (await db.SetRemoveAsync(oppositeKey, userId))
+                {
+                    await queue.EnqueueAsync(new LikeMessage(target, oppositeCancelAction, targetId, userId));
+                }
+                
+                // 2. Add primary
+                await db.SetAddAsync(primaryKey, userId);
+                await db.KeyExpireAsync(primaryKey, TimeSpan.FromDays(7));
+                await queue.EnqueueAsync(new LikeMessage(target, action, targetId, userId));
             }
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to write to Redis for key {Key}. Queueing anyway.", key);
-            await queue.EnqueueAsync(message);
+            logger.LogWarning(ex, "Error toggling {Action} for {Target} {TargetId}", action, target, targetId);
+            await queue.EnqueueAsync(new LikeMessage(target, action, targetId, userId));
+        }
+    }
+
+    private async Task EnsureCacheAsync(IDatabase db, string key, Func<Task<List<UserModel>?>> dbFetcher)
+    {
+        if (!await db.KeyExistsAsync(key))
+        {
+            var users = await dbFetcher();
+            if (users is { Count: > 0 })
+            {
+                var redisValues = users.Select(u => (RedisValue)u.Id).ToArray();
+                await db.SetAddAsync(key, redisValues);
+                await db.KeyExpireAsync(key, TimeSpan.FromDays(7));
+            }
         }
     }
 }

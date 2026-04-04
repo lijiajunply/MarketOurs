@@ -11,7 +11,9 @@ public enum TargetType
 public enum ActionType
 {
     Like,
-    Dislike
+    Dislike,
+    Unlike,
+    Undislike
 }
 
 public record LikeMessage(TargetType Target, ActionType Action, string TargetId, string UserId);

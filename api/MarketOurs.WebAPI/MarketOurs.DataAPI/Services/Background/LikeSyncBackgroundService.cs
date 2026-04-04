@@ -40,6 +40,14 @@ public class LikeSyncBackgroundService(
                     {
                         await postRepo.SetDislikesAsync(user, message.TargetId);
                     }
+                    else if (message.Action == ActionType.Unlike)
+                    {
+                        await postRepo.DeleteLikesAsync(message.TargetId, user.Id);
+                    }
+                    else if (message.Action == ActionType.Undislike)
+                    {
+                        await postRepo.DeleteDislikesAsync(message.TargetId, user.Id);
+                    }
                 }
                 else if (message.Target == TargetType.Comment)
                 {
@@ -50,6 +58,14 @@ public class LikeSyncBackgroundService(
                     else if (message.Action == ActionType.Dislike)
                     {
                         await commentRepo.SetDislikesAsync(user, message.TargetId);
+                    }
+                    else if (message.Action == ActionType.Unlike)
+                    {
+                        await commentRepo.DeleteLikesAsync(message.TargetId, user.Id);
+                    }
+                    else if (message.Action == ActionType.Undislike)
+                    {
+                        await commentRepo.DeleteDislikesAsync(message.TargetId, user.Id);
                     }
                 }
                 

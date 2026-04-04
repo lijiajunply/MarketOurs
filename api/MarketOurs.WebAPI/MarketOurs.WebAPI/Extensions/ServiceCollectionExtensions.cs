@@ -40,8 +40,6 @@ public static class ServiceCollectionExtensions
         public void RegisterSecurityServices()
         {
             services.AddSingleton<LogAuditService>();
-            
-            services.AddSingleton<RsaKeyManager>();
 
             // 注册IP黑名单缓存服务
             services.AddSingleton<IIpBlacklistCacheService, IpBlacklistCacheService>();

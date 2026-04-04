@@ -47,7 +47,7 @@ builder.Services.AddOpenApi(opt => { opt.AddDocumentTransformer<BearerSecuritySc
 
 #endregion
 
-#region JWT配置和密钥管理
+#region 配置管理
 
 var jwtConfig = new JwtConfig
 {
@@ -68,7 +68,17 @@ var jwtConfig = new JwtConfig
         : 90
 };
 
+var emailConfig = new EmailConfig()
+{
+    Host =  Environment.GetEnvironmentVariable("EMAIL_HOST") ?? "localhost",
+    Port = Convert.ToInt32(Environment.GetEnvironmentVariable("EMAIL_PORT") ?? "564"),
+    Username =  Environment.GetEnvironmentVariable("EMAIL_USERNAME"),
+    Password =  Environment.GetEnvironmentVariable("EMAIL_PASSWORD"),
+    Email = Environment.GetEnvironmentVariable("EMAIL"),
+};
+
 builder.Services.AddSingleton(jwtConfig);
+builder.Services.AddSingleton(emailConfig);
 builder.Services.AddSingleton<RsaKeyManager>();
 
 #endregion
