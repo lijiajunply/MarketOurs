@@ -184,7 +184,11 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 
 // 添加内存缓存（用于本地缓存层）
-builder.Services.AddMemoryCache();
+builder.Services.AddMemoryCache(options =>
+{
+    // 配置内存缓存的最大数量（当添加了Size的元素超出此时，会自动淘汰最久未使用 LRU 或过期的条目）
+    options.SizeLimit = 1000;
+});
 
 #endregion
 

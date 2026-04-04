@@ -13,13 +13,15 @@ public class CommentDto
     public DateTime UpdatedAt { get; set; }
     public string UserId { get; set; } = string.Empty;
     public string PostId { get; set; } = string.Empty;
+    public string? ParentCommentId { get; set; }
 }
 
 public class CommentCreateDto
 {
     [Required] public string Content { get; set; } = string.Empty;
-    [Required] public string UserId { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     public string PostId { get; set; } = string.Empty;
+    public string? ParentCommentId { get; set; }
 }
 
 public class CommentUpdateDto

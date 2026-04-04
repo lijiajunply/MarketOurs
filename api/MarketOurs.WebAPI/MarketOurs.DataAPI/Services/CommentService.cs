@@ -52,6 +52,7 @@ public class CommentService(ICommentRepo commentRepo, IUserRepo userRepo, ILikeM
             UserId = createDto.UserId,
             User = user,
             PostId = createDto.PostId,
+            ParentCommentId = createDto.ParentCommentId,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
             Likes = 0,
@@ -108,7 +109,8 @@ public class CommentService(ICommentRepo commentRepo, IUserRepo userRepo, ILikeM
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             UserId = comment.UserId,
-            PostId = comment.PostId
+            PostId = comment.PostId,
+            ParentCommentId = comment.ParentCommentId
         };
     }
 }

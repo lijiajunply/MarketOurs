@@ -7,6 +7,7 @@ namespace MarketOurs.DataAPI.Repos;
 public interface IPostRepo
 {
     Task<List<PostModel>> GetAllAsync();
+    Task<List<PostModel>> GetHotAsync(int count);
     Task<PostModel?> GetByIdAsync(string id);
     Task<List<PostModel>?> GetByDateAsync(DateTime before, DateTime after);
     Task<List<UserModel>?> GetLikeUsersAsync(string id);
@@ -22,6 +23,7 @@ public interface IPostRepo
     Task SetLikesAsync(UserModel user, string id);
     Task SetDislikesAsync(UserModel user, string id);
     Task IncrementWatchAsync(string id);
+    Task AddWatchCountAsync(string id, int count);
     Task SetAuthorAsync(UserModel user, string id);
 
     Task DeleteAsync(string id);
@@ -36,6 +38,16 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts.ToListAsync();
+    }
+
+    public async Task<List<PostModel>> GetHotAsync(int count)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Posts
+            .Include(x => x.User)
+            .OrderByDescending(x => x.Watch + (x.Likes * 3) - (x.Dislikes * 2))
+            .Take(count)
+            .ToListAsync();
     }
 
     public async Task<PostModel?> GetByIdAsync(string id)
@@ -171,6 +183,17 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         if (post != null)
         {
             post.Watch++;
+            await context.SaveChangesAsync();
+        }
+    }
+
+    public async Task AddWatchCountAsync(string id, int count)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        var post = await context.Posts.FirstOrDefaultAsync(p => p.Id == id);
+        if (post != null)
+        {
+            post.Watch += count;
             await context.SaveChangesAsync();
         }
     }

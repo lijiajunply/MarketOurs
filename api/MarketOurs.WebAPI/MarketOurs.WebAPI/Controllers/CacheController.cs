@@ -1,5 +1,6 @@
 using System.Text;
 using MarketOurs.DataAPI.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;
 
@@ -7,6 +8,7 @@ namespace MarketOurs.WebAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize(Roles = "Admin")]
 public class CacheController(
     IConnectionMultiplexer redis,
     ILogger<CacheController> logger) : ControllerBase

@@ -321,7 +321,8 @@ public class IpBlacklistCacheService(
             // 5. 保存到内存缓存
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
+                Size = 1 // 给黑名单整体分配1个空间单位
             };
             memoryCache.Set(MemoryCacheKey, blacklistData, memoryCacheOptions);
 
@@ -397,7 +398,8 @@ public class IpBlacklistCacheService(
             // 保存到内存缓存
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
+                Size = 1
             };
             memoryCache.Set(MemoryCacheKey, blacklistData, memoryCacheOptions);
 
@@ -457,7 +459,8 @@ public class IpBlacklistCacheService(
             await SaveBlacklistToRedisAsync(blacklistData);
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
+                Size = 1
             };
             memoryCache.Set(MemoryCacheKey, blacklistData, memoryCacheOptions);
         }
@@ -504,7 +507,8 @@ public class IpBlacklistCacheService(
             await SaveBlacklistToRedisAsync(blacklistData);
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
+                Size = 1
             };
             memoryCache.Set(MemoryCacheKey, blacklistData, memoryCacheOptions);
         }

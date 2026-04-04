@@ -50,6 +50,12 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
         modelBuilder.Entity<CommentModel>()
             .HasMany(x => x.DislikeUsers)
             .WithMany(x => x.DislikesComments);
+
+        modelBuilder.Entity<CommentModel>()
+            .HasMany(x => x.Comments)
+            .WithOne(x => x.ParentComment)
+            .HasForeignKey(x => x.ParentCommentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 

@@ -30,6 +30,11 @@ public class CommentModel : DataModel
     [MaxLength(64)]
     public string PostId { get; set; } = "";
     
+    [MaxLength(64)]
+    public string? ParentCommentId { get; set; }
+    
+    public CommentModel? ParentComment { get; set; }
+    
     public override void Update(DataModel model)
     {
         if (model is not CommentModel commitModel)
