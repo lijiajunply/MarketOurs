@@ -341,7 +341,7 @@ public class RsaKeyManager(JwtConfig jwtConfig, ILogger<RsaKeyManager> logger)
     /// 获取当前有效的RSA私钥
     /// </summary>
     /// <returns>RSA私钥对象</returns>
-    public RSA GetCurrentPrivateKey()
+    public virtual RSA GetCurrentPrivateKey()
     {
         EnsureKeysValid();
         return LoadPrivateKey(jwtConfig.RsaPrivateKeyPath);
@@ -351,7 +351,7 @@ public class RsaKeyManager(JwtConfig jwtConfig, ILogger<RsaKeyManager> logger)
     /// 获取当前有效的RSA公钥
     /// </summary>
     /// <returns>RSA公钥对象</returns>
-    public RSA GetCurrentPublicKey()
+    public virtual RSA GetCurrentPublicKey()
     {
         EnsureKeysValid();
         return LoadPublicKey(jwtConfig.RsaPublicKeyPath);
