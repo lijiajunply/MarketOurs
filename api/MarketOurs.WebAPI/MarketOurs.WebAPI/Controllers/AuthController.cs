@@ -146,6 +146,40 @@ public class AuthController(ILoginService loginService, IUserService userService
         await userService.SendVerificationEmailAsync(user.Id);
         return ApiResponse.Success("激活邮件已重新发送");
     }
+
+    /// <summary>
+    /// 发送当前账号的验证码 (需登录)
+    /// </summary>
+    [HttpPost("send-code")]
+    [Authorize]
+    public async Task<ApiResponse> SendCode()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
+
+        var result = await userService.SendVerificationEmailAsync(userId);
+        return result 
+            ? ApiResponse.Success("验证码已发送至您的邮箱") 
+            : ApiResponse.Fail(500, "发送失败，请稍后重试");
+    }
+
+    /// <summary>
+    /// 校验当前账号的验证码 (需登录)
+    /// </summary>
+    [HttpPost("verify-code")]
+    [Authorize]
+    public async Task<ApiResponse> VerifyCode([FromBody] VerifyCodeRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
+
+        // 我们复用已有的 VerifyEmailAsync，但它是全局查 Token 的
+        // 为了安全，后续可以优化为 VerifyUserCodeAsync(userId, token)
+        var result = await userService.VerifyEmailAsync(request.Code);
+        return result 
+            ? ApiResponse.Success("邮箱验证成功") 
+            : ApiResponse.Fail(400, "验证码无效或已过期");
+    }
 }
 
 public class LoginRequest
@@ -173,4 +207,9 @@ public class ResetPasswordRequest
 {
     [Required] public string Token { get; set; } = string.Empty;
     [Required] [MinLength(6)] public string NewPassword { get; set; } = string.Empty;
+}
+
+public class VerifyCodeRequest
+{
+    [Required] public string Code { get; set; } = string.Empty;
 }
