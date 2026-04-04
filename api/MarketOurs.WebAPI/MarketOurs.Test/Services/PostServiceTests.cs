@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
-using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
 using Microsoft.Extensions.Caching.Distributed;

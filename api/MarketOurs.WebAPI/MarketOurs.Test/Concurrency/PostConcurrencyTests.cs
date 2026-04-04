@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
 using Microsoft.Extensions.Caching.Distributed;

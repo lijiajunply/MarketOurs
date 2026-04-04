@@ -1,8 +1,6 @@
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
-using MarketOurs.WebAPI.Filters;
 using MarketOurs.WebAPI.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MarketOurs.WebAPI.Extensions;
 

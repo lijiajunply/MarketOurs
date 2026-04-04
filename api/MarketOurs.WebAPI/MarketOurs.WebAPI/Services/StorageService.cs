@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System.IO;
-
 namespace MarketOurs.WebAPI.Services;
 
 public interface IStorageService

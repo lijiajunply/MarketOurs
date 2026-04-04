@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using MarketOurs.DataAPI.Services;
 using Moq;
 using StackExchange.Redis;

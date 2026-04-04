@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.WebAPI.Controllers;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 
