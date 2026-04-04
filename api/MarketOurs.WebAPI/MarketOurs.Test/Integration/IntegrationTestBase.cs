@@ -1,7 +1,6 @@
 using MarketOurs.Data;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
-using NUnit.Framework;
 
 namespace MarketOurs.Test.Integration;
 

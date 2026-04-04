@@ -2,7 +2,6 @@ using MarketOurs.Data;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
-using Microsoft.Extensions.Logging;
 
 namespace MarketOurs.Test.Integration;
 

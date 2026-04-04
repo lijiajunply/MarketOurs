@@ -5,12 +5,9 @@ using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.DataAPI.Services.Background;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using NUnit.Framework;
 using StackExchange.Redis;
 
 namespace MarketOurs.Test.Integration;

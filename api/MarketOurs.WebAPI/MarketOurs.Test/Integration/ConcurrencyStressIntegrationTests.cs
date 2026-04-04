@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using NUnit.Framework;
 using StackExchange.Redis;
 
 namespace MarketOurs.Test.Integration;

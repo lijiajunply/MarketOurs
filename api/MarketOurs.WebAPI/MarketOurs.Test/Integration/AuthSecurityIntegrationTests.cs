@@ -1,6 +1,5 @@
 using MarketOurs.DataAPI.Configs;
 using MarketOurs.Data;
-using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
@@ -10,9 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using NUnit.Framework;
 using StackExchange.Redis;
-using Microsoft.Extensions.Options;
 
 namespace MarketOurs.Test.Integration;
 

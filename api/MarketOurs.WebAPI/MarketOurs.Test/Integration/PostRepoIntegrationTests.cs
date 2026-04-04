@@ -2,7 +2,6 @@ using MarketOurs.Data;
 using MarketOurs.Data.DataModels;
 using MarketOurs.DataAPI.Repos;
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
 
 namespace MarketOurs.Test.Integration;
 
