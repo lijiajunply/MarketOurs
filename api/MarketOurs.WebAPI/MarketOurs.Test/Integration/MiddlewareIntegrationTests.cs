@@ -89,14 +89,14 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
             }
         };
 
-        // Limit is 200 per minute by default config
-        for (int i = 0; i < 200; i++)
+        // Limit is 100 per minute by default config
+        for (int i = 0; i < 100; i++)
         {
             await middleware.InvokeAsync(context);
             context.Response.StatusCode = 200; // Reset for next iteration if needed
         }
 
-        Assert.That(nextCalledCount, Is.EqualTo(200));
+        Assert.That(nextCalledCount, Is.EqualTo(100));
 
         // 201st request should be throttled
         var throttledContext = new DefaultHttpContext
@@ -118,8 +118,9 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
 
         await middleware.InvokeAsync(throttledContext);
 
+        // Assert
         Assert.That(throttledContext.Response.StatusCode, Is.EqualTo(StatusCodes.Status429TooManyRequests));
-        Assert.That(nextCalledCount, Is.EqualTo(200), "Next should not be called when throttled");
+        Assert.That(nextCalledCount, Is.EqualTo(100), "Next should not be called when throttled");
         return;
 
         Task Next(HttpContext ctx)
@@ -249,8 +250,8 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
         var middleware = new RateLimitMiddleware(Next, logger, rateLimitService, mockBlacklist.Object);
         var ip = "1.1.1.1";
 
-        // Limit is 200. Let's send 250 concurrent requests.
-        var tasks = Enumerable.Range(0, 250).Select(async _ =>
+        // Limit is 100. Let's send 150 concurrent requests.
+        var tasks = Enumerable.Range(0, 150).Select(async _ =>
         {
             var context = new DefaultHttpContext
             {
@@ -278,10 +279,10 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
         var successCount = results.Count(s => s != StatusCodes.Status429TooManyRequests);
         var throttledCount = results.Count(s => s == StatusCodes.Status429TooManyRequests);
 
-        // Success count should be exactly 200 (the limit)
-        Assert.That(successCount, Is.EqualTo(200), "Should allow exactly 200 requests");
+        // Success count should be exactly 100 (the limit)
+        Assert.That(successCount, Is.EqualTo(100), "Should allow exactly 100 requests");
         Assert.That(throttledCount, Is.EqualTo(50), "Should throttle 50 requests");
-        Assert.That(nextCalledCount, Is.EqualTo(200));
+        Assert.That(nextCalledCount, Is.EqualTo(100));
         return;
 
         Task Next(HttpContext ctx)

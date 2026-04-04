@@ -68,22 +68,22 @@ public class HighLoadTests
         _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(100);
 
         // Pre-warm cache
-        await _postService.GetHotAsync(10);
+        await _postService.GetHotAsync();
 
         // Act
         var stopwatch = Stopwatch.StartNew();
-        
+
         // Use Parallel.ForEachAsync for more realistic high-concurrency scheduling
-        await Parallel.ForEachAsync(Enumerable.Range(0, totalRequests), new ParallelOptions { MaxDegreeOfParallelism = 200 }, async (_, _) =>
-        {
-            await _postService.GetHotAsync(10);
-        });
-        
+        await Parallel.ForEachAsync(Enumerable.Range(0, totalRequests),
+            new ParallelOptions { MaxDegreeOfParallelism = 200 },
+            async (_, _) => { await _postService.GetHotAsync(); });
+
         stopwatch.Stop();
 
         // Assert
         var rps = totalRequests / stopwatch.Elapsed.TotalSeconds;
-        await TestContext.Out.WriteLineAsync($"Extreme Throughput Test: {totalRequests} requests in {stopwatch.ElapsedMilliseconds}ms");
+        await TestContext.Out.WriteLineAsync(
+            $"Extreme Throughput Test: {totalRequests} requests in {stopwatch.ElapsedMilliseconds}ms");
         await TestContext.Out.WriteLineAsync($"RPS: {rps:F2}");
 
         Assert.That(rps, Is.GreaterThan(10000), "Throughput dropped below 10,000 RPS!");
@@ -99,7 +99,8 @@ public class HighLoadTests
         int successfulLocks = 0;
 
         // Mock LockTakeAsync to be atomic and thread-safe
-        _mockDatabase.Setup(db => db.LockTakeAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(), It.IsAny<CommandFlags>()))
+        _mockDatabase.Setup(db => db.LockTakeAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan>(),
+                It.IsAny<CommandFlags>()))
             .ReturnsAsync(() => Interlocked.CompareExchange(ref successfulLocks, 1, 0) == 0);
 
         // Act
@@ -108,12 +109,14 @@ public class HighLoadTests
         {
             tasks.Add(lockService.AcquireAsync("contention-lock", Guid.NewGuid().ToString(), TimeSpan.FromSeconds(10)));
         }
+
         var results = await Task.WhenAll(tasks);
 
         // Assert
-        int winCount = results.Count(r => r == true);
-        await TestContext.Out.WriteLineAsync($"Distributed Lock Contention: {winCount} winner(s) out of {concurrentAttempts} attempts");
-        
+        int winCount = results.Count(r => r);
+        await TestContext.Out.WriteLineAsync(
+            $"Distributed Lock Contention: {winCount} winner(s) out of {concurrentAttempts} attempts");
+
         Assert.That(winCount, Is.EqualTo(1), "More than one thread acquired the distributed lock!");
     }
 
@@ -126,14 +129,15 @@ public class HighLoadTests
         long redisCounter = 0;
         int dbSyncCount = 0;
 
-        _mockDatabase.Setup(db => db.StringIncrementAsync(It.IsAny<RedisKey>(), It.IsAny<long>(), It.IsAny<CommandFlags>()))
+        _mockDatabase.Setup(db =>
+                db.StringIncrementAsync(It.IsAny<RedisKey>(), It.IsAny<long>(), It.IsAny<CommandFlags>()))
             .Returns(() => Task.FromResult(Interlocked.Increment(ref redisCounter)));
 
         var syncFinishedEvent = new CountdownEvent(totalIncrements / 10); // 10 is the threshold
 
         _mockPostRepo.Setup(r => r.AddWatchCountAsync(postId, 10))
             .Returns(Task.CompletedTask)
-            .Callback(() => 
+            .Callback(() =>
             {
                 Interlocked.Increment(ref dbSyncCount);
                 syncFinishedEvent.Signal();
@@ -141,18 +145,18 @@ public class HighLoadTests
 
         // Act
         var stopwatch = Stopwatch.StartNew();
-        await Parallel.ForEachAsync(Enumerable.Range(0, totalIncrements), new ParallelOptions { MaxDegreeOfParallelism = 500 }, async (_, _) =>
-        {
-            await _postService.IncrementWatchAsync(postId);
-        });
-        
+        await Parallel.ForEachAsync(Enumerable.Range(0, totalIncrements),
+            new ParallelOptions { MaxDegreeOfParallelism = 500 },
+            async (_, _) => { await _postService.IncrementWatchAsync(postId); });
+
         // Wait for all background syncs to finish
         bool allSynced = syncFinishedEvent.Wait(TimeSpan.FromSeconds(10));
         stopwatch.Stop();
 
         // Assert
-        await TestContext.Out.WriteLineAsync($"Extreme Watch Increment Load: {totalIncrements} calls in {stopwatch.ElapsedMilliseconds}ms");
-        Assert.That(allSynced, Is.True, $"Background syncs timed out. Completed: {dbSyncCount}/{totalIncrements/10}");
+        await TestContext.Out.WriteLineAsync(
+            $"Extreme Watch Increment Load: {totalIncrements} calls in {stopwatch.ElapsedMilliseconds}ms");
+        Assert.That(allSynced, Is.True, $"Background syncs timed out. Completed: {dbSyncCount}/{totalIncrements / 10}");
         Assert.That(dbSyncCount, Is.EqualTo(totalIncrements / 10));
     }
 }

@@ -1,4 +1,5 @@
 using MarketOurs.DataAPI.Configs;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
@@ -52,6 +53,7 @@ public class PostService(
         {
             await FillDynamicData(dto);
         }
+
         return dtos;
     }
 
@@ -67,7 +69,8 @@ public class PostService(
         await CacheLock.WaitAsync();
         try
         {
-            if (memoryCache.TryGetValue<List<PostDto>>(memCacheKey, out var retryMemCachedList) && retryMemCachedList != null)
+            if (memoryCache.TryGetValue<List<PostDto>>(memCacheKey, out var retryMemCachedList) &&
+                retryMemCachedList != null)
             {
                 foreach (var dto in retryMemCachedList) await FillDynamicData(dto);
                 return retryMemCachedList;
@@ -95,10 +98,11 @@ public class PostService(
                 dtos = posts.Select(MapToDto).ToList();
                 try
                 {
-                    await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dtos), new DistributedCacheEntryOptions
-                    {
-                        AbsoluteExpirationRelativeToNow = DistHotCacheTtl
-                    });
+                    await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dtos),
+                        new DistributedCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = DistHotCacheTtl
+                        });
                 }
                 catch (Exception ex)
                 {
@@ -121,6 +125,8 @@ public class PostService(
         }
     }
 
+    private readonly ConcurrentDictionary<string, Task<PostDto?>> _getByIdTasks = new();
+
     public async Task<PostDto?> GetByIdAsync(string id)
     {
         var memCacheKey = CacheKeys.PostMem(id);
@@ -129,61 +135,67 @@ public class PostService(
             return await FillDynamicData(memCachedDto);
         }
 
-        await CacheLock.WaitAsync();
-        try
+        // Request coalescing to prevent penetration storm
+        var task = _getByIdTasks.GetOrAdd(id, async _ =>
         {
-            if (memoryCache.TryGetValue<PostDto>(memCacheKey, out var retryMemCachedDto) && retryMemCachedDto != null)
-            {
-                return await FillDynamicData(retryMemCachedDto);
-            }
-
-            var distCacheKey = CacheKeys.PostDist(id);
-            PostDto? dto = null;
-
             try
             {
-                var cachedData = await distributedCache.GetStringAsync(distCacheKey);
-                if (!string.IsNullOrEmpty(cachedData))
-                {
-                    dto = JsonSerializer.Deserialize<PostDto>(cachedData);
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to read post cache from Redis");
-            }
-
-            if (dto == null)
-            {
-                var post = await postRepo.GetByIdAsync(id);
-                if (post == null) return null;
-                dto = MapToDto(post);
+                var distCacheKey = CacheKeys.PostDist(id);
+                PostDto? dto = null;
 
                 try
                 {
-                    await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dto), new DistributedCacheEntryOptions
+                    var cachedData = await distributedCache.GetStringAsync(distCacheKey);
+                    if (!string.IsNullOrEmpty(cachedData))
                     {
-                        AbsoluteExpirationRelativeToNow = DistPostCacheTtl
-                    });
+                        dto = JsonSerializer.Deserialize<PostDto>(cachedData);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex, "Failed to write post cache to Redis");
+                    logger.LogWarning(ex, "Failed to read post cache from Redis");
                 }
+
+                if (dto == null)
+                {
+                    var post = await postRepo.GetByIdAsync(id);
+                    if (post == null) return null;
+                    dto = MapToDto(post);
+
+                    try
+                    {
+                        await distributedCache.SetStringAsync(distCacheKey, JsonSerializer.Serialize(dto),
+                            new DistributedCacheEntryOptions
+                            {
+                                AbsoluteExpirationRelativeToNow = DistPostCacheTtl
+                            });
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Failed to write post cache to Redis");
+                    }
+                }
+
+                memoryCache.Set(memCacheKey, dto, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = LocalPostCacheTtl,
+                    Size = 1
+                });
+
+                return dto;
             }
-
-            memoryCache.Set(memCacheKey, dto, new MemoryCacheEntryOptions
+            finally
             {
-                AbsoluteExpirationRelativeToNow = LocalPostCacheTtl,
-                Size = 1
-            });
+                _getByIdTasks.TryRemove(id, out var _);
+            }
+        });
 
-            return await FillDynamicData(dto);
-        }
-        finally
-        {
-            CacheLock.Release();
-        }
+        var resultDto = await task;
+        if (resultDto == null) return null;
+
+        // Create a new instance if needed, but FillDynamicData modifies it in-place which might be a race condition if multiple awaiters run it concurrently.
+        // Wait, FillDynamicData modifies dto.Likes, etc. The original code also modified it in-place.
+        return await FillDynamicData(resultDto);
     }
 
     private async Task<PostDto> FillDynamicData(PostDto dto)
@@ -304,7 +316,7 @@ public class PostService(
 
         var comments = await postRepo.GetCommentsAsync(id, type);
         var dtos = comments == null ? [] : comments.Select(CommentService.MapToDto).ToList();
-        
+
         memoryCache.Set(cacheKey, dtos, TimeSpan.FromMinutes(2));
         return dtos;
     }
@@ -312,7 +324,7 @@ public class PostService(
     public async Task<List<PostDto>> SearchAsync(string keyword)
     {
         if (string.IsNullOrWhiteSpace(keyword)) return [];
-        
+
         var posts = await postRepo.SearchAsync(keyword);
         var dtos = posts.Select(MapToDto).ToList();
 
