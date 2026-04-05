@@ -13,7 +13,7 @@ namespace MarketOurs.DataAPI.Services;
 
 public interface IPostService
 {
-    Task<List<PostDto>> GetAllAsync();
+    Task<PagedResultDto<PostDto>> GetAllAsync(PaginationParams @params);
     Task<List<PostDto>> GetHotAsync(int count = 10);
     Task<PostDto?> GetByIdAsync(string id);
     Task<PostDto?> CreateAsync(PostCreateDto createDto);
@@ -23,7 +23,7 @@ public interface IPostService
     Task SetLikesAsync(string userId, string postId);
     Task SetDislikesAsync(string userId, string postId);
     Task<List<CommentDto>> GetCommentsAsync(string id, string type);
-    Task<List<PostDto>> SearchAsync(string keyword);
+    Task<PagedResultDto<PostDto>> SearchAsync(PaginationParams @params);
 }
 
 public class PostService(
@@ -45,16 +45,17 @@ public class PostService(
     private static readonly TimeSpan DistPostCacheTtl = TimeSpan.FromMinutes(10);
     private const int WatchSyncThreshold = 10;
 
-    public async Task<List<PostDto>> GetAllAsync()
+    public async Task<PagedResultDto<PostDto>> GetAllAsync(PaginationParams @params)
     {
-        var posts = await postRepo.GetAllAsync();
+        var totalCount = await postRepo.CountAsync();
+        var posts = await postRepo.GetAllAsync(@params.PageIndex, @params.PageSize);
         var dtos = posts.Select(MapToDto).ToList();
         foreach (var dto in dtos)
         {
             await FillDynamicData(dto);
         }
 
-        return dtos;
+        return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
     public async Task<List<PostDto>> GetHotAsync(int count = 10)
@@ -315,17 +316,66 @@ public class PostService(
         }
 
         var comments = await postRepo.GetCommentsAsync(id, type);
-        var dtos = comments == null ? [] : comments.Select(CommentService.MapToDto).ToList();
+        if (comments == null || !comments.Any()) return [];
 
-        memoryCache.Set(cacheKey, dtos, TimeSpan.FromMinutes(2));
-        return dtos;
+        var allDtos = comments.Select(CommentService.MapToDto).ToList();
+
+        // 填充动态数据（Likes/Dislikes）
+        foreach (var dto in allDtos)
+        {
+            dto.Likes = await likeManager.GetCommentLikesAsync(dto.Id, dto.Likes);
+            dto.Dislikes = await likeManager.GetCommentDislikesAsync(dto.Id, dto.Dislikes);
+        }
+
+        // 构建树形结构
+        var commentDict = allDtos.ToDictionary(c => c.Id);
+        var rootComments = new List<CommentDto>();
+
+        foreach (var dto in allDtos)
+        {
+            if (string.IsNullOrEmpty(dto.ParentCommentId))
+            {
+                rootComments.Add(dto);
+            }
+            else if (commentDict.TryGetValue(dto.ParentCommentId, out var parent))
+            {
+                parent.RepliedComments.Add(dto);
+            }
+            else
+            {
+                // 如果找不到父级，视为根评论（健壮性处理）
+                rootComments.Add(dto);
+            }
+        }
+
+        // 定义排序函数
+        void SortComments(List<CommentDto> list)
+        {
+            if (type == "Like")
+                list.Sort((a, b) => b.Likes.CompareTo(a.Likes));
+            else
+                list.Sort((a, b) => b.UpdatedAt.CompareTo(a.UpdatedAt));
+
+            foreach (var comment in list)
+            {
+                if (comment.RepliedComments.Any())
+                    SortComments(comment.RepliedComments);
+            }
+        }
+
+        SortComments(rootComments);
+
+        memoryCache.Set(cacheKey, rootComments, TimeSpan.FromMinutes(2));
+        return rootComments;
     }
 
-    public async Task<List<PostDto>> SearchAsync(string keyword)
+    public async Task<PagedResultDto<PostDto>> SearchAsync(PaginationParams @params)
     {
-        if (string.IsNullOrWhiteSpace(keyword)) return [];
+        if (string.IsNullOrWhiteSpace(@params.Keyword)) 
+            return PagedResultDto<PostDto>.Success([], 0, @params.PageIndex, @params.PageSize);
 
-        var posts = await postRepo.SearchAsync(keyword);
+        var totalCount = await postRepo.SearchCountAsync(@params.Keyword);
+        var posts = await postRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize);
         var dtos = posts.Select(MapToDto).ToList();
 
         foreach (var dto in dtos)
@@ -333,7 +383,7 @@ public class PostService(
             await FillDynamicData(dto);
         }
 
-        return dtos;
+        return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
     private async Task<int> GetPostWatchAsync(string postId, int fallbackCount)

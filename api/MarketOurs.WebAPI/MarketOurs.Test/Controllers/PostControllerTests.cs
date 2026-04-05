@@ -24,15 +24,16 @@ public class PostControllerTests : ControllerTestBase
     {
         // Arrange
         var posts = new List<PostDto> { new PostDto { Id = "1", Title = "Post 1" } };
-        _mockPostService.Setup(s => s.GetAllAsync()).ReturnsAsync(posts);
+        var pagedResult = PagedResultDto<PostDto>.Success(posts, 1, 1, 10);
+        _mockPostService.Setup(s => s.GetAllAsync(It.IsAny<PaginationParams>())).ReturnsAsync(pagedResult);
 
         // Act
-        var result = await _controller.GetAll();
+        var result = await _controller.GetAll(new PaginationParams());
 
         // Assert
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Code, Is.EqualTo(200));
-        Assert.That(result.Data!.Count, Is.EqualTo(1));
+        Assert.That(result.Data!.Items.Count, Is.EqualTo(1));
     }
 
     [Test]

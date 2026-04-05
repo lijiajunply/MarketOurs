@@ -6,7 +6,10 @@ namespace MarketOurs.DataAPI.Repos;
 
 public interface ICommentRepo
 {
-    public Task<List<CommentModel>> GetAllAsync();
+    public Task<List<CommentModel>> GetAllAsync(int pageIndex, int pageSize);
+    public Task<int> CountAsync();
+    public Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize);
+    public Task<int> SearchCountAsync(string keyword);
     public Task<CommentModel?> GetByIdAsync(string id);
     public Task<List<CommentModel>?> GetByDateAsync(DateTimeOffset before, DateTimeOffset after);
     public Task<List<UserModel>?> GetLikeUsersAsync(string id);
@@ -34,11 +37,45 @@ public interface ICommentRepo
 
 public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRepo
 {
-    public async Task<List<CommentModel>> GetAllAsync()
+    public async Task<List<CommentModel>> GetAllAsync(int pageIndex, int pageSize)
     {
         await using var context = await factory.CreateDbContextAsync();
 
-        return await context.Commits.ToListAsync();
+        return await context.Commits
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<int> CountAsync()
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Commits.CountAsync();
+    }
+
+    public async Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        
+        // "Cascade" search in this context means searching through all comments 
+        // regardless of their level in the hierarchy.
+        return await context.Commits
+            .Include(x => x.User)
+            .Include(x => x.Post)
+            .Where(x => x.Content.Contains(keyword))
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<int> SearchCountAsync(string keyword)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Commits
+            .Where(x => x.Content.Contains(keyword))
+            .CountAsync();
     }
 
     public async Task<CommentModel?> GetByIdAsync(string id)

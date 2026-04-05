@@ -11,7 +11,8 @@ namespace MarketOurs.DataAPI.Services;
 
 public interface IUserService
 {
-    Task<List<UserDto>> GetAllAsync();
+    Task<PagedResultDto<UserDto>> GetAllAsync(PaginationParams @params);
+    Task<PagedResultDto<UserDto>> SearchAsync(PaginationParams @params);
     Task<UserDto?> GetByIdAsync(string id);
     Task<UserDto?> GetByAccountAsync(string account);
     Task<UserDto?> LoginAsync(string account, string password);
@@ -64,10 +65,21 @@ public class UserService(
             </p>
         </div>";
 
-    public async Task<List<UserDto>> GetAllAsync()
+    public async Task<PagedResultDto<UserDto>> GetAllAsync(PaginationParams @params)
     {
-        var users = await userRepo.GetAllAsync();
-        return users.Select(MapToDto).ToList();
+        var totalCount = await userRepo.CountAsync();
+        var users = await userRepo.GetAllAsync(@params.PageIndex, @params.PageSize);
+        return PagedResultDto<UserDto>.Success(users.Select(MapToDto).ToList(), totalCount, @params.PageIndex, @params.PageSize);
+    }
+
+    public async Task<PagedResultDto<UserDto>> SearchAsync(PaginationParams @params)
+    {
+        if (string.IsNullOrWhiteSpace(@params.Keyword))
+            return PagedResultDto<UserDto>.Success([], 0, @params.PageIndex, @params.PageSize);
+
+        var totalCount = await userRepo.SearchCountAsync(@params.Keyword);
+        var users = await userRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize);
+        return PagedResultDto<UserDto>.Success(users.Select(MapToDto).ToList(), totalCount, @params.PageIndex, @params.PageSize);
     }
 
     public async Task<UserDto?> GetByIdAsync(string id)

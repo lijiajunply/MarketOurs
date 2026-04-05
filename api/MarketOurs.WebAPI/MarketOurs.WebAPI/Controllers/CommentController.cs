@@ -12,14 +12,30 @@ namespace MarketOurs.WebAPI.Controllers;
 public class CommentController(ICommentService commentService, ILogger<CommentController> logger) : ControllerBase
 {
     /// <summary>
-    /// 获取所有评论
+    /// 获取所有评论 (分页)
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ApiResponse<List<CommentDto>>> GetAll()
+    public async Task<ApiResponse<PagedResultDto<CommentDto>>> GetAll([FromQuery] PaginationParams @params)
     {
-        var comments = await commentService.GetAllAsync();
-        return ApiResponse<List<CommentDto>>.Success(comments, "获取评论列表成功");
+        var comments = await commentService.GetAllAsync(@params);
+        return ApiResponse<PagedResultDto<CommentDto>>.Success(comments, "获取评论列表成功");
+    }
+
+    /// <summary>
+    /// 全文检索评论 (分页)
+    /// </summary>
+    [HttpGet("search")]
+    [AllowAnonymous]
+    public async Task<ApiResponse<PagedResultDto<CommentDto>>> Search([FromQuery] PaginationParams @params)
+    {
+        if (string.IsNullOrWhiteSpace(@params.Keyword))
+        {
+            return ApiResponse<PagedResultDto<CommentDto>>.Success(PagedResultDto<CommentDto>.Success([], 0, @params.PageIndex, @params.PageSize), "关键词不能为空");
+        }
+
+        var results = await commentService.SearchAsync(@params);
+        return ApiResponse<PagedResultDto<CommentDto>>.Success(results, $"成功找到 {results.TotalCount} 条相关内容");
     }
 
     /// <summary>

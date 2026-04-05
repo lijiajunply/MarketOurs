@@ -7,7 +7,10 @@ namespace MarketOurs.DataAPI.Repos;
 
 public interface IUserRepo
 {
-    Task<List<UserModel>> GetAllAsync();
+    Task<List<UserModel>> GetAllAsync(int pageIndex, int pageSize);
+    Task<int> CountAsync();
+    Task<List<UserModel>> SearchAsync(string keyword, int pageIndex, int pageSize);
+    Task<int> SearchCountAsync(string keyword);
     Task<UserModel?> GetByIdAsync(string id);
     Task<UserModel?> GetByAccountAsync(string account);
     Task<List<UserModel>> GetByDateAsync(DateTime before, DateTime after);
@@ -25,10 +28,39 @@ public interface IUserRepo
 
 public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
 {
-    public async Task<List<UserModel>> GetAllAsync()
+    public async Task<List<UserModel>> GetAllAsync(int pageIndex, int pageSize)
     {
         await using var context = await factory.CreateDbContextAsync();
-        return await context.Users.ToListAsync();
+        return await context.Users
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<int> CountAsync()
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Users.CountAsync();
+    }
+
+    public async Task<List<UserModel>> SearchAsync(string keyword, int pageIndex, int pageSize)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Users
+            .Where(x => x.Name.Contains(keyword) || x.Email.Contains(keyword) || x.Phone.Contains(keyword))
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<int> SearchCountAsync(string keyword)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Users
+            .Where(x => x.Name.Contains(keyword) || x.Email.Contains(keyword) || x.Phone.Contains(keyword))
+            .CountAsync();
     }
 
     public async Task<UserModel?> GetByIdAsync(string id)

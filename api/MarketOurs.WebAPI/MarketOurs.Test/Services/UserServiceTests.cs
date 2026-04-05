@@ -50,16 +50,16 @@ public class UserServiceTests
             new UserModel { Id = "1", Name = "Test 1", Email = "test1@test.com" },
             new UserModel { Id = "2", Name = "Test 2", Email = "test2@test.com" }
         };
-        _mockUserRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(users);
+        _mockUserRepo.Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(users);
 
         // Act
-        var result = await _userService.GetAllAsync();
+        var result = await _userService.GetAllAsync(new PaginationParams());
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count, Is.EqualTo(2));
-        Assert.That(result[0].Id, Is.EqualTo("1"));
-        Assert.That(result[1].Id, Is.EqualTo("2"));
+        Assert.That(result.Items.Count, Is.EqualTo(2));
+        Assert.That(result.Items[0].Id, Is.EqualTo("1"));
+        Assert.That(result.Items[1].Id, Is.EqualTo("2"));
     }
 
     [Test]

@@ -90,10 +90,10 @@ public class PostSearchAndHotIntegrationTests : IntegrationTestBase
         await _postRepo.CreateAsync(new PostModel
             { Title = "旧手机出售", Content = "苹果 14", UserId = user.Id });
 
-        var results = await _postService.SearchAsync("相机");
+        var results = await _postService.SearchAsync(new PaginationParams { Keyword = "相机" });
 
-        Assert.That(results, Has.Count.EqualTo(1));
-        Assert.That(results[0].Title, Does.Contain("相机"));
+        Assert.That(results.Items, Has.Count.EqualTo(1));
+        Assert.That(results.Items[0].Title, Does.Contain("相机"));
     }
 
     [Test]
@@ -102,11 +102,11 @@ public class PostSearchAndHotIntegrationTests : IntegrationTestBase
         var user = await SeedUserAsync();
         await _postRepo.CreateAsync(new PostModel { Title = "Any Post", Content = "Content", UserId = user.Id });
 
-        var results = await _postService.SearchAsync(string.Empty);
-        Assert.That(results, Is.Empty);
+        var results = await _postService.SearchAsync(new PaginationParams { Keyword = string.Empty });
+        Assert.That(results.Items, Is.Empty);
 
-        var wsResults = await _postService.SearchAsync("   ");
-        Assert.That(wsResults, Is.Empty);
+        var wsResults = await _postService.SearchAsync(new PaginationParams { Keyword = "   " });
+        Assert.That(wsResults.Items, Is.Empty);
     }
 
     [Test]
@@ -115,10 +115,10 @@ public class PostSearchAndHotIntegrationTests : IntegrationTestBase
         var user = await SeedUserAsync();
         var longKeyword = new string('z', 500);
 
-        List<PostDto> results = null!;
-        Assert.DoesNotThrowAsync(async () => results = await _postService.SearchAsync(longKeyword));
+        PagedResultDto<PostDto> results = null!;
+        Assert.DoesNotThrowAsync(async () => results = await _postService.SearchAsync(new PaginationParams { Keyword = longKeyword }));
         Assert.That(results, Is.Not.Null);
-        Assert.That(results, Is.Empty);
+        Assert.That(results.Items, Is.Empty);
     }
 
     [Test]

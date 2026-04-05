@@ -54,15 +54,15 @@ public class CommentServiceTests
     {
         // Arrange
         var comments = new List<CommentModel> { new CommentModel { Id = "1", Content = "Comment 1" } };
-        _mockCommentRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(comments);
+        _mockCommentRepo.Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(comments);
         _mockLikeManager.Setup(m => m.GetCommentLikesAsync("1", It.IsAny<int>())).ReturnsAsync(5);
 
         // Act
-        var result = await _commentService.GetAllAsync();
+        var result = await _commentService.GetAllAsync(new PaginationParams());
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result[0].Likes, Is.EqualTo(5));
+        Assert.That(result.Items[0].Likes, Is.EqualTo(5));
     }
 
     [Test]

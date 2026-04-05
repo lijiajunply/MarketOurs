@@ -11,7 +11,8 @@ namespace MarketOurs.DataAPI.Services;
 
 public interface ICommentService
 {
-    Task<List<CommentDto>> GetAllAsync();
+    Task<PagedResultDto<CommentDto>> GetAllAsync(PaginationParams @params);
+    Task<PagedResultDto<CommentDto>> SearchAsync(PaginationParams @params);
     Task<CommentDto?> GetByIdAsync(string id);
     Task<CommentDto?> CreateAsync(CommentCreateDto createDto);
     Task<CommentDto?> UpdateAsync(string id, CommentUpdateDto updateDto);
@@ -31,16 +32,32 @@ public class CommentService(
     private static readonly TimeSpan LocalCacheTtl = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan DistCacheTtl = TimeSpan.FromMinutes(10);
 
-    public async Task<List<CommentDto>> GetAllAsync()
+    public async Task<PagedResultDto<CommentDto>> GetAllAsync(PaginationParams @params)
     {
-        var comments = await commentRepo.GetAllAsync();
+        var totalCount = await commentRepo.CountAsync();
+        var comments = await commentRepo.GetAllAsync(@params.PageIndex, @params.PageSize);
         var dtos = comments.Select(MapToDto).ToList();
         foreach (var dto in dtos)
         {
             dto.Likes = await likeManager.GetCommentLikesAsync(dto.Id, dto.Likes);
             dto.Dislikes = await likeManager.GetCommentDislikesAsync(dto.Id, dto.Dislikes);
         }
-        return dtos;
+        return PagedResultDto<CommentDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
+    }
+
+    public async Task<PagedResultDto<CommentDto>> SearchAsync(PaginationParams @params)
+    {
+        if (string.IsNullOrWhiteSpace(@params.Keyword))
+            return PagedResultDto<CommentDto>.Success([], 0, @params.PageIndex, @params.PageSize);
+
+        var totalCount = await commentRepo.SearchCountAsync(@params.Keyword);
+        var comments = await commentRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize);
+        var dtos = comments.Select(MapToDto).ToList();
+        foreach (var dto in dtos)
+        {
+            await FillDynamicData(dto);
+        }
+        return PagedResultDto<CommentDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
     public async Task<CommentDto?> GetByIdAsync(string id)

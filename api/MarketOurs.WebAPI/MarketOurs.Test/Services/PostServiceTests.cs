@@ -67,7 +67,7 @@ public class PostServiceTests
             new PostModel { Id = "1", Title = "Post 1", Content = "Content 1" },
             new PostModel { Id = "2", Title = "Post 2", Content = "Content 2" }
         };
-        _mockPostRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(posts);
+        _mockPostRepo.Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(posts);
 
         _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(10);
         _mockLikeManager.Setup(m => m.GetPostDislikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(2);
@@ -76,15 +76,15 @@ public class PostServiceTests
             .ReturnsAsync(new RedisValue("100"));
 
         // Act
-        var result = await _postService.GetAllAsync();
+        var result = await _postService.GetAllAsync(new PaginationParams());
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count, Is.EqualTo(2));
-        Assert.That(result[0].Id, Is.EqualTo("1"));
-        Assert.That(result[0].Likes, Is.EqualTo(10));
-        Assert.That(result[0].Dislikes, Is.EqualTo(2));
-        Assert.That(result[0].Watch, Is.EqualTo(100));
+        Assert.That(result.Items.Count, Is.EqualTo(2));
+        Assert.That(result.Items[0].Id, Is.EqualTo("1"));
+        Assert.That(result.Items[0].Likes, Is.EqualTo(10));
+        Assert.That(result.Items[0].Dislikes, Is.EqualTo(2));
+        Assert.That(result.Items[0].Watch, Is.EqualTo(100));
     }
 
     [Test]

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MarketOurs.Data.DataModels;
+using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
 using Microsoft.Extensions.Caching.Distributed;
@@ -166,13 +167,13 @@ public class HighLoadTests
         // Arrange: service allocates PostDto objects under high load — verify GC can reclaim them
         const int batchSize = 10000;
         var posts = new List<PostModel> { new PostModel { Id = "mem-test", Title = "Mem Test" } };
-        _mockPostRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(posts);
+        _mockPostRepo.Setup(r => r.GetAllAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(posts);
         _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
         _mockLikeManager.Setup(m => m.GetPostDislikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
         _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
 
         // Warm up
-        await _postService.GetAllAsync();
+        await _postService.GetAllAsync(new PaginationParams());
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
@@ -182,7 +183,7 @@ public class HighLoadTests
         // Act: repeatedly call GetAllAsync to allocate DTOs
         for (int i = 0; i < batchSize; i++)
         {
-            await _postService.GetAllAsync();
+            await _postService.GetAllAsync(new PaginationParams());
             
             // Periodic cleanup of Moq invocation history to prevent test-tooling memory bloat
             if (i % 1000 == 0)

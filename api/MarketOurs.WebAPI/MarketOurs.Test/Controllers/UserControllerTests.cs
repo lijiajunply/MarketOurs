@@ -34,16 +34,17 @@ public class UserControllerTests : ControllerTestBase
             new UserDto { Id = "1", Name = "User 1" },
             new UserDto { Id = "2", Name = "User 2" }
         };
-        _mockUserService.Setup(s => s.GetAllAsync()).ReturnsAsync(users);
+        var pagedResult = PagedResultDto<UserDto>.Success(users, 2, 1, 10);
+        _mockUserService.Setup(s => s.GetAllAsync(It.IsAny<PaginationParams>())).ReturnsAsync(pagedResult);
 
         // Act
-        var result = await _controller.GetAllUsers();
+        var result = await _controller.GetAllUsers(new PaginationParams());
 
         // Assert
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Code, Is.EqualTo(200));
         Assert.That(result.Data, Is.Not.Null);
-        Assert.That(result.Data!.Count, Is.EqualTo(2));
+        Assert.That(result.Data!.Items.Count, Is.EqualTo(2));
     }
 
     [Test]

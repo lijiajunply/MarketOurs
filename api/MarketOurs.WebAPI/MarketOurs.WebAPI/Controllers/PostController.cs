@@ -11,14 +11,14 @@ namespace MarketOurs.WebAPI.Controllers;
 public class PostController(IPostService postService) : ControllerBase
 {
     /// <summary>
-    /// 获取所有帖子
+    /// 获取所有帖子 (分页)
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ApiResponse<List<PostDto>>> GetAll()
+    public async Task<ApiResponse<PagedResultDto<PostDto>>> GetAll([FromQuery] PaginationParams @params)
     {
-        var posts = await postService.GetAllAsync();
-        return ApiResponse<List<PostDto>>.Success(posts, "获取成功");
+        var posts = await postService.GetAllAsync(@params);
+        return ApiResponse<PagedResultDto<PostDto>>.Success(posts, "获取成功");
     }
 
     /// <summary>
@@ -183,18 +183,18 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 全文检索帖子
+    /// 全文检索帖子 (分页)
     /// </summary>
     [HttpGet("search")]
     [AllowAnonymous]
-    public async Task<ApiResponse<List<PostDto>>> Search([FromQuery] string keyword)
+    public async Task<ApiResponse<PagedResultDto<PostDto>>> Search([FromQuery] PaginationParams @params)
     {
-        if (string.IsNullOrWhiteSpace(keyword))
+        if (string.IsNullOrWhiteSpace(@params.Keyword))
         {
-            return ApiResponse<List<PostDto>>.Success([], "关键词不能为空");
+            return ApiResponse<PagedResultDto<PostDto>>.Success(PagedResultDto<PostDto>.Success([], 0, @params.PageIndex, @params.PageSize), "关键词不能为空");
         }
 
-        var results = await postService.SearchAsync(keyword);
-        return ApiResponse<List<PostDto>>.Success(results, $"成功找到 {results.Count} 条相关内容");
+        var results = await postService.SearchAsync(@params);
+        return ApiResponse<PagedResultDto<PostDto>>.Success(results, $"成功找到 {results.TotalCount} 条相关内容");
     }
 }

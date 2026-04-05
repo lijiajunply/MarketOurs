@@ -98,9 +98,9 @@ public class CoreBusinessIntegrationTests : IntegrationTestBase
         Assert.That(updatedDto!.Title, Is.EqualTo("Updated Title"));
 
         // 4. Get All and verify
-        var allPosts = await _postService.GetAllAsync();
-        Assert.That(allPosts.Count, Is.EqualTo(1));
-        Assert.That(allPosts[0].Title, Is.EqualTo("Updated Title"));
+        var allPosts = await _postService.GetAllAsync(new PaginationParams());
+        Assert.That(allPosts.Items.Count, Is.EqualTo(1));
+        Assert.That(allPosts.Items[0].Title, Is.EqualTo("Updated Title"));
 
         // 5. Delete Post
         await _postService.DeleteAsync(postDto.Id);
@@ -128,15 +128,15 @@ public class CoreBusinessIntegrationTests : IntegrationTestBase
         Assert.That(replyResult.ParentCommentId, Is.EqualTo(rootResult.Id));
 
         // 4. Verify in DB via GetAll (hierarchical fetch if supported by service)
-        var allComments = await _commentService.GetAllAsync();
-        Assert.That(allComments.Count, Is.EqualTo(2));
+        var allComments = await _commentService.GetAllAsync(new PaginationParams());
+        Assert.That(allComments.Items.Count, Is.EqualTo(2));
         
         // Root comment should be there
-        var retrievedRoot = allComments.FirstOrDefault(c => c.Id == rootResult.Id);
+        var retrievedRoot = allComments.Items.FirstOrDefault(c => c.Id == rootResult.Id);
         Assert.That(retrievedRoot, Is.Not.Null);
         
         // Reply should be there
-        var retrievedReply = allComments.FirstOrDefault(c => c.Id == replyResult.Id);
+        var retrievedReply = allComments.Items.FirstOrDefault(c => c.Id == replyResult.Id);
         Assert.That(retrievedReply, Is.Not.Null);
         Assert.That(retrievedReply!.ParentCommentId, Is.EqualTo(rootResult.Id));
     }
@@ -155,8 +155,8 @@ public class CoreBusinessIntegrationTests : IntegrationTestBase
         await _postService.GetByIdAsync(post.Id);
 
         // 3. Assert: Verify watch count in Redis via service GetAll (which aggregates from Redis)
-        var all = await _postService.GetAllAsync();
-        var p = all.First(x => x.Id == post.Id);
+        var all = await _postService.GetAllAsync(new PaginationParams());
+        var p = all.Items.First(x => x.Id == post.Id);
         
         // Note: The actual increment logic depends on PostService implementation. 
         // Based on PostServiceTests, it reads from Redis.

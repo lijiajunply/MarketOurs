@@ -27,15 +27,16 @@ public class CommentControllerTests : ControllerTestBase
     {
         // Arrange
         var comments = new List<CommentDto> { new CommentDto { Id = "1", Content = "Comment 1" } };
-        _mockCommentService.Setup(s => s.GetAllAsync()).ReturnsAsync(comments);
+        var pagedResult = PagedResultDto<CommentDto>.Success(comments, 1, 1, 10);
+        _mockCommentService.Setup(s => s.GetAllAsync(It.IsAny<PaginationParams>())).ReturnsAsync(pagedResult);
 
         // Act
-        var result = await _controller.GetAll();
+        var result = await _controller.GetAll(new PaginationParams());
 
         // Assert
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Code, Is.EqualTo(200));
-        Assert.That(result.Data!.Count, Is.EqualTo(1));
+        Assert.That(result.Data!.Items.Count, Is.EqualTo(1));
     }
 
     [Test]

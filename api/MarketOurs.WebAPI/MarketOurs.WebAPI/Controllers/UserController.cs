@@ -13,15 +13,31 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     #region Admin Operations
 
     /// <summary>
-    /// 获取所有用户 (Admin)
+    /// 获取所有用户 (Admin, 分页)
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public async Task<ApiResponse<List<UserDto>>> GetAllUsers()
+    public async Task<ApiResponse<PagedResultDto<UserDto>>> GetAllUsers([FromQuery] PaginationParams @params)
     {
         logger.LogInformation("Admin requested all users");
-        var users = await userService.GetAllAsync();
-        return ApiResponse<List<UserDto>>.Success(users, "获取用户列表成功");
+        var users = await userService.GetAllAsync(@params);
+        return ApiResponse<PagedResultDto<UserDto>>.Success(users, "获取用户列表成功");
+    }
+
+    /// <summary>
+    /// 检索用户 (Admin, 分页)
+    /// </summary>
+    [HttpGet("search")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ApiResponse<PagedResultDto<UserDto>>> Search([FromQuery] PaginationParams @params)
+    {
+        if (string.IsNullOrWhiteSpace(@params.Keyword))
+        {
+            return ApiResponse<PagedResultDto<UserDto>>.Success(PagedResultDto<UserDto>.Success([], 0, @params.PageIndex, @params.PageSize), "关键词不能为空");
+        }
+
+        var results = await userService.SearchAsync(@params);
+        return ApiResponse<PagedResultDto<UserDto>>.Success(results, $"成功找到 {results.TotalCount} 条相关内容");
     }
 
     /// <summary>

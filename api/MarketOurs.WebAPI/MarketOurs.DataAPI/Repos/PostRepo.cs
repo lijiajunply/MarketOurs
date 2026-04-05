@@ -6,7 +6,8 @@ namespace MarketOurs.DataAPI.Repos;
 
 public interface IPostRepo
 {
-    Task<List<PostModel>> GetAllAsync();
+    Task<List<PostModel>> GetAllAsync(int pageIndex, int pageSize);
+    Task<int> CountAsync();
     Task<List<PostModel>> GetHotAsync(int count);
     Task<PostModel?> GetByIdAsync(string id);
     Task<List<PostModel>?> GetByDateAsync(DateTime before, DateTime after);
@@ -16,7 +17,8 @@ public interface IPostRepo
     Task<List<UserModel>?> GetDislikeUsersAsync(string id, DateTime before, DateTime after);
     Task<UserModel?> GetAuthorAsync(string id);
     Task<List<CommentModel>?> GetCommentsAsync(string id, string type);
-    Task<List<PostModel>> SearchAsync(string keyword);
+    Task<List<PostModel>> SearchAsync(string keyword, int pageIndex, int pageSize);
+    Task<int> SearchCountAsync(string keyword);
 
     Task CreateAsync(PostModel post);
     Task UpdateAsync(PostModel post);
@@ -35,10 +37,20 @@ public interface IPostRepo
 
 public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
 {
-    public async Task<List<PostModel>> GetAllAsync()
+    public async Task<List<PostModel>> GetAllAsync(int pageIndex, int pageSize)
     {
         await using var context = await factory.CreateDbContextAsync();
-        return await context.Posts.ToListAsync();
+        return await context.Posts
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<int> CountAsync()
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Posts.CountAsync();
     }
 
     public async Task<List<PostModel>> GetHotAsync(int count)
@@ -122,25 +134,14 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
 
-        if (type == "Like")
-        {
-            return await context.Posts
-                .Include(x => x.Comments)
-                .Where(x => x.Id == id)
-                .OrderByDescending(x => x.Likes)
-                .Select(x => x.Comments)
-                .FirstOrDefaultAsync();
-        }
-
-        return await context.Posts
-            .Include(x => x.Comments)
-            .Where(x => x.Id == id)
-            .OrderByDescending(x => x.UpdatedAt)
-            .Select(x => x.Comments)
-            .FirstOrDefaultAsync();
+        // 无论何种排序，都先获取贴子的所有评论（包含子评论）
+        // 在该方案中，我们选择获取属于该 PostId 的所有评论，让 Service 层负责构建树
+        return await context.Commits
+            .Where(x => x.PostId == id)
+            .ToListAsync();
     }
 
-    public async Task<List<PostModel>> SearchAsync(string keyword)
+    public async Task<List<PostModel>> SearchAsync(string keyword, int pageIndex, int pageSize)
     {
         await using var context = await factory.CreateDbContextAsync();
 
@@ -154,28 +155,56 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
                     .FromSqlRaw("SELECT * FROM posts WHERE posts @@@ {0}", keyword)
                     .Include(x => x.User)
                     .OrderByDescending(x => x.CreatedAt)
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
             }
-            catch (Exception ex)
+            catch
             {
                 // 如果 ParadeDB 索引未就绪，则回退到 ILike 搜索
-                // 这保证了即便在非 ParadeDB 环境下，代码依然能运行
                 return await context.Posts
                     .Where(x => EF.Functions.ILike(x.Title + " " + x.Content, $"%{keyword}%"))
                     .Include(x => x.User)
                     .OrderByDescending(x => x.CreatedAt)
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
             }
         }
 
         // SQLite 或其他数据库回退：简单关键词匹配
-        var query = context.Posts.AsQueryable();
-        query = query.Where(x => x.Title.Contains(keyword) || x.Content.Contains(keyword));
-
-        return await query
+        return await context.Posts
+            .Where(x => x.Title.Contains(keyword) || x.Content.Contains(keyword))
             .Include(x => x.User)
             .OrderByDescending(x => x.CreatedAt)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+    }
+
+    public async Task<int> SearchCountAsync(string keyword)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+
+        if (context.Database.IsNpgsql())
+        {
+            try
+            {
+                return await context.Posts
+                    .FromSqlRaw("SELECT * FROM posts WHERE posts @@@ {0}", keyword)
+                    .CountAsync();
+            }
+            catch
+            {
+                return await context.Posts
+                    .Where(x => EF.Functions.ILike(x.Title + " " + x.Content, $"%{keyword}%"))
+                    .CountAsync();
+            }
+        }
+
+        return await context.Posts
+            .Where(x => x.Title.Contains(keyword) || x.Content.Contains(keyword))
+            .CountAsync();
     }
 
     public async Task CreateAsync(PostModel post)
