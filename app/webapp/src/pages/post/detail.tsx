@@ -6,15 +6,26 @@ import { commentService } from "../../services/commentService"
 import type { PostDto, CommentDto } from "../../types"
 import { useSelector } from "react-redux"
 import type { RootState } from "../../stores"
+import { useTranslation } from "react-i18next"
+import { formatDistanceToNow } from "date-fns"
+import { zhCN, enUS } from "date-fns/locale"
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const formatDate = (dateString: string, i18n: any) => {
+  try {
+    const date = new Date(dateString);
+    return formatDistanceToNow(date, { 
+      addSuffix: true, 
+      locale: i18n.language === 'zh' ? zhCN : enUS 
+    });
+  } catch (e) {
+    return dateString;
+  }
 }
 
 export default function PostDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
   const { user } = useSelector((state: RootState) => state.auth)
 
   const [post, setPost] = useState<PostDto | null>(null)
@@ -91,7 +102,7 @@ export default function PostDetailPage() {
             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.userId}`} alt="Author" className="w-12 h-12 rounded-full bg-muted shadow-inner" />
             <div className="flex-1">
               <p className="font-bold text-lg">User {post.userId.slice(0, 4)}</p>
-              <p className="text-sm text-muted-foreground">{formatDate(post.createdAt)}</p>
+              <p className="text-sm text-muted-foreground">{formatDate(post.createdAt, i18n)}</p>
             </div>
             <button className="p-2 rounded-full hover:bg-muted transition-colors">
               <MoreHorizontal size={20} />
@@ -167,7 +178,7 @@ export default function PostDetailPage() {
                 <div className="p-5 rounded-[1.5rem] bg-card border border-border/40 shadow-sm group-hover:border-primary/20 transition-colors">
                   <div className="flex items-center justify-between mb-1">
                     <p className="font-bold text-sm">User {c.userId.slice(0, 4)}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(c.createdAt)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(c.createdAt, i18n)}</p>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">{c.content}</p>
                 </div>

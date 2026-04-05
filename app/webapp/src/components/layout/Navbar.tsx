@@ -1,12 +1,13 @@
 import { Link, useLocation } from "react-router"
 import { cn } from "../../lib/utils"
 import { useTheme } from "../theme-provider"
-import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut, PlusSquare, Languages } from "lucide-react"
+import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut, PlusSquare, Languages, Bell } from "lucide-react"
 import { useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useTranslation } from "react-i18next"
 import type { RootState } from "../../stores"
 import { logout } from "../../stores/authSlice"
+import { NotificationBell } from "./NotificationBell"
 
 export function Navbar() {
   const { theme, setTheme } = useTheme()
@@ -90,6 +91,8 @@ export function Navbar() {
             >
               {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
             </button>
+
+            <NotificationBell />
 
             {isAuthenticated ? (
               <div className="flex items-center gap-2">

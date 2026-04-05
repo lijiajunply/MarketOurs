@@ -4,11 +4,20 @@ import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { postService } from "../../services/postService"
 import type { PostDto } from "../../types"
+import { formatDistanceToNow } from "date-fns"
+import { zhCN, enUS } from "date-fns/locale"
 
 // Format date helper
 const formatDate = (dateString: string, i18n: any) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(i18n.language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  try {
+    const date = new Date(dateString);
+    return formatDistanceToNow(date, { 
+      addSuffix: true, 
+      locale: i18n.language === 'zh' ? zhCN : enUS 
+    });
+  } catch (e) {
+    return dateString;
+  }
 }
 
 export function PostCard({ post }: { post: PostDto }) {
