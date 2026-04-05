@@ -36,6 +36,9 @@ public class UserCreateDto
     [MaxLength(128, ErrorMessage = "用户名长度不能超过128位")]
     public string Name { get; set; } = string.Empty;
 
+    [MaxLength(128, ErrorMessage = "头像地址长度不能超过128位")]
+    public string Avatar { get; set; } = string.Empty;
+
     [MaxLength(128, ErrorMessage = "角色长度不能超过128位")]
     public string Role { get; set; } = "User";
 }

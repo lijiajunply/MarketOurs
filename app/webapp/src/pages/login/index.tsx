@@ -4,7 +4,6 @@ import { useDispatch } from "react-redux";
 import { authService } from "../../services/authService";
 import { setCredentials } from "../../stores/authSlice";
 import { Mail, Lock, Loader2, ArrowRight, GitBranch } from "lucide-react";
-import { cn } from "../../lib/utils";
 
 export default function LoginPage() {
   const [account, setAccount] = useState("");

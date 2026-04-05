@@ -118,6 +118,7 @@ public class UserService(
             Phone = !isEmail ? createDto.Account : string.Empty,
             Password = createDto.Password.StringToHash(),
             Name = createDto.Name,
+            Avatar = createDto.Avatar,
             Role = createDto.Role,
             CreatedAt = DateTime.UtcNow,
             LastLoginAt = DateTime.UtcNow,

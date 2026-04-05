@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Group } from '@visx/group';
 import { AreaClosed } from '@visx/shape';
 import { AxisBottom, AxisLeft } from '@visx/axis';
