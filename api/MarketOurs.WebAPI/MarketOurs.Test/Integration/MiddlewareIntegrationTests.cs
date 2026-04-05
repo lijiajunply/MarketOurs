@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using MarketOurs.DataAPI.Configs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.WebAPI.Middlewares;
 using MarketOurs.WebAPI.Services;
 using Microsoft.AspNetCore.Http;
@@ -231,6 +232,132 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
 
         // Arrange
         Task Next(HttpContext ctx) => throw new Exception("Unexpected server error");
+    }
+
+    [Test]
+    public async Task RateLimitMiddleware_IpUnblockedAfterRemoval_AllowsRequests()
+    {
+        // Arrange: blacklist an IP then remove it
+        var rateLimitService = _serviceProvider.GetRequiredService<RateLimitService>();
+        var blacklistService = _serviceProvider.GetRequiredService<IIpBlacklistCacheService>();
+        var logger = _serviceProvider.GetRequiredService<ILogger<RateLimitMiddleware>>();
+        int nextCalled = 0;
+        var middleware = new RateLimitMiddleware(Next, logger, rateLimitService, blacklistService);
+
+        var ip = "7.7.7.7";
+        await blacklistService.AddToBlacklistAsync(ip);
+        await blacklistService.RefreshBlacklistAsync();
+
+        // Confirm blocked
+        var blockedCtx = new DefaultHttpContext
+        {
+            Connection = { RemoteIpAddress = System.Net.IPAddress.Parse(ip) },
+            Response = { Body = new MemoryStream() }
+        };
+        await middleware.InvokeAsync(blockedCtx);
+        Assert.That(blockedCtx.Response.StatusCode, Is.EqualTo(StatusCodes.Status429TooManyRequests));
+
+        // Remove from blacklist and refresh
+        await blacklistService.RemoveFromBlacklistAsync(ip);
+        await blacklistService.RefreshBlacklistAsync();
+
+        // Should now be allowed through
+        var allowedCtx = new DefaultHttpContext
+        {
+            Connection = { RemoteIpAddress = System.Net.IPAddress.Parse(ip) },
+            Request = { Path = "/api/ok" },
+            Response = { Body = new MemoryStream() }
+        };
+        await middleware.InvokeAsync(allowedCtx);
+        Assert.That(nextCalled, Is.EqualTo(1), "Request should pass after IP is removed from blacklist");
+        return;
+
+        Task Next(HttpContext ctx) { Interlocked.Increment(ref nextCalled); return Task.CompletedTask; }
+    }
+
+    [Test]
+    public async Task DataMaskingMiddleware_NestedFields_MasksCorrectly()
+    {
+        // Arrange
+        var maskingService = _serviceProvider.GetRequiredService<DataMaskingService>();
+        var logger = _serviceProvider.GetRequiredService<ILogger<DataMaskingMiddleware>>();
+        var middleware = new DataMaskingMiddleware(Next, logger, maskingService);
+
+        var context = new DefaultHttpContext { Request = { Path = "/api/users/profile" } };
+        var originalBody = new MemoryStream();
+        context.Response.Body = originalBody;
+
+        // Act
+        await middleware.InvokeAsync(context);
+
+        // Assert
+        originalBody.Seek(0, SeekOrigin.Begin);
+        var result = await new StreamReader(originalBody).ReadToEndAsync();
+
+        Assert.That(result, Does.Not.Contain("inner@example.com"));
+        Assert.That(result, Does.Contain("****"));
+        return;
+
+        async Task Next(HttpContext ctx)
+        {
+            ctx.Response.ContentType = "application/json";
+            var json = "{\"user\":{\"email\": \"inner@example.com\", \"phone\": \"13911112222\"}}";
+            var bytes = Encoding.UTF8.GetBytes(json);
+            await ctx.Response.Body.WriteAsync(bytes, 0, bytes.Length);
+        }
+    }
+
+    [Test]
+    public async Task GlobalExceptionMiddleware_AuthException_Returns401()
+    {
+        var logger = _serviceProvider.GetRequiredService<ILogger<GlobalExceptionMiddleware>>();
+        var middleware = new GlobalExceptionMiddleware(Next, logger);
+
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        Assert.That(context.Response.StatusCode, Is.EqualTo(StatusCodes.Status401Unauthorized));
+        return;
+
+        Task Next(HttpContext ctx) =>
+            throw new MarketOurs.DataAPI.Exceptions.AuthException(
+                ErrorCode.Unauthorized, "Not authorized");
+    }
+
+    [Test]
+    public async Task GlobalExceptionMiddleware_KeyNotFoundException_Returns404()
+    {
+        var logger = _serviceProvider.GetRequiredService<ILogger<GlobalExceptionMiddleware>>();
+        var middleware = new GlobalExceptionMiddleware(Next, logger);
+
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        Assert.That(context.Response.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+        return;
+
+        Task Next(HttpContext ctx) => throw new KeyNotFoundException("Resource not found");
+    }
+
+    [Test]
+    public async Task GlobalExceptionMiddleware_ArgumentNullException_Returns400()
+    {
+        var logger = _serviceProvider.GetRequiredService<ILogger<GlobalExceptionMiddleware>>();
+        var middleware = new GlobalExceptionMiddleware(Next, logger);
+
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        Assert.That(context.Response.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
+        return;
+
+        Task Next(HttpContext ctx) => throw new ArgumentNullException("userId");
     }
 
     [Test]

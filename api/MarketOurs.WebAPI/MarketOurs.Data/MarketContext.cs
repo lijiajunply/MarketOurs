@@ -160,12 +160,6 @@ public abstract class DataModel
     public string GetHashKey() => DataTool.ToMd5Hash(ToString());
 
     /// <summary>
-    /// 通过 ToString 和 BCrypt 获取密钥。适合需要很安全的场景
-    /// </summary>
-    /// <returns></returns>
-    public string GetBCrypt() => DataTool.StringToHash(ToString());
-
-    /// <summary>
     /// 更新数据
     /// </summary>
     public abstract void Update(DataModel model);

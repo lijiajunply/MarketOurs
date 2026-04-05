@@ -159,4 +159,87 @@ public class HighLoadTests
         Assert.That(allSynced, Is.True, $"Background syncs timed out. Completed: {dbSyncCount}/{totalIncrements / 10}");
         Assert.That(dbSyncCount, Is.EqualTo(totalIncrements / 10));
     }
+
+    [Test]
+    public async Task PostService_MemoryPressure_NoLeakDetected()
+    {
+        // Arrange: service allocates PostDto objects under high load — verify GC can reclaim them
+        const int batchSize = 10000;
+        var posts = new List<PostModel> { new PostModel { Id = "mem-test", Title = "Mem Test" } };
+        _mockPostRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(posts);
+        _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
+        _mockLikeManager.Setup(m => m.GetPostDislikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
+        _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
+
+        // Warm up
+        await _postService.GetAllAsync();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        var memBefore = GC.GetTotalMemory(forceFullCollection: true);
+
+        // Act: repeatedly call GetAllAsync to allocate DTOs
+        for (int i = 0; i < batchSize; i++)
+        {
+            await _postService.GetAllAsync();
+        }
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        var memAfter = GC.GetTotalMemory(forceFullCollection: true);
+
+        var growthMb = (memAfter - memBefore) / 1024.0 / 1024.0;
+        await TestContext.Out.WriteLineAsync(
+            $"Memory: before={memBefore / 1024 / 1024}MB, after={memAfter / 1024 / 1024}MB, growth={growthMb:F2}MB");
+
+        // Allow up to 20MB growth (generous for CI, tight enough to catch leaks)
+        Assert.That(growthMb, Is.LessThan(20),
+            $"Memory grew by {growthMb:F2}MB after {batchSize} GetAllAsync calls — possible memory leak");
+    }
+
+    [Test]
+    public async Task PostService_MixedLoad_ReadsWritesCache_Stable()
+    {
+        // Arrange: simulate realistic mixed workload — hot cache reads + writes + cache invalidations
+        const int totalOps = 5000;
+        var post = new PostModel { Id = "mixed", Title = "Mixed Load" };
+        _mockPostRepo.Setup(r => r.GetHotAsync(It.IsAny<int>())).ReturnsAsync([post]);
+        _mockPostRepo.Setup(r => r.GetByIdAsync("mixed")).ReturnsAsync(post);
+        _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(5);
+        _mockLikeManager.Setup(m => m.GetPostDislikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(1);
+
+        var exceptions = new System.Collections.Concurrent.ConcurrentBag<Exception>();
+        var sw = Stopwatch.StartNew();
+
+        await Parallel.ForEachAsync(Enumerable.Range(0, totalOps),
+            new ParallelOptions { MaxDegreeOfParallelism = 100 },
+            async (i, _) =>
+            {
+                try
+                {
+                    if (i % 5 == 0)
+                        await _postService.GetHotAsync();
+                    else if (i % 7 == 0)
+                        await _postService.IncrementWatchAsync("mixed");
+                    else
+                        await _postService.GetByIdAsync("mixed");
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+            });
+
+        sw.Stop();
+
+        await TestContext.Out.WriteLineAsync(
+            $"Mixed load: {totalOps} ops in {sw.ElapsedMilliseconds}ms, exceptions: {exceptions.Count}");
+
+        Assert.That(exceptions, Is.Empty,
+            $"Mixed load test produced {exceptions.Count} exception(s): {string.Join(", ", exceptions.Select(e => e.Message).Take(3))}");
+        Assert.That(sw.ElapsedMilliseconds, Is.LessThan(30000),
+            "5000 mixed ops should complete in under 30 seconds");
+    }
 }
