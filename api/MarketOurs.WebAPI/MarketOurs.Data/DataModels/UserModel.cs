@@ -55,6 +55,11 @@ public class UserModel : DataModel
     /// </summary>
     public string? PushSettings { get; set; }
 
+    /// <summary>
+    /// 移动端推送 Token (如 FCM Token)
+    /// </summary>
+    public string? PushToken { get; set; }
+
     public override void Update(DataModel model)
     {
         if (model is not UserModel userModel)

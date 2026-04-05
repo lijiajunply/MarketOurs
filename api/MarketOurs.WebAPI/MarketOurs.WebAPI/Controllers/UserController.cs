@@ -166,5 +166,29 @@ public class UserController(IUserService userService, ILogger<UserController> lo
         return ApiResponse<UserDto>.Success(updatedUser, "更新个人资料成功");
     }
 
+    /// <summary>
+    /// 更新当前登录用户的推送 Token (用于移动端推送)
+    /// </summary>
+    [HttpPost("push-token")]
+    [Authorize]
+    public async Task<ApiResponse> UpdatePushToken([FromBody] string token)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return ApiResponse.Fail(401, "未授权");
+        }
+
+        logger.LogInformation("User updating their push token: {Id}", userId);
+        
+        var success = await userService.UpdatePushTokenAsync(userId, token);
+        if (!success)
+        {
+            return ApiResponse.Fail(404, "用户不存在");
+        }
+
+        return ApiResponse.Success("更新成功");
+    }
+
     #endregion
 }

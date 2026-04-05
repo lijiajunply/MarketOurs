@@ -30,6 +30,8 @@ public interface IUserService
 
     Task<bool> ForgotPasswordAsync(string account);
     Task<bool> ResetPasswordAsync(string token, string newPassword);
+
+    Task<bool> UpdatePushTokenAsync(string userId, string token);
 }
 
 public class UserService(
@@ -272,6 +274,16 @@ public class UserService(
 
         await db.KeyDeleteAsync(CacheKeys.ResetToken(token));
 
+        return true;
+    }
+
+    public async Task<bool> UpdatePushTokenAsync(string userId, string token)
+    {
+        var user = await userRepo.GetByIdAsync(userId);
+        if (user == null) return false;
+
+        user.PushToken = token;
+        await userRepo.UpdateAsync(user);
         return true;
     }
 

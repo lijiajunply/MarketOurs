@@ -25,6 +25,7 @@ public class NotificationSyncBackgroundService(
                     var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
                     var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepo>();
                     var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    var pushService = scope.ServiceProvider.GetRequiredService<IPushService>();
 
                     // 1. 创建站内通知
                     var notification = new NotificationModel
@@ -40,15 +41,30 @@ public class NotificationSyncBackgroundService(
 
                     await notificationService.CreateNotificationAsync(notification);
 
-                    // 2. 检查是否需要发送邮件
-                    var settings = await notificationService.GetPushSettingsAsync(message.UserId);
-                    if (settings.EnableEmailNotifications)
+                    var user = await userRepo.GetByIdAsync(message.UserId);
+                    if (user != null)
                     {
-                        var user = await userRepo.GetByIdAsync(message.UserId);
-                        if (user != null && !string.IsNullOrEmpty(user.Email) && user.IsEmailVerified)
+                        // 2. 检查是否需要发送邮件
+                        var settings = await notificationService.GetPushSettingsAsync(message.UserId);
+                        if (settings.EnableEmailNotifications)
                         {
-                            await emailService.SendEmailAsync(user.Email, message.Title, message.Content);
-                            logger.LogInformation("Sent email notification to {Email}", user.Email);
+                            if (!string.IsNullOrEmpty(user.Email) && user.IsEmailVerified)
+                            {
+                                await emailService.SendEmailAsync(user.Email, message.Title, message.Content);
+                                logger.LogInformation("Sent email notification to {Email}", user.Email);
+                            }
+                        }
+
+                        // 3. 发送移动端推送 (如果有 PushToken)
+                        if (!string.IsNullOrEmpty(user.PushToken))
+                        {
+                            var data = new Dictionary<string, string>
+                            {
+                                ["type"] = message.Type.ToString(),
+                                ["targetId"] = message.TargetId ?? ""
+                            };
+                            await pushService.SendPushNotificationAsync(user.PushToken, message.Title, message.Content, data);
+                            logger.LogInformation("Sent mobile push notification to user {UserId}", message.UserId);
                         }
                     }
                 }
