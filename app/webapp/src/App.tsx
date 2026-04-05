@@ -6,6 +6,7 @@ import AdminDashboard from "./pages/admin/dashboard"
 import LoginPage from "./pages/login"
 import RegisterPage from "./pages/register"
 import PostDetailPage from "./pages/post/detail"
+import CreatePostPage from "./pages/post/create"
 
 export function App() {
   return (
@@ -15,6 +16,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/post/:id" element={<PostDetailPage />} />
+            <Route path="/post/create" element={<CreatePostPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />

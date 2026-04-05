@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router"
 import { cn } from "../../lib/utils"
 import { useTheme } from "../theme-provider"
-import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut } from "lucide-react"
+import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut, PlusSquare } from "lucide-react"
 import { useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import type { RootState } from "../../stores"
@@ -49,6 +49,20 @@ export function Navbar() {
                   {item.name}
                 </Link>
               ))}
+              {isAuthenticated && (
+                <Link
+                  to="/post/create"
+                  className={cn(
+                    "px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5",
+                    location.pathname === "/post/create"
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <PlusSquare size={16} />
+                  <span>发布</span>
+                </Link>
+              )}
             </nav>
           </div>
 
@@ -122,6 +136,21 @@ export function Navbar() {
                 {item.name}
               </Link>
             ))}
+            {isAuthenticated && (
+              <Link
+                to="/post/create"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-medium transition-colors",
+                  location.pathname === "/post/create"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <PlusSquare size={20} />
+                <span>发布贴子</span>
+              </Link>
+            )}
           </div>
         </div>
       )}
