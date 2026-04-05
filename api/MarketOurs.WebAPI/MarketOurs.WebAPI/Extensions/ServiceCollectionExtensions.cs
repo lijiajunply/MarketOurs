@@ -36,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITemplateService, FluidTemplateService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ILoginService, LoginService>();
+        services.AddScoped<IAIService, AIService>();
         
         services.AddScoped<IJwtService, JwtService>();
     }

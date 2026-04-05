@@ -15,6 +15,7 @@
         <PackageReference Include="MailKit" Version="4.15.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.5" />
+        <PackageReference Include="Microsoft.SemanticKernel" Version="1.74.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
         <PackageReference Include="NpgsqlDataProtection" Version="2.0.0" />
         <PackageReference Include="Polly" Version="8.6.6" />

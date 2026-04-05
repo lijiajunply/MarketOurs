@@ -1,0 +1,11 @@
+namespace MarketOurs.DataAPI.Configs;
+
+public class AIConfig
+{
+    public string? ApiKey { get; set; }
+    public string? ModelId { get; set; }
+    public string? Endpoint { get; set; }
+    public string? OrgId { get; set; }
+    public string? Provider { get; set; } // "OpenAI" or "AzureOpenAI"
+    public string? DeploymentName { get; set; } // For Azure OpenAI
+}

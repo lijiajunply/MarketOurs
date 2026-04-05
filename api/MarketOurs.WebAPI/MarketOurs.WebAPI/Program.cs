@@ -86,8 +86,19 @@ var emailConfig = new EmailConfig()
     Email = Environment.GetEnvironmentVariable("EMAIL")
 };
 
+var aiConfig = new AIConfig
+{
+    ApiKey = Environment.GetEnvironmentVariable("AI_API_KEY"),
+    ModelId = Environment.GetEnvironmentVariable("AI_MODEL_ID") ?? "gpt-4o",
+    Endpoint = Environment.GetEnvironmentVariable("AI_ENDPOINT"),
+    OrgId = Environment.GetEnvironmentVariable("AI_ORG_ID"),
+    Provider = Environment.GetEnvironmentVariable("AI_PROVIDER") ?? "OpenAI",
+    DeploymentName = Environment.GetEnvironmentVariable("AI_DEPLOYMENT_NAME")
+};
+
 builder.Services.AddSingleton(jwtConfig);
 builder.Services.AddSingleton(emailConfig);
+builder.Services.AddSingleton(aiConfig);
 builder.Services.AddSingleton<RsaKeyManager>();
 
 #endregion
