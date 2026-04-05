@@ -169,3 +169,31 @@ export interface IpCheckResult {
   isBlacklisted: boolean;
   checkTime: string;
 }
+
+/**
+ * Notification Models
+ */
+export enum NotificationType {
+  CommentReply = 0,
+  PostReply = 1,
+  HotList = 2,
+  System = 3,
+}
+
+export interface NotificationDto {
+  id: string;
+  userId: string;
+  title: string;
+  content: string;
+  type: NotificationType;
+  targetId: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface PushSettingsDto {
+  enableEmailNotifications: boolean;
+  enableHotListPush: boolean;
+  enableCommentReplyPush: boolean;
+}
+

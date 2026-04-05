@@ -50,6 +50,11 @@ public class UserModel : DataModel
     
     public bool IsPhoneVerified { get; set; }
 
+    /// <summary>
+    /// 推送设置 (JSON 存储)
+    /// </summary>
+    public string? PushSettings { get; set; }
+
     public override void Update(DataModel model)
     {
         if (model is not UserModel userModel)

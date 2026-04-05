@@ -2,6 +2,7 @@ using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
+using MarketOurs.DataAPI.Services.Background;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,8 @@ public class CommentServiceTests
     private Mock<IDistributedCache> _mockDistributedCache;
     private Mock<ILogger<CommentService>> _mockLogger;
     private CommentService _commentService;
+    private Mock<NotificationMessageQueue> _mockNotificationQueue;
+    private Mock<IPostRepo> _mockPostRepo;
 
     [SetUp]
     public void Setup()
@@ -29,6 +32,8 @@ public class CommentServiceTests
         _mockMemoryCache = new Mock<IMemoryCache>();
         _mockDistributedCache = new Mock<IDistributedCache>();
         _mockLogger = new Mock<ILogger<CommentService>>();
+        _mockNotificationQueue = new Mock<NotificationMessageQueue>();
+        _mockPostRepo = new Mock<IPostRepo>();
 
         // Setup MemoryCache mock
         object? expectedValue = null;
@@ -42,9 +47,11 @@ public class CommentServiceTests
         _commentService = new CommentService(
             _mockCommentRepo.Object,
             _mockUserRepo.Object,
+            _mockPostRepo.Object,
             _mockLikeManager.Object,
             _mockMemoryCache.Object,
             _mockDistributedCache.Object,
+            _mockNotificationQueue.Object,
             _mockLogger.Object
         );
     }

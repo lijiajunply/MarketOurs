@@ -16,10 +16,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRepo, UserRepo>();
         services.AddScoped<IPostRepo, PostRepo>();
         services.AddScoped<ICommentRepo, CommentRepo>();
+        services.AddScoped<INotificationRepo, NotificationRepo>();
 
         // Background queue for async DB sync
         services.AddSingleton<DataAPI.Services.Background.LikeMessageQueue>();
+        services.AddSingleton<DataAPI.Services.Background.NotificationMessageQueue>();
         services.AddHostedService<DataAPI.Services.Background.LikeSyncBackgroundService>();
+        services.AddHostedService<DataAPI.Services.Background.NotificationSyncBackgroundService>();
+        services.AddHostedService<DataAPI.Services.Background.DailyHotListBackgroundService>();
 
         // Services
         services.AddScoped<ILockService, RedisLockService>();
@@ -27,6 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPostService, PostService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ITemplateService, FluidTemplateService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ILoginService, LoginService>();

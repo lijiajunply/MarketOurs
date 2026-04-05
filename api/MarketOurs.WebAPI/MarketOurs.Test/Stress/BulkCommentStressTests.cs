@@ -15,9 +15,11 @@ public class BulkCommentStressTests
 {
     private Mock<ICommentRepo> _mockCommentRepo;
     private Mock<IUserRepo> _mockUserRepo;
+    private Mock<IPostRepo> _mockPostRepo;
     private Mock<ILikeManager> _mockLikeManager;
     private Mock<IMemoryCache> _mockMemoryCache;
     private Mock<IDistributedCache> _mockDistributedCache;
+    private Mock<MarketOurs.DataAPI.Services.Background.NotificationMessageQueue> _mockNotificationQueue;
     private Mock<ILogger<CommentService>> _mockLogger;
     private CommentService _commentService;
 
@@ -26,9 +28,11 @@ public class BulkCommentStressTests
     {
         _mockCommentRepo = new Mock<ICommentRepo>();
         _mockUserRepo = new Mock<IUserRepo>();
+        _mockPostRepo = new Mock<IPostRepo>();
         _mockLikeManager = new Mock<ILikeManager>();
         _mockMemoryCache = new Mock<IMemoryCache>();
         _mockDistributedCache = new Mock<IDistributedCache>();
+        _mockNotificationQueue = new Mock<MarketOurs.DataAPI.Services.Background.NotificationMessageQueue>();
         _mockLogger = new Mock<ILogger<CommentService>>();
 
         // Basic MemoryCache mock setups
@@ -37,9 +41,11 @@ public class BulkCommentStressTests
         _commentService = new CommentService(
             _mockCommentRepo.Object,
             _mockUserRepo.Object,
+            _mockPostRepo.Object,
             _mockLikeManager.Object,
             _mockMemoryCache.Object,
             _mockDistributedCache.Object,
+            _mockNotificationQueue.Object,
             _mockLogger.Object
         );
     }

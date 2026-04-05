@@ -24,9 +24,11 @@ public interface ICommentService
 public class CommentService(
     ICommentRepo commentRepo, 
     IUserRepo userRepo, 
+    IPostRepo postRepo,
     ILikeManager likeManager,
     IMemoryCache memoryCache,
     IDistributedCache distributedCache,
+    DataAPI.Services.Background.NotificationMessageQueue notificationQueue,
     ILogger<CommentService> logger) : ICommentService
 {
     private static readonly TimeSpan LocalCacheTtl = TimeSpan.FromMinutes(1);
@@ -140,6 +142,49 @@ public class CommentService(
         await commentRepo.CreateAsync(comment);
         // 清除该贴子的评论列表缓存（如果有）
         InvalidateCommentListCache(comment.PostId);
+
+        // 推送通知逻辑
+        try
+        {
+            var commenter = user;
+            if (string.IsNullOrEmpty(comment.ParentCommentId))
+            {
+                // 贴子主评论，通知贴子作者
+                var post = await postRepo.GetByIdAsync(comment.PostId);
+                if (post != null && post.UserId != comment.UserId)
+                {
+                    notificationQueue.Enqueue(new DataAPI.Services.Background.NotificationMessage
+                    {
+                        UserId = post.UserId,
+                        Title = "你的贴子收到了新评论",
+                        Content = $"{commenter.Name} 评论了你的贴子: {comment.Content.Substring(0, Math.Min(comment.Content.Length, 20))}...",
+                        Type = NotificationType.PostReply,
+                        TargetId = comment.PostId
+                    });
+                }
+            }
+            else
+            {
+                // 回复评论，通知被回复的人
+                var parentComment = await commentRepo.GetByIdAsync(comment.ParentCommentId);
+                if (parentComment != null && parentComment.UserId != comment.UserId)
+                {
+                    notificationQueue.Enqueue(new DataAPI.Services.Background.NotificationMessage
+                    {
+                        UserId = parentComment.UserId,
+                        Title = "你的评论收到了回复",
+                        Content = $"{commenter.Name} 回复了你: {comment.Content.Substring(0, Math.Min(comment.Content.Length, 20))}...",
+                        Type = NotificationType.CommentReply,
+                        TargetId = comment.PostId // 指向贴子
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to enqueue notification for comment creation");
+        }
+
         return MapToDto(comment);
     }
 
