@@ -1,17 +1,19 @@
 import { MessageSquare, Heart, Share2, MoreHorizontal, Search, Loader2 } from "lucide-react"
 import { useNavigate } from "react-router"
 import { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { postService } from "../../services/postService"
 import type { PostDto } from "../../types"
 
 // Format date helper
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string, i18n: any) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return date.toLocaleDateString(i18n.language === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export function PostCard({ post }: { post: PostDto }) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   
   return (
     <article
@@ -21,8 +23,8 @@ export function PostCard({ post }: { post: PostDto }) {
       <div className="flex items-center gap-3 mb-4">
         <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.userId}`} alt="Author" className="w-10 h-10 rounded-full bg-muted" />
         <div>
-          <p className="text-sm font-semibold">User {post.userId.slice(0, 4)}</p>
-          <p className="text-xs text-muted-foreground">{formatDate(post.createdAt)}</p>
+          <p className="text-sm font-semibold">{t('common.user')} {post.userId.slice(0, 4)}</p>
+          <p className="text-xs text-muted-foreground">{formatDate(post.createdAt, i18n)}</p>
         </div>
         <button 
           onClick={(e) => { e.stopPropagation(); }} 
@@ -75,6 +77,7 @@ export function PostCard({ post }: { post: PostDto }) {
 }
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<PostDto[]>([]);
   const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState("");
@@ -140,11 +143,11 @@ export default function HomePage() {
           type="text" 
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search posts..." 
+          placeholder={t('common.search_placeholder')}
           className="w-full pl-12 pr-4 py-4 rounded-2xl bg-card border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-sm"
         />
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-        <button type="submit" className="hidden">Search</button>
+        <button type="submit" className="hidden">{t('common.search')}</button>
       </form>
 
       <div className="space-y-6">
@@ -155,8 +158,8 @@ export default function HomePage() {
 
       <div ref={observerTarget} className="flex justify-center py-8">
         {loading && <Loader2 className="animate-spin text-primary" size={32} />}
-        {!hasMore && posts.length > 0 && <p className="text-muted-foreground">No more posts to load.</p>}
-        {!hasMore && posts.length === 0 && !loading && <p className="text-muted-foreground">No posts found.</p>}
+        {!hasMore && posts.length > 0 && <p className="text-muted-foreground">{t('common.no_more_posts')}</p>}
+        {!hasMore && posts.length === 0 && !loading && <p className="text-muted-foreground">{t('common.no_posts_found')}</p>}
       </div>
     </div>
   )

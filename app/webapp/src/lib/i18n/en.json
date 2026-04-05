@@ -1,0 +1,18 @@
+{
+  "common": {
+    "search_placeholder": "Search posts...",
+    "search": "Search",
+    "no_more_posts": "No more posts to load.",
+    "no_posts_found": "No posts found.",
+    "profile_coming_soon": "Profile Page Coming Soon",
+    "user": "User",
+    "loading": "Loading..."
+  },
+  "nav": {
+    "home": "Home",
+    "admin": "Admin",
+    "login": "Login",
+    "register": "Register",
+    "profile": "Profile"
+  }
+}

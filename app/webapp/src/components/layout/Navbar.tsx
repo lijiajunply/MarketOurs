@@ -1,25 +1,32 @@
 import { Link, useLocation } from "react-router"
 import { cn } from "../../lib/utils"
 import { useTheme } from "../theme-provider"
-import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut, PlusSquare } from "lucide-react"
+import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut, PlusSquare, Languages } from "lucide-react"
 import { useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
+import { useTranslation } from "react-i18next"
 import type { RootState } from "../../stores"
 import { logout } from "../../stores/authSlice"
 
-const navItems = [
-  { name: "集市", href: "/", icon: MessageSquare },
-]
-
 export function Navbar() {
   const { theme, setTheme } = useTheme()
+  const { t, i18n } = useTranslation()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
 
+  const navItems = [
+    { name: t("nav.home"), href: "/", icon: MessageSquare },
+  ]
+
   const handleLogout = () => {
     dispatch(logout())
+  }
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'zh' : 'en'
+    i18n.changeLanguage(newLang)
   }
 
   return (
@@ -60,13 +67,22 @@ export function Navbar() {
                   )}
                 >
                   <PlusSquare size={16} />
-                  <span>发布</span>
+                  <span>{t('nav.home') === 'Home' ? 'Post' : '发布'}</span>
                 </Link>
               )}
             </nav>
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={toggleLanguage}
+              className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              aria-label="Toggle language"
+              title={i18n.language === 'en' ? 'Switch to Chinese' : '切换为英文'}
+            >
+              <Languages size={20} />
+            </button>
+
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
@@ -102,7 +118,7 @@ export function Navbar() {
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity"
               >
                 <LogIn size={18} />
-                <span>Login</span>
+                <span>{t('nav.login')}</span>
               </Link>
             )}
 
@@ -148,7 +164,7 @@ export function Navbar() {
                 )}
               >
                 <PlusSquare size={20} />
-                <span>发布贴子</span>
+                <span>{t('nav.home') === 'Home' ? 'Post' : '发布贴子'}</span>
               </Link>
             )}
           </div>

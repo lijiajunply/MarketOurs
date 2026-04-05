@@ -1,0 +1,18 @@
+{
+  "common": {
+    "search_placeholder": "搜索文章...",
+    "search": "搜索",
+    "no_more_posts": "没有更多文章了。",
+    "no_posts_found": "未找到相关文章。",
+    "profile_coming_soon": "个人主页即将推出",
+    "user": "用户",
+    "loading": "加载中..."
+  },
+  "nav": {
+    "home": "首页",
+    "admin": "管理后台",
+    "login": "登录",
+    "register": "注册",
+    "profile": "个人中心"
+  }
+}
