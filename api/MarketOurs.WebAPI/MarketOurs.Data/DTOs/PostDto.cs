@@ -18,15 +18,30 @@ public class PostDto
 
 public class PostCreateDto
 {
-    [Required] public string Title { get; set; } = string.Empty;
-    [Required] public string Content { get; set; } = string.Empty;
+    [Required(ErrorMessage = "标题不能为空")] 
+    [MaxLength(128, ErrorMessage = "标题长度不能超过128位")] 
+    public string Title { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "内容不能为空")] 
+    [MaxLength(1024, ErrorMessage = "内容长度不能超过1024位")] 
+    public string Content { get; set; } = string.Empty;
+
     public List<string> Images { get; set; } = [];
-    [Required] public string UserId { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "用户ID不能为空")] 
+    [MaxLength(64, ErrorMessage = "用户ID长度不能超过64位")]
+    public string UserId { get; set; } = string.Empty;
 }
 
 public class PostUpdateDto
 {
-    [Required] public string Title { get; set; } = string.Empty;
-    [Required] public string Content { get; set; } = string.Empty;
+    [Required(ErrorMessage = "标题不能为空")] 
+    [MaxLength(128, ErrorMessage = "标题长度不能超过128位")] 
+    public string Title { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "内容不能为空")] 
+    [MaxLength(1024, ErrorMessage = "内容长度不能超过1024位")] 
+    public string Content { get; set; } = string.Empty;
+
     public List<string> Images { get; set; } = [];
 }

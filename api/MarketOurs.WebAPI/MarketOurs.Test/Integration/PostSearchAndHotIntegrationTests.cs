@@ -116,7 +116,8 @@ public class PostSearchAndHotIntegrationTests : IntegrationTestBase
         var longKeyword = new string('z', 500);
 
         PagedResultDto<PostDto> results = null!;
-        Assert.DoesNotThrowAsync(async () => results = await _postService.SearchAsync(new PaginationParams { Keyword = longKeyword }));
+        Assert.DoesNotThrowAsync(async () =>
+            results = await _postService.SearchAsync(new PaginationParams { Keyword = longKeyword }));
         Assert.That(results, Is.Not.Null);
         Assert.That(results.Items, Is.Empty);
     }
@@ -206,6 +207,6 @@ public class PostSearchAndHotIntegrationTests : IntegrationTestBase
 
     private class TestDbContextFactory(DbContextOptions<MarketContext> options) : IDbContextFactory<MarketContext>
     {
-        public MarketContext CreateDbContext() => new MarketContext(options);
+        public MarketContext CreateDbContext() => new(options);
     }
 }

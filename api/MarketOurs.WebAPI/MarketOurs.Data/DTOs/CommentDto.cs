@@ -19,15 +19,29 @@ public class CommentDto
 
 public class CommentCreateDto
 {
-    [Required] public string Content { get; set; } = string.Empty;
+    [Required(ErrorMessage = "评论内容不能为空")] 
+    [MaxLength(512, ErrorMessage = "评论内容长度不能超过512位")] 
+    public string Content { get; set; } = string.Empty;
+
     public List<string> Images { get; set; } = [];
+
+    [Required(ErrorMessage = "用户ID不能为空")]
+    [MaxLength(64, ErrorMessage = "用户ID长度不能超过64位")]
     public string UserId { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "贴子ID不能为空")]
+    [MaxLength(64, ErrorMessage = "贴子ID长度不能超过64位")]
     public string PostId { get; set; } = string.Empty;
+
+    [MaxLength(64, ErrorMessage = "父评论ID长度不能超过64位")]
     public string? ParentCommentId { get; set; }
 }
 
 public class CommentUpdateDto
 {
-    [Required] public string Content { get; set; } = string.Empty;
+    [Required(ErrorMessage = "评论内容不能为空")] 
+    [MaxLength(512, ErrorMessage = "评论内容长度不能超过512位")] 
+    public string Content { get; set; } = string.Empty;
+
     public List<string> Images { get; set; } = [];
 }

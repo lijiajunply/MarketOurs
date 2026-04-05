@@ -73,16 +73,13 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<MarketCont
 public static class DataTool
 {
     /// <summary>
-    /// 使用BCrypt进行密码加密
+    /// 使用BCrypt进行密码加密。如果输入为 null，则视为内容为空字符串。
     /// </summary>
     /// <param name="s">密码</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException">s 为 null 或者空白时，触发错误</exception>
+    /// <returns>加密后的哈希值</returns>
     public static string StringToHash(this string s)
     {
-        return string.IsNullOrWhiteSpace(s)
-            ? throw new ArgumentException("密码不能为空", nameof(s))
-            : BCrypt.Net.BCrypt.HashPassword(s, workFactor: 12); // 工作因子为 12 ，可自行调整
+        return BCrypt.Net.BCrypt.HashPassword(s ?? string.Empty, workFactor: 12); // 工作因子为 12 ，可自行调整
     }
 
     /// <summary>

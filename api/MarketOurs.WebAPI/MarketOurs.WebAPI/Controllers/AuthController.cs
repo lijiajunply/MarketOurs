@@ -287,32 +287,45 @@ public class AuthController(ILoginService loginService, IUserService userService
 
 public class LoginRequest
 {
-    [Required] public string Account { get; set; } = string.Empty;
+    [Required(ErrorMessage = "账号不能为空")] 
+    [MaxLength(128, ErrorMessage = "账号长度不能超过128位")]
+    public string Account { get; set; } = string.Empty;
 
-    [Required] public string Password { get; set; } = string.Empty;
+    [Required(ErrorMessage = "密码不能为空")] 
+    [MaxLength(128, ErrorMessage = "密码长度不能超过128位")]
+    public string Password { get; set; } = string.Empty;
 
     public string DeviceType { get; set; } = "Web";
 }
 
 public class RefreshRequest
 {
-    [Required] public string RefreshToken { get; set; } = string.Empty;
+    [Required(ErrorMessage = "刷新令牌不能为空")] 
+    public string RefreshToken { get; set; } = string.Empty;
 
     public string DeviceType { get; set; } = "Web";
 }
 
 public class ForgotPasswordRequest
 {
-    [Required] public string Account { get; set; } = string.Empty;
+    [Required(ErrorMessage = "账号不能为空")] 
+    [MaxLength(128, ErrorMessage = "账号长度不能超过128位")]
+    public string Account { get; set; } = string.Empty;
 }
 
 public class ResetPasswordRequest
 {
-    [Required] public string Token { get; set; } = string.Empty;
-    [Required] [MinLength(6)] public string NewPassword { get; set; } = string.Empty;
+    [Required(ErrorMessage = "验证码不能为空")] 
+    public string Token { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "新密码不能为空")] 
+    [MinLength(6, ErrorMessage = "新密码长度不能少于6位")] 
+    [MaxLength(128, ErrorMessage = "新密码长度不能超过128位")]
+    public string NewPassword { get; set; } = string.Empty;
 }
 
 public class VerifyCodeRequest
 {
-    [Required] public string Code { get; set; } = string.Empty;
+    [Required(ErrorMessage = "验证码不能为空")] 
+    public string Code { get; set; } = string.Empty;
 }
