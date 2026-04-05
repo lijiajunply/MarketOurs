@@ -297,7 +297,8 @@ public class IpBlacklistCacheService(
 
         memoryCache.Set(MemoryCacheKey, blacklistData, new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes)
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(MemoryCacheExpirationMinutes),
+            Size = 1
         });
 
         _lastRefreshTime = DateTime.UtcNow;

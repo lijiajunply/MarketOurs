@@ -216,16 +216,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     var redis = Environment.GetEnvironmentVariable("REDIS", EnvironmentVariableTarget.Process);
-    if (string.IsNullOrEmpty(redis) && builder.Environment.IsDevelopment())
-    {
-        redis = builder.Configuration["Redis"];
-    }
-
     if (!string.IsNullOrEmpty(redis))
     {
         options.Configuration = redis;
-        // 设置实例名称为空，避免key前缀导致与IConnectionMultiplexer不一致
-        options.InstanceName = null;
+        options.InstanceName = null; // 设置实例名称为空，避免key前缀导致与IConnectionMultiplexer不一致
     }
 });
 
