@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
+import 'push_settings_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   final NotificationService service;
@@ -64,6 +65,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
       appBar: AppBar(
         title: const Text('通知中心'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PushSettingsScreen(service: widget.service),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.done_all),
             onPressed: () async {

@@ -16,6 +16,7 @@ public class UserDto
     public bool IsActive { get; set; }
     public bool IsEmailVerified { get; set; }
     public bool IsPhoneVerified { get; set; }
+    public string? PushSettings { get; set; }
 }
 
 public class UserCreateDto

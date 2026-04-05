@@ -320,7 +320,8 @@ public class UserService(
             LastLoginAt = user.LastLoginAt,
             IsActive = user.IsActive,
             IsEmailVerified = user.IsEmailVerified,
-            IsPhoneVerified = user.IsPhoneVerified
+            IsPhoneVerified = user.IsPhoneVerified,
+            PushSettings = user.PushSettings
         };
     }
 }

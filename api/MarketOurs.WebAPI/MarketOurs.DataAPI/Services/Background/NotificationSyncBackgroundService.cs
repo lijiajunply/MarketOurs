@@ -58,13 +58,23 @@ public class NotificationSyncBackgroundService(
                         // 3. 发送移动端推送 (如果有 PushToken)
                         if (!string.IsNullOrEmpty(user.PushToken))
                         {
-                            var data = new Dictionary<string, string>
+                            bool shouldPush = message.Type switch
                             {
-                                ["type"] = message.Type.ToString(),
-                                ["targetId"] = message.TargetId ?? ""
+                                NotificationType.CommentReply or NotificationType.PostReply => settings.EnableCommentReplyPush,
+                                NotificationType.HotList => settings.EnableHotListPush,
+                                _ => true // 默认系统通知始终推送
                             };
-                            await pushService.SendPushNotificationAsync(user.PushToken, message.Title, message.Content, data);
-                            logger.LogInformation("Sent mobile push notification to user {UserId}", message.UserId);
+
+                            if (shouldPush)
+                            {
+                                var data = new Dictionary<string, string>
+                                {
+                                    ["type"] = message.Type.ToString(),
+                                    ["targetId"] = message.TargetId ?? ""
+                                };
+                                await pushService.SendPushNotificationAsync(user.PushToken, message.Title, message.Content, data);
+                                logger.LogInformation("Sent mobile push notification to user {UserId}", message.UserId);
+                            }
                         }
                     }
                 }

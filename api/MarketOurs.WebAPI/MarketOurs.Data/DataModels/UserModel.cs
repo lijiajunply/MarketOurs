@@ -53,11 +53,13 @@ public class UserModel : DataModel
     /// <summary>
     /// 推送设置 (JSON 存储)
     /// </summary>
+    [MaxLength(2048)]
     public string? PushSettings { get; set; }
 
     /// <summary>
     /// 移动端推送 Token (如 FCM Token)
     /// </summary>
+    [MaxLength(2048)]
     public string? PushToken { get; set; }
 
     public override void Update(DataModel model)
@@ -74,5 +76,7 @@ public class UserModel : DataModel
         IsActive = userModel.IsActive;
         IsEmailVerified = userModel.IsEmailVerified;
         IsPhoneVerified = userModel.IsPhoneVerified;
+        PushSettings = userModel.PushSettings;
+        PushToken = userModel.PushToken;
     }
 }
