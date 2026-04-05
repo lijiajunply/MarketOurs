@@ -6,6 +6,7 @@ using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.DataAPI.Services.Background;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -133,16 +134,16 @@ public class PostSearchAndHotIntegrationTests : IntegrationTestBase
             });
         }
 
-        var db = _redis.GetDatabase();
+        var cache = _serviceProvider.GetRequiredService<IDistributedCache>();
         var distKey = CacheKeys.HotPostsDist(10);
-        await db.KeyDeleteAsync(distKey); // Ensure cache miss
+        await cache.RemoveAsync(distKey); // Ensure cache miss
 
         var result = await _postService.GetHotAsync(10);
 
         Assert.That(result, Is.Not.Empty);
         // Distributed cache should now be populated
-        var cached = await db.StringGetAsync(distKey);
-        Assert.That(cached.HasValue, Is.True, "Hot posts should be cached in Redis after first call");
+        var cached = await cache.GetStringAsync(distKey);
+        Assert.That(cached, Is.Not.Null, "Hot posts should be cached in Redis after first call");
     }
 
     [Test]

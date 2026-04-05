@@ -40,8 +40,7 @@ public class TestAssemblySetup
                 .Build();
 
             _postgreSqlContainer = new PostgreSqlBuilder()
-                .WithImage("postgres:15-alpine")
-                .WithDatabase("marketours_test")
+                .WithImage("paradedb/paradedb:latest")
                 .WithUsername("postgres")
                 .WithPassword("postgres")
                 .Build();
@@ -67,18 +66,20 @@ public class TestAssemblySetup
             await using var context = new MarketContext(options);
             
             // Add a small retry logic for database availability
-            int retries = 5;
+            int retries = 10;
             while (retries > 0)
             {
                 try 
                 {
-                    await context.Database.EnsureCreatedAsync();
+                    // 使用 MigrateAsync 以执行包括 ParadeDB 初始化在内的所有迁移
+                    await context.Database.MigrateAsync();
+                    TestContext.Progress.WriteLine("##### DATABASE MIGRATED SUCCESSFULLY #####");
                     break;
                 }
-                catch (Exception) when (retries > 1)
+                catch (Exception ex) when (retries > 1)
                 {
                     retries--;
-                    TestContext.Progress.WriteLine($"##### WAITING FOR DB READY ({retries} RETRIES LEFT) #####");
+                    TestContext.Progress.WriteLine($"##### WAITING FOR DB READY ({retries} RETRIES LEFT) - {ex.Message} #####");
                     await Task.Delay(2000);
                 }
             }

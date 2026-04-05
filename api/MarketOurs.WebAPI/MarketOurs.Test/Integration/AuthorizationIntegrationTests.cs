@@ -100,7 +100,7 @@ public class AuthorizationIntegrationTests : IntegrationTestBase
 
     private async Task<UserModel> SeedUserAsync(string role = "User", string email = "user@test.com")
     {
-        var user = new UserModel { Name = "Test", Email = email, Password = "hash", Role = role, IsActive = true };
+        var user = new UserModel { Name = "Test", Email = email, Password = "hash".StringToHash(), Role = role, IsActive = true };
         await _userRepo.CreateAsync(user);
         return user;
     }

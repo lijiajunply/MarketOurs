@@ -6,6 +6,7 @@ using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.DataAPI.Services.Background;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -87,18 +88,18 @@ public class CacheResilienceIntegrationTests : IntegrationTestBase
     public async Task GetByIdAsync_CacheMiss_FallsBackToDbAndRebuildsCaches()
     {
         var (_, post) = await SeedAsync();
+        var cache = _serviceProvider.GetRequiredService<IDistributedCache>();
 
         // Ensure both caches empty
-        var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync(CacheKeys.PostDist(post.Id));
+        await cache.RemoveAsync(CacheKeys.PostDist(post.Id));
 
         var result = await _postService.GetByIdAsync(post.Id);
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Title, Is.EqualTo("Cache Post"));
 
         // Distributed cache should now be populated
-        var distCached = await db.StringGetAsync(CacheKeys.PostDist(post.Id));
-        Assert.That(distCached.HasValue, Is.True, "Redis cache should be populated after DB fallback");
+        var distCached = await cache.GetStringAsync(CacheKeys.PostDist(post.Id));
+        Assert.That(distCached, Is.Not.Null, "Redis cache should be populated after DB fallback");
     }
 
     [Test]

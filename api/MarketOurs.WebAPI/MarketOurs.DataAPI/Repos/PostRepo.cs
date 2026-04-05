@@ -143,24 +143,34 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     public async Task<List<PostModel>> SearchAsync(string keyword)
     {
         await using var context = await factory.CreateDbContextAsync();
-        
-        // 分词搜索逻辑：优先使用 PostgreSQL 的 tsvector，如果无法识别则回退
-        var query = context.Posts.AsQueryable();
 
+        // 优先使用 ParadeDB 的 pg_search (BM25)
         if (context.Database.IsNpgsql())
         {
-            // PostgreSQL 全文搜索：搜索 Title 和 Content
-            // 注意：此处需要 Npgsql.EntityFrameworkCore.PostgreSQL 支持
-            // 我们将关键词转换为 tsquery，使用 plainto_tsquery 自动处理空格和标点
-            query = query.Where(x => 
-                EF.Functions.ToTsVector("chinese", x.Title + " " + x.Content)
-                .Matches(EF.Functions.PlainToTsQuery("chinese", keyword)));
+            try 
+            {
+                // 尝试使用 @@@ 操作符进行高性能 BM25 搜索
+                return await context.Posts
+                    .FromSqlRaw("SELECT * FROM posts WHERE posts @@@ {0}", keyword)
+                    .Include(x => x.User)
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // 如果 ParadeDB 索引未就绪，则回退到 ILike 搜索
+                // 这保证了即便在非 ParadeDB 环境下，代码依然能运行
+                return await context.Posts
+                    .Where(x => EF.Functions.ILike(x.Title + " " + x.Content, $"%{keyword}%"))
+                    .Include(x => x.User)
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ToListAsync();
+            }
         }
-        else
-        {
-            // SQLite 或其他数据库回退：简单关键词匹配
-            query = query.Where(x => x.Title.Contains(keyword) || x.Content.Contains(keyword));
-        }
+
+        // SQLite 或其他数据库回退：简单关键词匹配
+        var query = context.Posts.AsQueryable();
+        query = query.Where(x => x.Title.Contains(keyword) || x.Content.Contains(keyword));
 
         return await query
             .Include(x => x.User)
