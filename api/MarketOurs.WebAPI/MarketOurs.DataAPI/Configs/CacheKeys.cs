@@ -3,6 +3,7 @@ namespace MarketOurs.DataAPI.Configs;
 /// <summary>
 /// 统一管理全站缓存 Key
 /// </summary>
+[Serializable]
 public static class CacheKeys
 {
     #region Posts (帖子相关)

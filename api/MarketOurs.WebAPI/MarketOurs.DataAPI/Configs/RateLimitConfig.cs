@@ -41,6 +41,7 @@ public class RateLimitPolicy
 /// <summary>
 /// 速率限制配置
 /// </summary>
+[Serializable]
 public class RateLimitConfig
 {
     public bool Enabled { get; set; } = true;

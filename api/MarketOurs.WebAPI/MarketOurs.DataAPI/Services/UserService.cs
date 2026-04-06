@@ -37,6 +37,7 @@ public interface IUserService
 public class UserService(
     IUserRepo userRepo,
     IEmailService emailService,
+    ISmsService smsService,
     IEnumerable<IConnectionMultiplexer> redisEnumerable,
     ILogger<UserService> logger) : IUserService
 {
@@ -71,7 +72,8 @@ public class UserService(
     {
         var totalCount = await userRepo.CountAsync();
         var users = await userRepo.GetAllAsync(@params.PageIndex, @params.PageSize);
-        return PagedResultDto<UserDto>.Success(users.Select(MapToDto).ToList(), totalCount, @params.PageIndex, @params.PageSize);
+        return PagedResultDto<UserDto>.Success(users.Select(MapToDto).ToList(), totalCount, @params.PageIndex,
+            @params.PageSize);
     }
 
     public async Task<PagedResultDto<UserDto>> SearchAsync(PaginationParams @params)
@@ -81,7 +83,8 @@ public class UserService(
 
         var totalCount = await userRepo.SearchCountAsync(@params.Keyword);
         var users = await userRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize);
-        return PagedResultDto<UserDto>.Success(users.Select(MapToDto).ToList(), totalCount, @params.PageIndex, @params.PageSize);
+        return PagedResultDto<UserDto>.Success(users.Select(MapToDto).ToList(), totalCount, @params.PageIndex,
+            @params.PageSize);
     }
 
     public async Task<UserDto?> GetByIdAsync(string id)
@@ -153,7 +156,8 @@ public class UserService(
         }
 
         var subject = "欢迎加入 MarketOurs - 邮箱验证";
-        return await emailService.SendEmailWithTemplateAsync(user.Email, subject, VerificationEmailTemplate, new { token });
+        return await emailService.SendEmailWithTemplateAsync(user.Email, subject, VerificationEmailTemplate,
+            new { token });
     }
 
     public async Task<bool> VerifyEmailAsync(string token)
@@ -177,6 +181,11 @@ public class UserService(
         return true;
     }
 
+    /// <summary>
+    /// 发送手机验证码
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     public async Task<bool> SendPhoneVerificationCodeAsync(string userId)
     {
         var user = await userRepo.GetByIdAsync(userId);
@@ -196,11 +205,33 @@ public class UserService(
             return false;
         }
 
-        // 模拟短信发送
-        logger.LogInformation($"[Mock SMS] Sending verification code {token} to phone {user.Phone}");
-        return true;
+        // 发送短信验证码
+        var response = await smsService.RequestAsync("send", new UniSmsModel()
+        {
+            To = user.Phone,
+            Signature = "UniSMS",
+            TemplateId = "login_tmpl",
+            TemplateData = new Dictionary<string, object>()
+            {
+                ["code"] = token
+            }
+        });
+
+        if (response is UniResponse { Code: "0" })
+        {
+            logger.LogInformation("Successfully sent verification code to phone {Phone}", user.Phone);
+            return true;
+        }
+
+        logger.LogWarning("Failed to send verification code to phone {Phone}", user.Phone);
+        return false;
     }
 
+    /// <summary>
+    /// 验证 手机验证码
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
     public async Task<bool> VerifyPhoneCodeAsync(string token)
     {
         if (_redis == null) return false;
@@ -243,15 +274,23 @@ public class UserService(
         if (!string.IsNullOrEmpty(user.Email) && account.Contains('@'))
         {
             var subject = "MarketOurs - 重置密码";
-            return await emailService.SendEmailWithTemplateAsync(user.Email, subject, PasswordResetTemplate, 
+            return await emailService.SendEmailWithTemplateAsync(user.Email, subject, PasswordResetTemplate,
                 new { name = user.Name ?? "用户", token });
         }
 
         if (!string.IsNullOrEmpty(user.Phone))
         {
-            // 模拟短信发送
-            logger.LogInformation($"[Mock SMS] Sending reset code {token} to phone {user.Phone}");
-            return true;
+            // 发送短信重置码
+            return await smsService.RequestAsync("send", new UniSmsModel()
+            {
+                To = user.Phone,
+                Signature = "UniSMS",
+                TemplateId = "login_tmpl",
+                TemplateData = new Dictionary<string, object>()
+                {
+                    ["code"] = token
+                }
+            }) is UniResponse { Code: "0" };
         }
 
         return false;

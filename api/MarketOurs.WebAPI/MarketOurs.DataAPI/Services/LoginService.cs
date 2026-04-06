@@ -56,7 +56,7 @@ public class LoginService(
         {
             // 如果不存在，则创建一个随机密码的用户，并进行加密
             var randomPassword = Guid.NewGuid().ToString("N");
-            user = await userService.CreateAsync(new Data.DTOs.UserCreateDto
+            user = await userService.CreateAsync(new UserCreateDto
             {
                 Account = account, // 使用统一的Account字段
                 Password = randomPassword,
@@ -66,7 +66,7 @@ public class LoginService(
             // Update avatar if provided
             if (!string.IsNullOrEmpty(avatar))
             {
-                await userService.UpdateAsync(user.Id, new Data.DTOs.UserUpdateDto
+                await userService.UpdateAsync(user.Id, new UserUpdateDto
                 {
                     Name = name,
                     Avatar = avatar,
@@ -88,7 +88,7 @@ public class LoginService(
     /// <param name="user"></param>
     /// <param name="deviceType"></param>
     /// <returns></returns>
-    private async Task<TokenDto> GenerateTokenForUser(Data.DTOs.UserDto user, string deviceType)
+    private async Task<TokenDto> GenerateTokenForUser(UserDto user, string deviceType)
     {
         // 无论如何，每次登录都签发一个具有完整有效期的新 Token
         var token = await jwtService.GetAccessToken(user, deviceType.GetDeviceTypeEnum());
@@ -132,7 +132,7 @@ public class LoginService(
         if (string.IsNullOrEmpty(id)) return new TokenDto();
 
         var user = await userService.GetByIdAsync(id);
-        if (user == null || !user.IsActive)
+        if (user is not { IsActive: true })
         {
             return new TokenDto();
         }

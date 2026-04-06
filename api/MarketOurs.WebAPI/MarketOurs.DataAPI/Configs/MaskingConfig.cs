@@ -49,6 +49,7 @@ public enum MaskingType
 /// <summary>
 /// 脱敏配置类
 /// </summary>
+[Serializable]
 public class MaskingConfig
 {
     /// <summary>

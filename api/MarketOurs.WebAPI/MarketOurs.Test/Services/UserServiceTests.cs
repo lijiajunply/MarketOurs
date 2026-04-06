@@ -18,6 +18,7 @@ public class UserServiceTests
     private Mock<ILogger<UserService>> _mockLogger;
     private Mock<IConnectionMultiplexer> _mockRedis;
     private Mock<IDatabase> _mockDatabase;
+    private Mock<ISmsService> _mockSmsService;
     private UserService _userService;
 
     [SetUp]
@@ -28,6 +29,7 @@ public class UserServiceTests
         _mockLogger = new Mock<ILogger<UserService>>();
         _mockRedis = new Mock<IConnectionMultiplexer>();
         _mockDatabase = new Mock<IDatabase>();
+        _mockSmsService = new Mock<ISmsService>();
 
         _mockRedis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_mockDatabase.Object);
 
@@ -36,6 +38,7 @@ public class UserServiceTests
         _userService = new UserService(
             _mockUserRepo.Object,
             _mockEmailService.Object,
+            _mockSmsService.Object,
             redisList,
             _mockLogger.Object
         );

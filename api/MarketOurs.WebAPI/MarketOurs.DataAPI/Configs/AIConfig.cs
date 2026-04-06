@@ -1,5 +1,6 @@
 namespace MarketOurs.DataAPI.Configs;
 
+[Serializable]
 public class AIConfig
 {
     public string? ApiKey { get; set; }
