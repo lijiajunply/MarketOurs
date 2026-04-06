@@ -1,6 +1,7 @@
 using MarketOurs.Data;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
@@ -39,6 +40,7 @@ public class UserServiceTests
             _mockUserRepo.Object,
             _mockEmailService.Object,
             _mockSmsService.Object,
+            new SmsConfig(),
             redisList,
             _mockLogger.Object
         );

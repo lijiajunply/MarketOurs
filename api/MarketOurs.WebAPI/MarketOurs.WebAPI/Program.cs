@@ -431,6 +431,7 @@ using (var scope = app.Services.CreateScope())
                     model.Password = users[1].StringToHash();
             }
 
+            model.Id = model.GetHashKey();
             context.Users.Add(model);
         }
 

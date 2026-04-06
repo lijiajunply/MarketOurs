@@ -112,6 +112,7 @@ public static class ServiceCollectionExtensions
         {
             AccessKeyId = Environment.GetEnvironmentVariable("SMS_ACCESSKEY_ID") ?? "",
             AccessKeySecret = Environment.GetEnvironmentVariable("SMS_ACCESSKEY_SECRET") ?? "",
+            Signature = Environment.GetEnvironmentVariable("SMS_SIGNATURE") ?? "MarketOurs",
             Endpoint = Environment.GetEnvironmentVariable("SMS_ENDPOINT") ?? "uni.apistd.com",
             SigningAlgorithm = Environment.GetEnvironmentVariable("SMS_SIGNING_ALGORITHM") ?? "hmac-sha256",
         };

@@ -73,6 +73,7 @@ public class LoginService(
     IJwtService jwtService,
     IEmailService emailService,
     ISmsService smsService,
+    SmsConfig smsConfig,
     ILogger<LoginService> logger) : ILoginService
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
@@ -272,20 +273,28 @@ public class LoginService(
                 new { token = code });
         }
 
-        // 发送短信验证码
-        var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
+        try
         {
-            To = request.Account,
-            Signature = "MarketOurs",
-            TemplateId = "pub_verif_ttl3",
-            TemplateData = new Dictionary<string, object>()
+            // 发送短信验证码
+            var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
             {
-                ["code"] = code,
-                ["ttl"] = 15
-            }
-        });
+                To = request.Account,
+                Signature = smsConfig.Signature,
+                TemplateId = "pub_verif_ttl3",
+                TemplateData = new Dictionary<string, object>()
+                {
+                    ["code"] = code,
+                    ["ttl"] = 15
+                }
+            });
 
-        return response is UniResponse { Code: "0" };
+            return response is UniResponse { Code: "0" };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "发送注册短信验证码失败: {Account}", request.Account);
+            return false;
+        }
     }
 
     /// <inheritdoc/>

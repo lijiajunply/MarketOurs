@@ -40,6 +40,7 @@ public class LoginServiceTests
             _mockJwtService.Object,
             _mockEmailService.Object,
             _mockSmsService.Object,
+            new SmsConfig(),
             _mockLogger.Object
         );
     }

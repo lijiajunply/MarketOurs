@@ -110,6 +110,7 @@ public class UserService(
     IUserRepo userRepo,
     IEmailService emailService,
     ISmsService smsService,
+    SmsConfig smsConfig,
     IEnumerable<IConnectionMultiplexer> redisEnumerable,
     ILogger<UserService> logger) : IUserService
 {
@@ -281,27 +282,35 @@ public class UserService(
             return false;
         }
 
-        // 发送短信验证码
-        var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
+        try
         {
-            To = user.Phone,
-            Signature = "MarketOurs",
-            TemplateId = "pub_verif_ttl3",
-            TemplateData = new Dictionary<string, object>()
+            // 发送短信验证码
+            var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
             {
-                ["code"] = token,
-                ["ttl"] = 15
+                To = user.Phone,
+                Signature = smsConfig.Signature,
+                TemplateId = "pub_verif_ttl3",
+                TemplateData = new Dictionary<string, object>()
+                {
+                    ["code"] = token,
+                    ["ttl"] = 15
+                }
+            });
+
+            if (response is UniResponse { Code: "0" })
+            {
+                logger.LogInformation("Successfully sent verification code to phone {Phone}", user.Phone);
+                return true;
             }
-        });
 
-        if (response is UniResponse { Code: "0" })
-        {
-            logger.LogInformation("Successfully sent verification code to phone {Phone}", user.Phone);
-            return true;
+            logger.LogWarning("Failed to send verification code to phone {Phone}", user.Phone);
+            return false;
         }
-
-        logger.LogWarning("Failed to send verification code to phone {Phone}", user.Phone);
-        return false;
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "发送手机验证码异常: {Phone}", user.Phone);
+            return false;
+        }
     }
 
     /// <inheritdoc/>
@@ -354,18 +363,26 @@ public class UserService(
 
         if (!string.IsNullOrEmpty(user.Phone))
         {
-            // 发送短信重置码
-            return await smsService.RequestAsync("sms.message.send", new UniSmsModel()
+            try
             {
-                To = user.Phone,
-                Signature = "MarketOurs",
-                TemplateId = "pub_verif_ttl3",
-                TemplateData = new Dictionary<string, object>()
+                // 发送短信重置码
+                return await smsService.RequestAsync("sms.message.send", new UniSmsModel()
                 {
-                    ["code"] = token,
-                    ["ttl"] = 15
-                }
-            }) is UniResponse { Code: "0" };
+                    To = user.Phone,
+                    Signature = smsConfig.Signature,
+                    TemplateId = "pub_verif_ttl3",
+                    TemplateData = new Dictionary<string, object>()
+                    {
+                        ["code"] = token,
+                        ["ttl"] = 15
+                    }
+                }) is UniResponse { Code: "0" };
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "发送重置密码验证码异常: {Phone}", user.Phone);
+                return false;
+            }
         }
 
         return false;
@@ -426,20 +443,28 @@ public class UserService(
                 new { token = code });
         }
 
-        // 发送短信验证码
-        var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
+        try
         {
-            To = account,
-            Signature = "MarketOurs",
-            TemplateId = "pub_verif_ttl3",
-            TemplateData = new Dictionary<string, object>()
+            // 发送短信验证码
+            var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
             {
-                ["code"] = code,
-                ["ttl"] = 15
-            }
-        });
+                To = account,
+                Signature = smsConfig.Signature,
+                TemplateId = "pub_verif_ttl3",
+                TemplateData = new Dictionary<string, object>()
+                {
+                    ["code"] = code,
+                    ["ttl"] = 15
+                }
+            });
 
-        return response is UniResponse { Code: "0" };
+            return response is UniResponse { Code: "0" };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "发送通用验证码异常: {Account}", account);
+            return false;
+        }
     }
 
     /// <inheritdoc/>

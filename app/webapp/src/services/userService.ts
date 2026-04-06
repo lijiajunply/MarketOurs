@@ -3,6 +3,7 @@ import type {
   UserDto,
   UserCreateDto,
   UserUpdateDto,
+  ChangePasswordRequest,
   PagedResult,
 } from '../types';
 
@@ -33,8 +34,11 @@ export const userService = {
   updateProfile: (data: UserUpdateDto) =>
     apiClient.put<UserDto>('/User/profile', data),
 
-  changePassword: (data: any) =>
+  changePassword: (data: ChangePasswordRequest) =>
     apiClient.put<void>('/User/password', data),
+
+  updatePushToken: (token: string) =>
+    apiClient.post<void>('/User/push-token', token),
 
   searchUsers: (pageIndex?: number, pageSize?: number, keyword?: string) => {
     const params = new URLSearchParams();

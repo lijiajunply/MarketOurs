@@ -1,4 +1,7 @@
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Configs;
+using MarketOurs.DataAPI.Services;
+
 using MarketOurs.DataAPI.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -44,6 +47,7 @@ public class TokenBlacklistStressTests
             _mockJwtService.Object,
             _mockEmailService.Object,
             _mockSmsService.Object,
+            new SmsConfig(),
             _mockLogger.Object
         );
     }

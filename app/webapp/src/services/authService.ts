@@ -6,6 +6,7 @@ import type {
   UserDto,
   RefreshRequest,
   VerifyCodeRequest,
+  VerifyRegistrationRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
 } from '../types';
@@ -20,7 +21,11 @@ export const authService = {
     return response;
   },
 
-  register: (data: UserCreateDto) => apiClient.post<UserDto>('/Auth/register', data),
+  register: (data: UserCreateDto) => apiClient.post<string>('/Auth/register', data),
+
+  sendRegistrationCode: (regToken: string) => apiClient.post<void>(`/Auth/send-registration-code?regToken=${regToken}`),
+
+  verifyRegistration: (data: VerifyRegistrationRequest) => apiClient.post<UserDto>('/Auth/verify-registration', data),
 
   refresh: async (data: RefreshRequest) => {
     const response = await apiClient.post<TokenDto>('/Auth/refresh', data);
@@ -39,9 +44,9 @@ export const authService = {
 
   getInfo: () => apiClient.get<UserDto>('/Auth/info'),
 
-  verifyEmail: (token: string) => apiClient.get<void>(`/Auth/verify-email?token=${token}`),
+  verifyEmail: (code: string) => apiClient.get<void>(`/Auth/verify-email?code=${code}`),
 
-  verifyPhone: (data: VerifyCodeRequest) => apiClient.post<void>('/Auth/verify-phone', data),
+  verifyPhone: (code: string) => apiClient.post<void>(`/Auth/verify-phone?code=${code}`),
 
   forgotPassword: (data: ForgotPasswordRequest) => apiClient.post<void>('/Auth/forgot-password', data),
 

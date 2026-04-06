@@ -136,9 +136,11 @@ export default function ProfilePage() {
     setIsVerifying(true);
     try {
       if (showVerifyModal === 'email') {
+        // verify-email-code is the correct endpoint for authorized email verification
         await authService.verifyEmailCode({ code: verificationCode });
       } else {
-        await authService.verifyPhone({ code: verificationCode });
+        // verify-phone is used for both anonymous and authorized phone verification
+        await authService.verifyPhone(verificationCode);
       }
       setMessage({ type: 'success', text: t("profile.success_update") });
       setShowVerifyModal(null);

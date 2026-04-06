@@ -34,6 +34,11 @@ export interface ResetPasswordRequest {
   newPassword: string;
 }
 
+export interface VerifyRegistrationRequest {
+  registrationToken: string;
+  code: string;
+}
+
 export interface VerifyCodeRequest {
   code: string;
 }
