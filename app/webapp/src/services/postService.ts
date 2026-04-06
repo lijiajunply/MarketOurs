@@ -19,8 +19,8 @@ export const postService = {
   getHotPosts: (count: number = 10) =>
     apiClient.get<PostDto[]>(`/Post/hot?count=${count}`),
 
-  getPost: (id: string) =>
-    apiClient.get<PostDto>(`/Post/${id}`),
+  getPost: (id: string, options?: RequestInit) =>
+    apiClient.get<PostDto>(`/Post/${id}`, options),
 
   createPost: (data: PostCreateDto) =>
     apiClient.post<PostDto>('/Post', data),

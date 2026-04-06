@@ -236,11 +236,12 @@ export default function PostDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+    const controller = new AbortController();
     const fetchPostData = async () => {
       setLoading(true)
       try {
         const [postRes, commentsRes] = await Promise.all([
-          postService.getPost(id),
+          postService.getPost(id, { signal: controller.signal }),
           postService.getPostComments(id, "recent").catch(() => ({ data: [] }))
         ])
         setPost(postRes.data)
@@ -248,12 +249,14 @@ export default function PostDetailPage() {
         setEditContent(postRes.data.content)
         setComments(Array.isArray(commentsRes.data) ? commentsRes.data : [])
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
         console.error(err)
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) setLoading(false)
       }
     }
     fetchPostData()
+    return () => controller.abort()
   }, [id])
 
   const handlePostUpdate = async () => {
