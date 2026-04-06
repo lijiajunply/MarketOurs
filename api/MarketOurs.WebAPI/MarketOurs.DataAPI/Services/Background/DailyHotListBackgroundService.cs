@@ -6,10 +6,15 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketOurs.DataAPI.Services.Background;
 
+/// <summary>
+/// 每日热门榜单定时推送后台服务
+/// 每天早晨 8 点扫描前 5 名热门帖子并向所有活跃用户发送站内通知
+/// </summary>
 public class DailyHotListBackgroundService(
     IServiceScopeFactory scopeFactory,
     ILogger<DailyHotListBackgroundService> logger) : BackgroundService
 {
+    /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("DailyHotListBackgroundService is starting.");

@@ -4,11 +4,16 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketOurs.DataAPI.Services.Background;
 
+/// <summary>
+/// 点赞/点踩互动数据同步后台服务
+/// 监听内存队列消息，将用户互动行为原子化地持久化到数据库
+/// </summary>
 public class LikeSyncBackgroundService(
     LikeMessageQueue queue,
     IServiceProvider serviceProvider,
     ILogger<LikeSyncBackgroundService> logger) : Microsoft.Extensions.Hosting.BackgroundService
 {
+    /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("LikeSyncBackgroundService is starting.");

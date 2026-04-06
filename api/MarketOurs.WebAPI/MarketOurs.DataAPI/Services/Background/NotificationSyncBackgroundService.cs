@@ -6,11 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketOurs.DataAPI.Services.Background;
 
+/// <summary>
+/// 异步通知发送后台服务
+/// 负责消费通知队列，处理站内信持久化、邮件发送及移动端 Push 发送的综合逻辑
+/// </summary>
 public class NotificationSyncBackgroundService(
     NotificationMessageQueue queue,
     IServiceScopeFactory scopeFactory,
     ILogger<NotificationSyncBackgroundService> logger) : BackgroundService
 {
+    /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("NotificationSyncBackgroundService is starting.");
