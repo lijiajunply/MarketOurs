@@ -5,7 +5,6 @@ import { type RootState } from '../../stores';
 import { postService } from '../../services/postService';
 import { fileService } from '../../services/fileService';
 import { ImagePlus, X, Loader2, Send } from 'lucide-react';
-import { cn } from '../../lib/utils';
 
 export default function CreatePostPage() {
   const navigate = useNavigate();

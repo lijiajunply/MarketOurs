@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router"
 import { cn } from "../../lib/utils"
 import { useTheme } from "../theme-provider"
-import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut, PlusSquare, Languages, Bell } from "lucide-react"
+import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut, PlusSquare, Languages } from "lucide-react"
 import { useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useTranslation } from "react-i18next"

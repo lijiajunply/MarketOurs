@@ -180,12 +180,14 @@ export interface IpCheckResult {
 /**
  * Notification Models
  */
-export enum NotificationType {
-  CommentReply = 0,
-  PostReply = 1,
-  HotList = 2,
-  System = 3,
-}
+export const NotificationType = {
+  CommentReply: 0,
+  PostReply: 1,
+  HotList: 2,
+  System: 3,
+} as const;
+
+export type NotificationType = typeof NotificationType[keyof typeof NotificationType];
 
 export interface NotificationDto {
   id: string;

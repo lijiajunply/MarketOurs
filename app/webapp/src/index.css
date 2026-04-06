@@ -108,9 +108,17 @@
 
 /* Frosted glass effect utility */
 .glass {
-  @apply bg-white/70 dark:bg-black/70 backdrop-blur-md;
+  @apply bg-white/70 backdrop-blur-md;
+}
+
+.dark .glass {
+  @apply bg-black/70;
 }
 
 .glass-card {
-  @apply bg-white/40 dark:bg-white/10 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-sm;
+  @apply bg-white/40 backdrop-blur-xl border border-white/20 shadow-sm;
+}
+
+.dark .glass-card {
+  @apply bg-black/40 border-white/10;
 }

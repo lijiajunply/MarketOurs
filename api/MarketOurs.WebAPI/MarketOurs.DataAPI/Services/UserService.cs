@@ -54,11 +54,14 @@ public interface IUserService
     /// <summary>
     /// 更新用户信息
     /// </summary>
+    /// <param name="id">ID</param>
+    /// <param name="updateDto">更新数据 DTO</param>
     Task<UserDto?> UpdateAsync(string id, UserUpdateDto updateDto);
 
     /// <summary>
     /// 删除用户
     /// </summary>
+    /// <param name="id">ID</param>
     Task DeleteAsync(string id);
 
     /// <summary>
@@ -278,14 +281,15 @@ public class UserService(
         }
 
         // 发送短信验证码
-        var response = await smsService.RequestAsync("send", new UniSmsModel()
+        var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
         {
             To = user.Phone,
-            Signature = "UniSMS",
-            TemplateId = "login_tmpl",
+            Signature = "MarketOurs",
+            TemplateId = "pub_verif_ttl3",
             TemplateData = new Dictionary<string, object>()
             {
-                ["code"] = token
+                ["code"] = token,
+                ["ttl"] = 15
             }
         });
 
@@ -350,14 +354,15 @@ public class UserService(
         if (!string.IsNullOrEmpty(user.Phone))
         {
             // 发送短信重置码
-            return await smsService.RequestAsync("send", new UniSmsModel()
+            return await smsService.RequestAsync("sms.message.send", new UniSmsModel()
             {
                 To = user.Phone,
-                Signature = "UniSMS",
-                TemplateId = "login_tmpl",
+                Signature = "MarketOurs",
+                TemplateId = "pub_verif_ttl3",
                 TemplateData = new Dictionary<string, object>()
                 {
-                    ["code"] = token
+                    ["code"] = token,
+                    ["ttl"] = 15
                 }
             }) is UniResponse { Code: "0" };
         }
@@ -416,10 +421,10 @@ public class UserService(
 
         if (!string.IsNullOrEmpty(updateDto.Name))
             user.Name = updateDto.Name;
-        
+
         if (!string.IsNullOrEmpty(updateDto.Avatar))
             user.Avatar = updateDto.Avatar;
-        
+
         user.Info = updateDto.Info;
 
         // 如果修改了邮箱或手机号，标记为未验证

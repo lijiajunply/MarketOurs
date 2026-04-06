@@ -25,7 +25,7 @@ const formatDate = (dateString: string, i18n: any) => {
 export default function PostDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { t, i18n } = useTranslation()
+  const { i18n } = useTranslation()
   const { user } = useSelector((state: RootState) => state.auth)
 
   const [post, setPost] = useState<PostDto | null>(null)
