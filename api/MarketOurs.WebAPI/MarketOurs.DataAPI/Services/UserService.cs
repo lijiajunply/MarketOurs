@@ -9,28 +9,87 @@ using StackExchange.Redis;
 
 namespace MarketOurs.DataAPI.Services;
 
+/// <summary>
+/// 用户服务接口，提供用户管理、认证、验证（邮箱/手机）及密码重置等功能
+/// </summary>
 public interface IUserService
 {
+    /// <summary>
+    /// 获取所有用户 (分页)
+    /// </summary>
     Task<PagedResultDto<UserDto>> GetAllAsync(PaginationParams @params);
+
+    /// <summary>
+    /// 搜索用户 (基于关键词)
+    /// </summary>
     Task<PagedResultDto<UserDto>> SearchAsync(PaginationParams @params);
+
+    /// <summary>
+    /// 根据 ID 获取用户详情
+    /// </summary>
     Task<UserDto?> GetByIdAsync(string id);
+
+    /// <summary>
+    /// 根据账号 (邮箱或手机号) 获取用户详情
+    /// </summary>
     Task<UserDto?> GetByAccountAsync(string account);
+
+    /// <summary>
+    /// 用户登录验证
+    /// </summary>
+    /// <param name="account">账号</param>
+    /// <param name="password">密码</param>
+    /// <returns>用户 DTO，验证失败返回 null</returns>
     Task<UserDto?> LoginAsync(string account, string password);
+
+    /// <summary>
+    /// 创建新用户 (注册)
+    /// </summary>
     Task<UserDto> CreateAsync(UserCreateDto createDto);
+
+    /// <summary>
+    /// 更新用户信息
+    /// </summary>
     Task<UserDto?> UpdateAsync(string id, UserUpdateDto updateDto);
+
+    /// <summary>
+    /// 删除用户
+    /// </summary>
     Task DeleteAsync(string id);
 
-    // Email verification & Password reset
+    /// <summary>
+    /// 发送邮箱验证码/令牌
+    /// </summary>
     Task<bool> SendVerificationEmailAsync(string userId);
+
+    /// <summary>
+    /// 验证邮箱令牌
+    /// </summary>
     Task<bool> VerifyEmailAsync(string token);
 
-    // Phone verification
+    /// <summary>
+    /// 发送手机验证码
+    /// </summary>
     Task<bool> SendPhoneVerificationCodeAsync(string userId);
+
+    /// <summary>
+    /// 验证手机验证码
+    /// </summary>
     Task<bool> VerifyPhoneCodeAsync(string token);
 
+    /// <summary>
+    /// 忘记密码：发送重置令牌
+    /// </summary>
     Task<bool> ForgotPasswordAsync(string account);
+
+    /// <summary>
+    /// 重置密码
+    /// </summary>
     Task<bool> ResetPasswordAsync(string token, string newPassword);
 
+    /// <summary>
+    /// 更新用户的推送 Token (用于移动端推送)
+    /// </summary>
     Task<bool> UpdatePushTokenAsync(string userId, string token);
 }
 

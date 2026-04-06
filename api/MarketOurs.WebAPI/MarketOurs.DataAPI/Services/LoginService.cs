@@ -5,29 +5,48 @@ using StackExchange.Redis;
 
 namespace MarketOurs.DataAPI.Services;
 
+/// <summary>
+/// 登录与会话管理服务接口，处理不同类型的登录流程及 Token 生命周期
+/// </summary>
 public interface ILoginService
 {
+    /// <summary>
+    /// 标准账号密码登录
+    /// </summary>
+    /// <param name="account">账号 (邮箱或手机号)</param>
+    /// <param name="password">密码</param>
+    /// <param name="deviceType">设备类型 (Web/Mobile)</param>
+    /// <returns>包含双 Token 的对象</returns>
     public Task<TokenDto> Login(string account, string password, string deviceType);
 
     /// <summary>
-    /// 根据 RefToken 进行登录
+    /// 使用刷新令牌 (Refresh Token) 换取新的访问令牌
     /// </summary>
-    /// <param name="token"></param>
-    /// <param name="deviceType"></param>
-    /// <returns></returns>
+    /// <param name="token">刷新令牌</param>
+    /// <param name="deviceType">设备类型</param>
+    /// <returns>新签发的令牌对</returns>
     public Task<TokenDto> Login(string token, string deviceType);
 
     /// <summary>
-    /// OAuth2 第三方登录
+    /// OAuth2 第三方登录回调处理
     /// </summary>
-    /// <param name="account">验证方式，包括 EMail 和 Phone</param>
-    /// <param name="name">姓名</param>
-    /// <param name="avatar">头像</param>
+    /// <param name="account">第三方返回的唯一标识/邮箱</param>
+    /// <param name="name">用户名</param>
+    /// <param name="avatar">头像地址</param>
     /// <param name="deviceType">设备类型</param>
-    /// <returns> Token </returns>
+    /// <returns>登录成功的 Token</returns>
     public Task<TokenDto> LoginWithOAuthAsync(string account, string name, string avatar, string deviceType);
 
+    /// <summary>
+    /// 注销登录，销毁会话缓存
+    /// </summary>
+    /// <param name="id">用户 ID</param>
+    /// <param name="deviceType">设备类型</param>
     public Task<bool> Logout(string id, string deviceType);
+
+    /// <summary>
+    /// 验证当前请求持有的 Token 是否合法且在有效期内 (与 Redis 状态一致)
+    /// </summary>
     public Task<bool> ValidateToken(string userId, string token, string deviceType);
 }
 

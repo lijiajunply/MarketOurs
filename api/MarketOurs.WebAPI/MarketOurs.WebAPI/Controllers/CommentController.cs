@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MarketOurs.WebAPI.Controllers;
 
+/// <summary>
+/// 评论控制器，提供评论的获取、创建、回复、更新、删除以及点赞/点踩功能
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
@@ -14,6 +17,8 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     /// <summary>
     /// 获取所有评论 (分页)
     /// </summary>
+    /// <param name="params">分页参数</param>
+    /// <returns>分页后的评论列表</returns>
     [HttpGet]
     [AllowAnonymous]
     public async Task<ApiResponse<PagedResultDto<CommentDto>>> GetAll([FromQuery] PaginationParams @params)
@@ -23,8 +28,10 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     }
 
     /// <summary>
-    /// 全文检索评论 (分页)
+    /// 全文检索评论内容 (分页)
     /// </summary>
+    /// <param name="params">包含关键词的分页参数</param>
+    /// <returns>相关评论分页列表</returns>
     [HttpGet("search")]
     [AllowAnonymous]
     public async Task<ApiResponse<PagedResultDto<CommentDto>>> Search([FromQuery] PaginationParams @params)
@@ -39,8 +46,10 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     }
 
     /// <summary>
-    /// 获取指定ID的评论
+    /// 根据 ID 获取单个评论详情
     /// </summary>
+    /// <param name="id">评论唯一标识</param>
+    /// <returns>评论详细数据</returns>
     [HttpGet("{id}")]
     [AllowAnonymous]
     public async Task<ApiResponse<CommentDto>> GetById(string id)
@@ -54,8 +63,10 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     }
 
     /// <summary>
-    /// 创建评论
+    /// 创建新评论 (主评论，不带 ParentId)
     /// </summary>
+    /// <param name="request">评论创建请求对象</param>
+    /// <returns>创建成功的评论数据</returns>
     [HttpPost]
     public async Task<ApiResponse<CommentDto>> Create([FromBody] CommentCreateDto request)
     {
@@ -79,8 +90,11 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     }
 
     /// <summary>
-    /// 回复评论
+    /// 回复现有评论
     /// </summary>
+    /// <param name="id">被回复的父评论 ID</param>
+    /// <param name="request">评论创建请求对象</param>
+    /// <returns>创建成功的回复评论数据</returns>
     [HttpPost("{id}/reply")]
     public async Task<ApiResponse<CommentDto>> Reply(string id, [FromBody] CommentCreateDto request)
     {
@@ -112,8 +126,11 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     }
 
     /// <summary>
-    /// 更新评论
+    /// 更新评论内容 (仅限作者或管理员)
     /// </summary>
+    /// <param name="id">评论 ID</param>
+    /// <param name="request">评论更新请求对象</param>
+    /// <returns>更新后的评论数据</returns>
     [HttpPut("{id}")]
     public async Task<ApiResponse<CommentDto>> Update(string id, [FromBody] CommentUpdateDto request)
     {
@@ -143,8 +160,10 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     }
 
     /// <summary>
-    /// 删除评论
+    /// 删除评论 (仅限作者或管理员)
     /// </summary>
+    /// <param name="id">评论 ID</param>
+    /// <returns>操作结果描述</returns>
     [HttpDelete("{id}")]
     public async Task<ApiResponse> Delete(string id)
     {
@@ -170,8 +189,10 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     }
 
     /// <summary>
-    /// 点赞评论
+    /// 点赞评论 (支持切换状态)
     /// </summary>
+    /// <param name="id">评论 ID</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("{id}/like")]
     public async Task<ApiResponse> Like(string id)
     {
@@ -188,8 +209,10 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     }
 
     /// <summary>
-    /// 踩评论
+    /// 点踩评论 (支持切换状态)
     /// </summary>
+    /// <param name="id">评论 ID</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("{id}/dislike")]
     public async Task<ApiResponse> Dislike(string id)
     {

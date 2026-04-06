@@ -6,14 +6,19 @@ using System.Security.Claims;
 
 namespace MarketOurs.WebAPI.Controllers;
 
+/// <summary>
+/// 通知控制器，提供用户通知列表查询、未读数统计、已读状态标记及推送设置管理功能
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 [Authorize]
 public class NotificationController(INotificationService notificationService) : ControllerBase
 {
     /// <summary>
-    /// 获取当前用户的通知列表
+    /// 获取当前登录用户的通知列表 (支持分页)
     /// </summary>
+    /// <param name="params">分页参数</param>
+    /// <returns>分页后的通知列表</returns>
     [HttpGet]
     public async Task<ApiResponse<PagedResultDto<NotificationDto>>> GetNotifications([FromQuery] PaginationParams @params)
     {
@@ -25,8 +30,9 @@ public class NotificationController(INotificationService notificationService) : 
     }
 
     /// <summary>
-    /// 获取未读通知数量
+    /// 获取当前登录用户的未读通知总数
     /// </summary>
+    /// <returns>未读通知数量</returns>
     [HttpGet("unread-count")]
     public async Task<ApiResponse<int>> GetUnreadCount()
     {
@@ -38,8 +44,10 @@ public class NotificationController(INotificationService notificationService) : 
     }
 
     /// <summary>
-    /// 标记通知为已读
+    /// 将指定的通知标记为已读
     /// </summary>
+    /// <param name="id">通知唯一标识</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("{id}/read")]
     public async Task<ApiResponse> MarkAsRead(string id)
     {
@@ -48,8 +56,9 @@ public class NotificationController(INotificationService notificationService) : 
     }
 
     /// <summary>
-    /// 标记所有通知为已读
+    /// 将当前用户的所有通知一键标记为已读
     /// </summary>
+    /// <returns>操作结果描述</returns>
     [HttpPost("read-all")]
     public async Task<ApiResponse> MarkAllAsRead()
     {
@@ -61,8 +70,9 @@ public class NotificationController(INotificationService notificationService) : 
     }
 
     /// <summary>
-    /// 获取通知设置
+    /// 获取当前用户的个性化推送设置 (如邮件通知、热门推送等)
     /// </summary>
+    /// <returns>推送设置详情</returns>
     [HttpGet("settings")]
     public async Task<ApiResponse<PushSettingsDto>> GetSettings()
     {
@@ -74,8 +84,10 @@ public class NotificationController(INotificationService notificationService) : 
     }
 
     /// <summary>
-    /// 更新通知设置
+    /// 更新当前用户的个性化推送设置
     /// </summary>
+    /// <param name="settings">推送设置请求对象</param>
+    /// <returns>操作结果描述</returns>
     [HttpPut("settings")]
     public async Task<ApiResponse> UpdateSettings([FromBody] PushSettingsDto settings)
     {

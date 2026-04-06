@@ -2,6 +2,9 @@ using StackExchange.Redis;
 
 namespace MarketOurs.DataAPI.Services;
 
+/// <summary>
+/// 分布式锁服务接口，用于在多节点环境下协调并发操作
+/// </summary>
 public interface ILockService
 {
     /// <summary>
@@ -22,6 +25,9 @@ public interface ILockService
     Task<bool> ReleaseAsync(string key, string value);
 }
 
+/// <summary>
+/// 基于 Redis 实现的分布式锁服务
+/// </summary>
 public class RedisLockService(IEnumerable<IConnectionMultiplexer> redisEnumerable) : ILockService
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();

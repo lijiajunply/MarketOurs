@@ -6,14 +6,44 @@ using System.Text.Json;
 
 namespace MarketOurs.DataAPI.Services;
 
+/// <summary>
+/// 通知服务接口，处理系统通知、站内信以及用户推送设置
+/// </summary>
 public interface INotificationService
 {
+    /// <summary>
+    /// 获取用户的所有通知列表 (分页)
+    /// </summary>
     Task<PagedResultDto<NotificationDto>> GetUserNotificationsAsync(string userId, PaginationParams @params);
+
+    /// <summary>
+    /// 获取用户的未读通知总数
+    /// </summary>
     Task<int> GetUnreadCountAsync(string userId);
+
+    /// <summary>
+    /// 创建并持久化一条新通知
+    /// </summary>
     Task CreateNotificationAsync(NotificationModel notification);
+
+    /// <summary>
+    /// 将指定通知标记为已读
+    /// </summary>
     Task MarkAsReadAsync(string id);
+
+    /// <summary>
+    /// 将用户的所有通知一键标记为已读
+    /// </summary>
     Task MarkAllAsReadAsync(string userId);
+
+    /// <summary>
+    /// 获取用户的推送偏好设置 (如是否接收邮件、APP推送等)
+    /// </summary>
     Task<PushSettingsDto> GetPushSettingsAsync(string userId);
+
+    /// <summary>
+    /// 更新用户的推送偏好设置
+    /// </summary>
     Task UpdatePushSettingsAsync(string userId, PushSettingsDto settings);
 }
 

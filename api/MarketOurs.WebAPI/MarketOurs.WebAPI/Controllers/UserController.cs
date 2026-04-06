@@ -6,15 +6,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MarketOurs.WebAPI.Controllers;
 
+/// <summary>
+/// 用户控制器，提供管理员对用户的管理功能（增删改查）以及普通用户的个人资料维护
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class UserController(IUserService userService, ILogger<UserController> logger) : ControllerBase
 {
-    #region Admin Operations
+    #region Admin Operations (管理员操作)
 
     /// <summary>
-    /// 获取所有用户 (Admin, 分页)
+    /// 获取所有注册用户 (仅限管理员，支持分页)
     /// </summary>
+    /// <param name="params">分页参数</param>
+    /// <returns>分页后的用户列表</returns>
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<ApiResponse<PagedResultDto<UserDto>>> GetAllUsers([FromQuery] PaginationParams @params)
@@ -25,8 +30,10 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     }
 
     /// <summary>
-    /// 检索用户 (Admin, 分页)
+    /// 根据关键词检索用户 (仅限管理员，支持分页)
     /// </summary>
+    /// <param name="params">包含关键词的分页参数</param>
+    /// <returns>匹配的用户分页列表</returns>
     [HttpGet("search")]
     [Authorize(Roles = "Admin")]
     public async Task<ApiResponse<PagedResultDto<UserDto>>> Search([FromQuery] PaginationParams @params)
@@ -41,8 +48,10 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     }
 
     /// <summary>
-    /// 根据ID获取用户 (Admin)
+    /// 根据用户 ID 获取详情 (仅限管理员)
     /// </summary>
+    /// <param name="id">用户唯一标识</param>
+    /// <returns>用户详细数据</returns>
     [HttpGet("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ApiResponse<UserDto>> GetUserById(string id)
@@ -57,8 +66,10 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     }
 
     /// <summary>
-    /// 创建用户 (Admin)
+    /// 手动创建一个新用户 (仅限管理员)
     /// </summary>
+    /// <param name="request">用户创建请求对象</param>
+    /// <returns>创建成功的用户数据</returns>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ApiResponse<UserDto>> CreateUser([FromBody] UserCreateDto request)
@@ -76,8 +87,11 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     }
 
     /// <summary>
-    /// 更新指定用户信息 (Admin)
+    /// 更新指定用户的信息 (仅限管理员)
     /// </summary>
+    /// <param name="id">目标用户 ID</param>
+    /// <param name="request">用户信息更新请求对象</param>
+    /// <returns>更新后的用户数据</returns>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ApiResponse<UserDto>> UpdateUserByAdmin(string id, [FromBody] UserUpdateDto request)
@@ -92,8 +106,10 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     }
 
     /// <summary>
-    /// 删除用户 (Admin)
+    /// 删除指定用户 (仅限管理员，且不能删除自己)
     /// </summary>
+    /// <param name="id">目标用户 ID</param>
+    /// <returns>操作结果描述</returns>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ApiResponse> DeleteUser(string id)
@@ -118,11 +134,12 @@ public class UserController(IUserService userService, ILogger<UserController> lo
 
     #endregion
 
-    #region Normal Operations
+    #region Normal Operations (普通用户操作)
 
     /// <summary>
-    /// 获取当前登录用户信息 (普通操作)
+    /// 获取当前登录用户的个人资料
     /// </summary>
+    /// <returns>当前用户信息</returns>
     [HttpGet("profile")]
     [Authorize]
     public async Task<ApiResponse<UserDto>> GetMyProfile()
@@ -143,8 +160,10 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     }
 
     /// <summary>
-    /// 更新当前登录用户个人信息 (普通操作)
+    /// 更新当前登录用户的个人资料 (如头像、简介、昵称)
     /// </summary>
+    /// <param name="request">用户信息更新请求对象</param>
+    /// <returns>更新后的用户信息</returns>
     [HttpPut("profile")]
     [Authorize]
     public async Task<ApiResponse<UserDto>> UpdateMyProfile([FromBody] UserUpdateDto request)
@@ -167,8 +186,10 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     }
 
     /// <summary>
-    /// 更新当前登录用户的推送 Token (用于移动端推送)
+    /// 更新当前登录用户的移动端推送 Token (用于移动端消息推送)
     /// </summary>
+    /// <param name="token">FCM 或其他平台的推送 Token</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("push-token")]
     [Authorize]
     public async Task<ApiResponse> UpdatePushToken([FromBody] string token)

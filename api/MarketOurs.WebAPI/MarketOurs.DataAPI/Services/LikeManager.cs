@@ -7,18 +7,53 @@ using MarketOurs.Data.DataModels;
 
 namespace MarketOurs.DataAPI.Services;
 
+/// <summary>
+/// 点赞管理接口，处理帖子和评论的点赞/点踩逻辑，支持 Redis 缓存与异步持久化
+/// </summary>
 public interface ILikeManager
 {
-    // Post
+    // --- 帖子相关 ---
+
+    /// <summary>
+    /// 获取帖子点赞数 (优先从 Redis 获取，否则使用 fallback)
+    /// </summary>
     Task<int> GetPostLikesAsync(string postId, int fallbackCount);
+
+    /// <summary>
+    /// 获取帖子点踩数
+    /// </summary>
     Task<int> GetPostDislikesAsync(string postId, int fallbackCount);
+
+    /// <summary>
+    /// 切换帖子点赞状态 (如果已点赞则取消，如果已点踩则先取消点踩再点赞)
+    /// </summary>
     Task SetPostLikeAsync(string postId, string userId);
+
+    /// <summary>
+    /// 切换帖子点踩状态
+    /// </summary>
     Task SetPostDislikeAsync(string postId, string userId);
 
-    // Comment
+    // --- 评论相关 ---
+
+    /// <summary>
+    /// 获取评论点赞数
+    /// </summary>
     Task<int> GetCommentLikesAsync(string commentId, int fallbackCount);
+
+    /// <summary>
+    /// 获取评论点踩数
+    /// </summary>
     Task<int> GetCommentDislikesAsync(string commentId, int fallbackCount);
+
+    /// <summary>
+    /// 切换评论点赞状态
+    /// </summary>
     Task SetCommentLikeAsync(string commentId, string userId);
+
+    /// <summary>
+    /// 切换评论点踩状态
+    /// </summary>
     Task SetCommentDislikeAsync(string commentId, string userId);
 }
 

@@ -4,6 +4,9 @@ using MarketOurs.WebAPI.Services;
 
 namespace MarketOurs.WebAPI.Controllers;
 
+/// <summary>
+/// 文件控制器，处理图片等媒体文件的上传与存储
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class FileController(IStorageService storageService, ILogger<FileController> logger) : ControllerBase
@@ -11,8 +14,10 @@ public class FileController(IStorageService storageService, ILogger<FileControll
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
     /// <summary>
-    /// 上传单张图片
+    /// 上传单张图片 (限制为 jpg, png, gif, webp)
     /// </summary>
+    /// <param name="file">上传的文件流</param>
+    /// <returns>上传成功后的文件访问 URL</returns>
     [HttpPost("upload/image")]
     [Authorize]
     public async Task<ApiResponse<string>> UploadImage(IFormFile? file)
@@ -45,6 +50,8 @@ public class FileController(IStorageService storageService, ILogger<FileControll
     /// <summary>
     /// 批量上传图片
     /// </summary>
+    /// <param name="files">上传的文件列表</param>
+    /// <returns>成功上传的文件访问 URL 列表</returns>
     [HttpPost("upload/images")]
     [Authorize]
     public async Task<ApiResponse<List<string>>> UploadImages(List<IFormFile>? files)

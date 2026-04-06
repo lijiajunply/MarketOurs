@@ -9,15 +9,49 @@ using System.Text.Json;
 
 namespace MarketOurs.DataAPI.Services;
 
+/// <summary>
+/// 评论服务接口，处理评论的创建、查询、更新、删除及点赞等业务，支持树形结构显示
+/// </summary>
 public interface ICommentService
 {
+    /// <summary>
+    /// 获取所有评论 (分页)
+    /// </summary>
     Task<PagedResultDto<CommentDto>> GetAllAsync(PaginationParams @params);
+
+    /// <summary>
+    /// 搜索评论 (基于关键词)
+    /// </summary>
     Task<PagedResultDto<CommentDto>> SearchAsync(PaginationParams @params);
+
+    /// <summary>
+    /// 根据 ID 获取评论详情
+    /// </summary>
     Task<CommentDto?> GetByIdAsync(string id);
+
+    /// <summary>
+    /// 创建新评论 (支持回复)
+    /// </summary>
     Task<CommentDto?> CreateAsync(CommentCreateDto createDto);
+
+    /// <summary>
+    /// 更新评论内容
+    /// </summary>
     Task<CommentDto?> UpdateAsync(string id, CommentUpdateDto updateDto);
+
+    /// <summary>
+    /// 删除评论
+    /// </summary>
     Task DeleteAsync(string id);
+
+    /// <summary>
+    /// 设置用户对评论的点赞状态
+    /// </summary>
     Task SetLikesAsync(string userId, string commentId);
+
+    /// <summary>
+    /// 设置用户对评论的点踩状态
+    /// </summary>
     Task SetDislikesAsync(string userId, string commentId);
 }
 

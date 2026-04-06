@@ -11,18 +11,86 @@ using StackExchange.Redis;
 
 namespace MarketOurs.DataAPI.Services;
 
+/// <summary>
+/// 帖子服务接口，处理帖子的增删改查、缓存逻辑、点击量统计及点赞等业务
+/// </summary>
 public interface IPostService
 {
+    /// <summary>
+    /// 分页获取所有帖子
+    /// </summary>
+    /// <param name="params">分页参数</param>
+    /// <returns>分页结果</returns>
     Task<PagedResultDto<PostDto>> GetAllAsync(PaginationParams @params);
+
+    /// <summary>
+    /// 获取热门帖子列表
+    /// </summary>
+    /// <param name="count">获取数量</param>
+    /// <returns>帖子列表</returns>
     Task<List<PostDto>> GetHotAsync(int count = 10);
+
+    /// <summary>
+    /// 根据ID获取帖子详情
+    /// </summary>
+    /// <param name="id">帖子ID</param>
+    /// <returns>帖子DTO，不存在则返回null</returns>
     Task<PostDto?> GetByIdAsync(string id);
+
+    /// <summary>
+    /// 创建新帖子
+    /// </summary>
+    /// <param name="createDto">创建参数</param>
+    /// <returns>创建成功的帖子DTO</returns>
     Task<PostDto?> CreateAsync(PostCreateDto createDto);
+
+    /// <summary>
+    /// 更新帖子内容
+    /// </summary>
+    /// <param name="id">帖子ID</param>
+    /// <param name="updateDto">更新参数</param>
+    /// <returns>更新后的帖子DTO</returns>
     Task<PostDto?> UpdateAsync(string id, PostUpdateDto updateDto);
+
+    /// <summary>
+    /// 删除帖子
+    /// </summary>
+    /// <param name="id">帖子ID</param>
     Task DeleteAsync(string id);
+
+    /// <summary>
+    /// 增加帖子浏览量 (支持 Redis 缓存同步)
+    /// </summary>
+    /// <param name="id">帖子ID</param>
     Task IncrementWatchAsync(string id);
+
+    /// <summary>
+    /// 设置用户对帖子的点赞状态
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="postId">帖子ID</param>
     Task SetLikesAsync(string userId, string postId);
+
+    /// <summary>
+    /// 设置用户对帖子的点踩状态
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="postId">帖子ID</param>
     Task SetDislikesAsync(string userId, string postId);
+
+    /// <summary>
+    /// 获取帖子的评论列表 (构建树形结构)
+    /// </summary>
+    /// <param name="id">帖子ID</param>
+    /// <param name="type">排序类型 (Hot/New)</param>
+    /// <returns>评论树列表</returns>
     Task<List<CommentDto>> GetCommentsAsync(string id, string type);
+
+    /// <summary>
+    /// 全文搜索帖子 (基于关键词)
+    /// </summary>
+    /// <param name="params">包含关键词的分页参数</param>
+    /// <returns>搜索结果分页对象</returns>
     Task<PagedResultDto<PostDto>> SearchAsync(PaginationParams @params);
 }
 

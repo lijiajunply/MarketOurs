@@ -4,11 +4,22 @@ using MarketOurs.DataAPI.Configs;
 
 namespace MarketOurs.DataAPI.Services;
 
+/// <summary>
+/// AI 服务接口，封装了基于 Semantic Kernel 的大模型交互能力
+/// </summary>
 public interface IAIService
 {
+    /// <summary>
+    /// 获取底层的 Semantic Kernel 实例，用于更复杂的插件或链式调用
+    /// </summary>
     Kernel GetKernel();
+
+    /// <summary>
+    /// 获取 AI 的简单对话响应
+    /// </summary>
+    /// <param name="message">用户输入的消息</param>
+    /// <returns>AI 生成的文本内容</returns>
     Task<string> GetChatResponseAsync(string message);
-    // You can add more generic methods here as needed for the project
 }
 
 public class AIService : IAIService

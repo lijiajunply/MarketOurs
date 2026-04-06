@@ -8,14 +8,19 @@ using Microsoft.AspNetCore.Authentication;
 
 namespace MarketOurs.WebAPI.Controllers;
 
+/// <summary>
+/// 认证控制器，处理用户登录、注册、令牌刷新、第三方 OAuth 登录及账户验证逻辑
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class AuthController(ILoginService loginService, IUserService userService, ILogger<AuthController> logger)
     : ControllerBase
 {
     /// <summary>
-    /// 用户登录
+    /// 标准账号密码登录
     /// </summary>
+    /// <param name="request">包含账号、密码和设备类型的登录请求</param>
+    /// <returns>包含双 Token 的成功结果</returns>
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ApiResponse<TokenDto>> Login([FromBody] LoginRequest request)
@@ -26,8 +31,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 用户注册
+    /// 用户注册新账户
     /// </summary>
+    /// <param name="request">用户注册请求对象</param>
+    /// <returns>注册成功的用户信息</returns>
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<ApiResponse<UserDto>> Register([FromBody] UserCreateDto request)
@@ -38,8 +45,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 刷新令牌
+    /// 使用刷新令牌获取新的访问令牌
     /// </summary>
+    /// <param name="request">包含刷新令牌的请求对象</param>
+    /// <returns>新签发的令牌对</returns>
     [HttpPost("refresh")]
     [AllowAnonymous]
     public async Task<ApiResponse<TokenDto>> Refresh([FromBody] RefreshRequest request)
@@ -52,8 +61,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 注销登录
+    /// 注销当前会话 (需要登录)
     /// </summary>
+    /// <param name="deviceType">设备类型 (Web/Mobile)</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("logout")]
     [Authorize]
     public async Task<ApiResponse> Logout([FromQuery] string deviceType = "Web")
@@ -72,8 +83,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 获取当前用户信息
+    /// 获取当前已登录用户的详细信息
     /// </summary>
+    /// <returns>当前用户信息</returns>
     [HttpGet("info")]
     [Authorize]
     public async Task<ApiResponse<UserDto>> GetUserInfo()
@@ -94,8 +106,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 验证邮箱
+    /// 验证邮箱激活令牌
     /// </summary>
+    /// <param name="token">邮件中的验证令牌</param>
+    /// <returns>验证结果描述</returns>
     [HttpGet("verify-email")]
     [AllowAnonymous]
     public async Task<ApiResponse> VerifyEmail([FromQuery] string token)
@@ -107,8 +121,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 验证手机号
+    /// 验证手机激活码
     /// </summary>
+    /// <param name="request">包含手机验证码的请求</param>
+    /// <returns>验证结果描述</returns>
     [HttpPost("verify-phone")]
     [AllowAnonymous]
     public async Task<ApiResponse> VerifyPhone([FromBody] VerifyCodeRequest request)
@@ -120,8 +136,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 忘记密码 - 发送重置码
+    /// 忘记密码：根据账号发送重置验证码
     /// </summary>
+    /// <param name="request">包含账号的请求对象</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     public async Task<ApiResponse> ForgotPassword([FromBody] ForgotPasswordRequest request)
@@ -134,8 +152,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 重置密码
+    /// 重置密码：根据重置令牌设置新密码
     /// </summary>
+    /// <param name="request">包含令牌和新密码的请求对象</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("reset-password")]
     [AllowAnonymous]
     public async Task<ApiResponse> ResetPassword([FromBody] ResetPasswordRequest request)
@@ -147,8 +167,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 重新发送验证邮件或短信 (根据账号)
+    /// 重新向未激活账户发送验证邮件或短信
     /// </summary>
+    /// <param name="request">包含账号的请求对象</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("resend-verification")]
     [AllowAnonymous]
     public async Task<ApiResponse> ResendVerification([FromBody] ForgotPasswordRequest request)
@@ -173,8 +195,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 发送当前账号的邮箱验证码 (需登录)
+    /// 向当前登录用户的邮箱发送验证码
     /// </summary>
+    /// <returns>操作结果描述</returns>
     [HttpPost("send-email-code")]
     [Authorize]
     public async Task<ApiResponse> SendEmailCode()
@@ -189,8 +212,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 发送当前账号的手机验证码 (需登录)
+    /// 向当前登录用户的手机号发送验证码
     /// </summary>
+    /// <returns>操作结果描述</returns>
     [HttpPost("send-phone-code")]
     [Authorize]
     public async Task<ApiResponse> SendPhoneCode()
@@ -205,8 +229,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 校验当前账号的邮箱验证码 (需登录)
+    /// 校验当前登录用户的邮箱验证码
     /// </summary>
+    /// <param name="request">包含验证码的请求对象</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("verify-email-code")]
     [Authorize]
     public async Task<ApiResponse> VerifyEmailCode([FromBody] VerifyCodeRequest request)
@@ -221,8 +247,11 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 第三方登录入口
+    /// 第三方登录统一入口
     /// </summary>
+    /// <param name="provider">登录提供方 (如 GitHub, Google, Weixin)</param>
+    /// <param name="returnUrl">登录成功后的回跳地址</param>
+    /// <returns>跳转至第三方平台的 Challenge 响应</returns>
     [HttpGet("external-login")]
     [AllowAnonymous]
     public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string returnUrl = "/")
@@ -233,8 +262,11 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 第三方登录回调
+    /// 第三方登录成功后的内部回调处理
     /// </summary>
+    /// <param name="returnUrl">最终回跳地址</param>
+    /// <param name="remoteError">远程错误信息 (如有)</param>
+    /// <returns>重定向至前端页面，并带上 AccessToken</returns>
     [HttpGet("external-login-callback")]
     [AllowAnonymous]
     public async Task<IActionResult> ExternalLoginCallback([FromQuery] string returnUrl = "/",
@@ -285,47 +317,89 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 }
 
+/// <summary>
+/// 登录请求对象
+/// </summary>
 public class LoginRequest
 {
+    /// <summary>
+    /// 账号 (邮箱或手机号)
+    /// </summary>
     [Required(ErrorMessage = "账号不能为空")] 
     [MaxLength(128, ErrorMessage = "账号长度不能超过128位")]
     public string Account { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 密码
+    /// </summary>
     [Required(ErrorMessage = "密码不能为空")] 
     [MaxLength(128, ErrorMessage = "密码长度不能超过128位")]
     public string Password { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 设备类型 (如 Web, Mobile)
+    /// </summary>
     public string DeviceType { get; set; } = "Web";
 }
 
+/// <summary>
+/// 刷新令牌请求对象
+/// </summary>
 public class RefreshRequest
 {
+    /// <summary>
+    /// 刷新令牌 (RefreshToken)
+    /// </summary>
     [Required(ErrorMessage = "刷新令牌不能为空")] 
     public string RefreshToken { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 设备类型
+    /// </summary>
     public string DeviceType { get; set; } = "Web";
 }
 
+/// <summary>
+/// 忘记密码请求对象
+/// </summary>
 public class ForgotPasswordRequest
 {
+    /// <summary>
+    /// 账号 (邮箱或手机号)
+    /// </summary>
     [Required(ErrorMessage = "账号不能为空")] 
     [MaxLength(128, ErrorMessage = "账号长度不能超过128位")]
     public string Account { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// 重置密码请求对象
+/// </summary>
 public class ResetPasswordRequest
 {
+    /// <summary>
+    /// 验证码或重置令牌
+    /// </summary>
     [Required(ErrorMessage = "验证码不能为空")] 
     public string Token { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 新密码
+    /// </summary>
     [Required(ErrorMessage = "新密码不能为空")] 
     [MinLength(6, ErrorMessage = "新密码长度不能少于6位")] 
     [MaxLength(128, ErrorMessage = "新密码长度不能超过128位")]
     public string NewPassword { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// 验证码校验请求对象
+/// </summary>
 public class VerifyCodeRequest
 {
+    /// <summary>
+    /// 验证码
+    /// </summary>
     [Required(ErrorMessage = "验证码不能为空")] 
     public string Code { get; set; } = string.Empty;
 }

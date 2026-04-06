@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MarketOurs.WebAPI.Controllers;
 
+/// <summary>
+/// 帖子控制器，提供帖子的增删改查、点赞/点踩、评论获取及全文搜索功能
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class PostController(IPostService postService) : ControllerBase
@@ -13,6 +16,8 @@ public class PostController(IPostService postService) : ControllerBase
     /// <summary>
     /// 获取所有帖子 (分页)
     /// </summary>
+    /// <param name="params">分页与搜索参数</param>
+    /// <returns>分页后的帖子列表</returns>
     [HttpGet]
     [AllowAnonymous]
     public async Task<ApiResponse<PagedResultDto<PostDto>>> GetAll([FromQuery] PaginationParams @params)
@@ -22,8 +27,10 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 获取热门帖子
+    /// 获取热门帖子列表
     /// </summary>
+    /// <param name="count">获取数量，默认为 10</param>
+    /// <returns>热门帖子列表</returns>
     [HttpGet("hot")]
     [AllowAnonymous]
     public async Task<ApiResponse<List<PostDto>>> GetHot([FromQuery] int count = 10)
@@ -33,8 +40,10 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 根据ID获取帖子详情，并增加浏览量
+    /// 根据 ID 获取帖子详情，并自动增加浏览量
     /// </summary>
+    /// <param name="id">帖子唯一标识</param>
+    /// <returns>帖子详细数据</returns>
     [HttpGet("{id}")]
     [AllowAnonymous]
     public async Task<ApiResponse<PostDto>> GetById(string id)
@@ -45,8 +54,10 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 创建帖子
+    /// 创建新帖子 (需要登录)
     /// </summary>
+    /// <param name="request">帖子创建请求对象</param>
+    /// <returns>创建成功的帖子数据</returns>
     [HttpPost]
     [Authorize]
     public async Task<ApiResponse<PostDto>> Create([FromBody] PostCreateDto request)
@@ -57,7 +68,7 @@ public class PostController(IPostService postService) : ControllerBase
             return ApiResponse<PostDto>.Fail(401, "未授权");
         }
 
-        request.UserId = userId; // Ensure the user creates a post for themselves
+        request.UserId = userId; // 强制将作者设置为当前登录用户
         var post = await postService.CreateAsync(request);
         if (post == null)
         {
@@ -68,8 +79,11 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 更新帖子
+    /// 更新帖子内容 (仅限作者或管理员)
     /// </summary>
+    /// <param name="id">帖子 ID</param>
+    /// <param name="request">帖子更新请求对象</param>
+    /// <returns>更新后的帖子数据</returns>
     [HttpPut("{id}")]
     [Authorize]
     public async Task<ApiResponse<PostDto>> Update(string id, [FromBody] PostUpdateDto request)
@@ -102,8 +116,10 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 删除帖子
+    /// 删除帖子 (仅限作者或管理员)
     /// </summary>
+    /// <param name="id">帖子 ID</param>
+    /// <returns>操作结果描述</returns>
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<ApiResponse> Delete(string id)
@@ -131,8 +147,10 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 点赞帖子
+    /// 点赞帖子 (支持切换状态)
     /// </summary>
+    /// <param name="id">帖子 ID</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("{id}/like")]
     [Authorize]
     public async Task<ApiResponse> Like(string id)
@@ -154,8 +172,10 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 点踩帖子
+    /// 点踩帖子 (支持切换状态)
     /// </summary>
+    /// <param name="id">帖子 ID</param>
+    /// <returns>操作结果描述</returns>
     [HttpPost("{id}/dislike")]
     [Authorize]
     public async Task<ApiResponse> Dislike(string id)
@@ -176,6 +196,12 @@ public class PostController(IPostService postService) : ControllerBase
         return ApiResponse.Success("操作成功");
     }
 
+    /// <summary>
+    /// 获取贴子的评论列表 (构造成树形结构)
+    /// </summary>
+    /// <param name="id">帖子 ID</param>
+    /// <param name="type">排序类型: Hot (热门), New (最新，默认)</param>
+    /// <returns>评论树列表</returns>
     [HttpGet("{id}/comments/{type?}")]
     public async Task<ApiResponse<List<CommentDto>>> GetComments(string id, string? type)
     {
@@ -183,8 +209,10 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
-    /// 全文检索帖子 (分页)
+    /// 全文检索帖子内容 (支持分页)
     /// </summary>
+    /// <param name="params">包含关键词的分页参数</param>
+    /// <returns>相关帖子分页列表</returns>
     [HttpGet("search")]
     [AllowAnonymous]
     public async Task<ApiResponse<PagedResultDto<PostDto>>> Search([FromQuery] PaginationParams @params)
