@@ -439,7 +439,11 @@ public class PostService(
 
         SortComments(rootComments);
 
-        memoryCache.Set(cacheKey, rootComments, TimeSpan.FromMinutes(2));
+        memoryCache.Set(cacheKey, rootComments, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2),
+            Size = 1
+        });
         return rootComments;
     }
 
@@ -514,6 +518,12 @@ public class PostService(
             CreatedAt = post.CreatedAt,
             UpdatedAt = post.UpdatedAt,
             UserId = post.UserId,
+            Author = post.User != null ? new UserSimpleDto
+            {
+                Id = post.User.Id,
+                Name = post.User.Name,
+                Avatar = post.User.Avatar
+            } : null,
             Likes = post.Likes,
             Dislikes = post.Dislikes,
             Watch = post.Watch

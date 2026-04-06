@@ -43,6 +43,11 @@ public class PostDto
     public string UserId { get; set; } = string.Empty;
 
     /// <summary>
+    /// 创建者信息
+    /// </summary>
+    public UserSimpleDto? Author { get; set; }
+
+    /// <summary>
     /// 点赞数
     /// </summary>
     public int Likes { get; set; }

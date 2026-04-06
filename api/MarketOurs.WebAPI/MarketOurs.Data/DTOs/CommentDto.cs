@@ -48,6 +48,11 @@ public class CommentDto
     public string UserId { get; set; } = string.Empty;
 
     /// <summary>
+    /// 评论者信息
+    /// </summary>
+    public UserSimpleDto? Author { get; set; }
+
+    /// <summary>
     /// 所属帖子 ID
     /// </summary>
     public string PostId { get; set; } = string.Empty;

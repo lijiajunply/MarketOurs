@@ -8,7 +8,8 @@
     "user": "User",
     "loading": "Loading...",
     "error": "Error",
-    "null" : "N/A"
+    "null" : "N/A",
+    "me": "Me"
   },
   "nav": {
     "home": "Home",
@@ -56,9 +57,45 @@
     "reset_password_btn": "Reset Password",
     "reset_success": "Password reset successfully! Redirecting...",
     "invalid_account": "Please enter a valid email or phone number",
-    "back_to_login": "Back to Login"
+    "back_to_login": "Back to Login",
+    "verification": "Account Verification",
+    "verification_instruction": "We've sent a 6-digit code to your account",
+    "verification_code_sent_to": "Verification code sent to",
+    "resend_code_in": "Resend in {{count}}s",
+    "verify_and_complete": "Verify & Complete",
+    "back_to_registration": "Back to Registration"
   },
-  "profile": {
+  "post": {
+    "not_found": "Post not found",
+    "back_to_feed": "Back to Feed",
+    "likes": "Likes",
+    "share": "Share",
+    "comments_count": "Comments ({{count}})",
+    "comment_placeholder": "Write a thoughtful reply...",
+    "login_to_comment": "Please log in to leave a comment.",
+    "reply": "Reply",
+    "no_comments": "No comments yet. Be the first to share your thoughts!",
+    "author": "Author",
+    "create_title": "Create New Post",
+    "create_desc": "Share your thoughts, questions, or discoveries.",
+    "title_label": "Title",
+    "title_placeholder": "Give it a catchy title...",
+    "content_label": "Content",
+    "content_placeholder": "What's on your mind?",
+    "add_images": "Add Images",
+    "upload_image": "Upload Image",
+    "error_empty": "Title and content cannot be empty",
+    "error_create_failed": "Failed to create post, please try again later",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "edit": "Edit",
+    "save": "Save",
+    "delete": "Delete",
+    "confirm_delete": "Are you sure you want to delete? This action cannot be undone.",
+    "edited": "Edited"
+    },
+    "profile": {
     "title": "Profile",
     "edit_profile": "Edit Profile",
     "save_changes": "Save Changes",

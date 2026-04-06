@@ -292,6 +292,12 @@ public class CommentService(
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             UserId = comment.UserId,
+            Author = comment.User != null ? new UserSimpleDto
+            {
+                Id = comment.User.Id,
+                Name = comment.User.Name,
+                Avatar = comment.User.Avatar
+            } : null,
             PostId = comment.PostId,
             ParentCommentId = comment.ParentCommentId
         };

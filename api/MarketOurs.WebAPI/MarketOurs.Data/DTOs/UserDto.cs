@@ -170,3 +170,24 @@ public class ChangePasswordRequest
     [MaxLength(128, ErrorMessage = "新密码长度不能超过128位")]
     public string NewPassword { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// 用户简单信息数据传输对象
+/// </summary>
+public class UserSimpleDto
+{
+    /// <summary>
+    /// 用户唯一标识
+    /// </summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 用户名
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 头像地址
+    /// </summary>
+    public string Avatar { get; set; } = string.Empty;
+}

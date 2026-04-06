@@ -26,7 +26,7 @@ export default function RegisterPage() {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
 
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval>;
     if (countdown > 0) {
       timer = setInterval(() => setCountdown(c => c - 1), 1000);
     }
@@ -291,7 +291,7 @@ export default function RegisterPage() {
                 className="text-sm font-bold text-primary hover:underline disabled:opacity-50 disabled:no-underline"
               >
                 {countdown > 0 
-                  ? t("auth.resend_code_in", { seconds: countdown }) 
+                  ? t("auth.resend_code_in", { count: countdown }) 
                   : t("auth.resend_code")}
               </button>
             </div>

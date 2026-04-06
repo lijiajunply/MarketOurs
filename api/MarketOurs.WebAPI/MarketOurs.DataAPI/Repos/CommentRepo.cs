@@ -42,6 +42,7 @@ public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRep
         await using var context = await factory.CreateDbContextAsync();
 
         return await context.Commits
+            .Include(x => x.User)
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)

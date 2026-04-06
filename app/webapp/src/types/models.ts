@@ -69,6 +69,12 @@ export interface UserUpdateDto {
   phone?: string;
 }
 
+export interface UserSimpleDto {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
 export interface ChangePasswordRequest {
   oldPassword: string;
   newPassword: string;
@@ -85,6 +91,7 @@ export interface PostDto {
   createdAt: string;
   updatedAt: string;
   userId: string;
+  author?: UserSimpleDto | null;
   likes: number;
   dislikes: number;
   watch: number;
@@ -115,6 +122,7 @@ export interface CommentDto {
   createdAt: string;
   updatedAt: string;
   userId: string;
+  author?: UserSimpleDto | null;
   postId: string;
   parentCommentId: string | null;
   repliedComments?: CommentDto[];

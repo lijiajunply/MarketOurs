@@ -41,6 +41,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
+            .Include(x => x.User)
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
@@ -137,6 +138,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         // 无论何种排序，都先获取贴子的所有评论（包含子评论）
         // 在该方案中，我们选择获取属于该 PostId 的所有评论，让 Service 层负责构建树
         return await context.Commits
+            .Include(x => x.User)
             .Where(x => x.PostId == id)
             .ToListAsync();
     }

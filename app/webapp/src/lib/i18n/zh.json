@@ -8,7 +8,8 @@
     "user": "用户",
     "loading": "加载中...",
     "error": "错误",
-    "null" : "无"
+    "null" : "无",
+    "me": "我"
   },
   "nav": {
     "home": "首页",
@@ -56,9 +57,45 @@
     "reset_password_btn": "重置密码",
     "reset_success": "密码重置成功！正在重定向...",
     "invalid_account": "请输入有效的邮箱或手机号",
-    "back_to_login": "返回登录"
+    "back_to_login": "返回登录",
+    "verification": "账号验证",
+    "verification_instruction": "我们已向您的账号发送了一个6位数的验证码",
+    "verification_code_sent_to": "验证码已发送至",
+    "resend_code_in": "{{count}}秒后重新获取",
+    "verify_and_complete": "验证并完成",
+    "back_to_registration": "返回注册"
   },
-  "profile": {
+  "post": {
+    "not_found": "文章未找到",
+    "back_to_feed": "返回列表",
+    "likes": "赞",
+    "share": "分享",
+    "comments_count": "评论 ({{count}})",
+    "comment_placeholder": "写下你的评论...",
+    "login_to_comment": "请登录后发表评论。",
+    "reply": "回复",
+    "no_comments": "暂无评论。来发表第一条评论吧！",
+    "author": "作者",
+    "create_title": "发布新贴",
+    "create_desc": "分享你的想法、问题或发现。",
+    "title_label": "标题",
+    "title_placeholder": "起一个吸引人的标题...",
+    "content_label": "内容",
+    "content_placeholder": "你想说点什么？",
+    "add_images": "添加图片",
+    "upload_image": "上传图片",
+    "error_empty": "标题和内容不能为空",
+    "error_create_failed": "创建贴子失败，请稍后重试",
+    "cancel": "取消",
+    "submit": "立即发布",
+    "submitting": "发布中...",
+    "edit": "编辑",
+    "save": "保存",
+    "delete": "删除",
+    "confirm_delete": "确定要删除吗？此操作不可撤销。",
+    "edited": "已编辑"
+    },
+    "profile": {
     "title": "个人中心",
     "edit_profile": "编辑资料",
     "save_changes": "保存修改",

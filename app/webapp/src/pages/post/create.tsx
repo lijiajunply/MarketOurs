@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { type RootState } from '../../stores';
 import { postService } from '../../services/postService';
 import { fileService } from '../../services/fileService';
@@ -8,6 +9,7 @@ import { ImagePlus, X, Loader2, Send } from 'lucide-react';
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   
   const [title, setTitle] = useState('');
@@ -43,7 +45,7 @@ export default function CreatePostPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      setError('标题和内容不能为空');
+      setError(t('post.error_empty'));
       return;
     }
 
@@ -70,7 +72,7 @@ export default function CreatePostPage() {
 
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || '创建贴子失败，请稍后重试');
+      setError(err.response?.data?.message || t('post.error_create_failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -80,21 +82,21 @@ export default function CreatePostPage() {
     <div className="container max-w-2xl mx-auto px-4 py-8">
       <div className="glass rounded-3xl p-6 md:p-8 space-y-6">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">发布新贴</h1>
-          <p className="text-muted-foreground">分享你的想法、问题或发现。</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('post.create_title')}</h1>
+          <p className="text-muted-foreground">{t('post.create_desc')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              标题
+              {t('post.title_label')}
             </label>
             <input
               id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="起一个吸引人的标题..."
+              placeholder={t('post.title_placeholder')}
               className="flex h-12 w-full rounded-2xl border border-input bg-background/50 px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all disabled:cursor-not-allowed disabled:opacity-50"
               required
             />
@@ -102,20 +104,20 @@ export default function CreatePostPage() {
 
           <div className="space-y-2">
             <label htmlFor="content" className="text-sm font-medium leading-none">
-              内容
+              {t('post.content_label')}
             </label>
             <textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="你想说点什么？"
+              placeholder={t('post.content_placeholder')}
               className="flex min-h-[200px] w-full rounded-2xl border border-input bg-background/50 px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all disabled:cursor-not-allowed disabled:opacity-50 resize-none"
               required
             />
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-medium leading-none">添加图片</label>
+            <label className="text-sm font-medium leading-none">{t('post.add_images')}</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {imagePreviews.map((preview, index) => (
                 <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-border group">
@@ -131,7 +133,7 @@ export default function CreatePostPage() {
               ))}
               <label className="flex flex-col items-center justify-center aspect-square rounded-2xl border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
                 <ImagePlus size={24} className="text-muted-foreground mb-2" />
-                <span className="text-xs text-muted-foreground">上传图片</span>
+                <span className="text-xs text-muted-foreground">{t('post.upload_image')}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -156,7 +158,7 @@ export default function CreatePostPage() {
               className="flex-1 h-12 rounded-2xl border border-input bg-background hover:bg-muted font-medium transition-colors"
               disabled={isSubmitting}
             >
-              取消
+              {t('post.cancel')}
             </button>
             <button
               type="submit"
@@ -166,12 +168,12 @@ export default function CreatePostPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 size={20} className="animate-spin" />
-                  <span>发布中...</span>
+                  <span>{t('post.submitting')}</span>
                 </>
               ) : (
                 <>
                   <Send size={18} />
-                  <span>立即发布</span>
+                  <span>{t('post.submit')}</span>
                 </>
               )}
             </button>
