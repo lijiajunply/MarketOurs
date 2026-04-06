@@ -68,6 +68,7 @@ public class LoginService(
         return await GenerateTokenForUser(user, deviceType);
     }
 
+    /// <inheritdoc/>
     public async Task<TokenDto> LoginWithOAuthAsync(string account, string name, string avatar, string deviceType)
     {
         var user = await userService.GetByAccountAsync(account);
@@ -102,7 +103,7 @@ public class LoginService(
     }
 
     /// <summary>
-    /// 
+    /// 生成 Token
     /// </summary>
     /// <param name="user"></param>
     /// <param name="deviceType"></param>
@@ -160,6 +161,7 @@ public class LoginService(
         return await GenerateTokenForUser(user, deviceType);
     }
 
+    /// <inheritdoc/>
     public async Task<bool> Logout(string id, string deviceType)
     {
         var db = _redis?.GetDatabase();
@@ -173,6 +175,7 @@ public class LoginService(
         return await db.KeyDeleteAsync(key);
     }
 
+    /// <inheritdoc/>
     public async Task<bool> ValidateToken(string userId, string token, string deviceType)
     {
         var db = _redis?.GetDatabase();

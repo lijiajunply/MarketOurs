@@ -113,6 +113,7 @@ public class PostService(
     private static readonly TimeSpan DistPostCacheTtl = TimeSpan.FromMinutes(10);
     private const int WatchSyncThreshold = 10;
 
+    /// <inheritdoc/>
     public async Task<PagedResultDto<PostDto>> GetAllAsync(PaginationParams @params)
     {
         var totalCount = await postRepo.CountAsync();
@@ -126,6 +127,7 @@ public class PostService(
         return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
+    /// <inheritdoc/>
     public async Task<List<PostDto>> GetHotAsync(int count = 10)
     {
         var memCacheKey = CacheKeys.HotPostsMem(count);
@@ -196,6 +198,7 @@ public class PostService(
 
     private readonly ConcurrentDictionary<string, Task<PostDto?>> _getByIdTasks = new();
 
+    /// <inheritdoc/>
     public async Task<PostDto?> GetByIdAsync(string id)
     {
         var memCacheKey = CacheKeys.PostMem(id);
@@ -275,6 +278,7 @@ public class PostService(
         return dto;
     }
 
+    /// <inheritdoc/>
     public async Task IncrementWatchAsync(string id)
     {
         if (_redis == null)
@@ -355,6 +359,7 @@ public class PostService(
         InvalidateCache(id);
     }
 
+    /// <inheritdoc/>
     public async Task SetLikesAsync(string userId, string postId)
     {
         var post = await postRepo.GetByIdAsync(postId);
@@ -374,6 +379,7 @@ public class PostService(
         }
     }
 
+    /// <inheritdoc/>
     public async Task<List<CommentDto>> GetCommentsAsync(string id, string type)
     {
         // 尝试从本地缓存读取评论列表

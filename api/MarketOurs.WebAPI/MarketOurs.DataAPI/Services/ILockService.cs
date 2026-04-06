@@ -32,6 +32,7 @@ public class RedisLockService(IEnumerable<IConnectionMultiplexer> redisEnumerabl
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
 
+    /// <inheritdoc/>
     public async Task<bool> AcquireAsync(string key, string value, TimeSpan expiry)
     {
         if (_redis == null) return true; // Fail-safe: No Redis, no lock (assume success in development)

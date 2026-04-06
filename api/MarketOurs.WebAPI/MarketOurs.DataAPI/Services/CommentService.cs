@@ -68,6 +68,7 @@ public class CommentService(
     private static readonly TimeSpan LocalCacheTtl = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan DistCacheTtl = TimeSpan.FromMinutes(10);
 
+    /// <inheritdoc/>
     public async Task<PagedResultDto<CommentDto>> GetAllAsync(PaginationParams @params)
     {
         var totalCount = await commentRepo.CountAsync();
@@ -236,6 +237,7 @@ public class CommentService(
         return MapToDto(comment);
     }
 
+    /// <inheritdoc/>
     public async Task DeleteAsync(string id)
     {
         var comment = await commentRepo.GetByIdAsync(id);

@@ -17,21 +17,25 @@ public interface IUserService
     /// <summary>
     /// 获取所有用户 (分页)
     /// </summary>
+    /// <param name="params">分页查询参数</param>
     Task<PagedResultDto<UserDto>> GetAllAsync(PaginationParams @params);
 
     /// <summary>
     /// 搜索用户 (基于关键词)
     /// </summary>
+    /// <param name="params">分页查询参数</param>
     Task<PagedResultDto<UserDto>> SearchAsync(PaginationParams @params);
 
     /// <summary>
     /// 根据 ID 获取用户详情
     /// </summary>
+    /// <param name="id">id</param>
     Task<UserDto?> GetByIdAsync(string id);
 
     /// <summary>
-    /// 根据账号 (邮箱或手机号) 获取用户详情
+    /// 根据 邮箱或手机号 获取用户详情
     /// </summary>
+    /// <param name="account">邮箱或手机号</param>
     Task<UserDto?> GetByAccountAsync(string account);
 
     /// <summary>
@@ -127,6 +131,7 @@ public class UserService(
             </p>
         </div>";
 
+    /// <inheritdoc/>
     public async Task<PagedResultDto<UserDto>> GetAllAsync(PaginationParams @params)
     {
         var totalCount = await userRepo.CountAsync();
@@ -135,6 +140,7 @@ public class UserService(
             @params.PageSize);
     }
 
+    /// <inheritdoc/>
     public async Task<PagedResultDto<UserDto>> SearchAsync(PaginationParams @params)
     {
         if (string.IsNullOrWhiteSpace(@params.Keyword))
@@ -146,18 +152,21 @@ public class UserService(
             @params.PageSize);
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> GetByIdAsync(string id)
     {
         var user = await userRepo.GetByIdAsync(id);
         return user != null ? MapToDto(user) : null;
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> GetByAccountAsync(string account)
     {
         var user = await userRepo.GetByAccountAsync(account);
         return user != null ? MapToDto(user) : null;
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> LoginAsync(string account, string password)
     {
         var user = await userRepo.GetByAccountAsync(account);
@@ -172,6 +181,7 @@ public class UserService(
         return MapToDto(user);
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto> CreateAsync(UserCreateDto createDto)
     {
         var isEmail = createDto.Account.Contains('@');
@@ -195,6 +205,7 @@ public class UserService(
         return MapToDto(user);
     }
 
+    /// <inheritdoc/>
     public async Task<bool> SendVerificationEmailAsync(string userId)
     {
         var user = await userRepo.GetByIdAsync(userId);
@@ -219,6 +230,7 @@ public class UserService(
             new { token });
     }
 
+    /// <inheritdoc/>
     public async Task<bool> VerifyEmailAsync(string token)
     {
         if (_redis == null) return false;
@@ -240,11 +252,7 @@ public class UserService(
         return true;
     }
 
-    /// <summary>
-    /// 发送手机验证码
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public async Task<bool> SendPhoneVerificationCodeAsync(string userId)
     {
         var user = await userRepo.GetByIdAsync(userId);
@@ -286,11 +294,7 @@ public class UserService(
         return false;
     }
 
-    /// <summary>
-    /// 验证 手机验证码
-    /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public async Task<bool> VerifyPhoneCodeAsync(string token)
     {
         if (_redis == null) return false;
@@ -312,6 +316,7 @@ public class UserService(
         return true;
     }
 
+    /// <inheritdoc/>
     public async Task<bool> ForgotPasswordAsync(string account)
     {
         var user = await userRepo.GetByAccountAsync(account);
@@ -355,6 +360,7 @@ public class UserService(
         return false;
     }
 
+    /// <inheritdoc/>
     public async Task<bool> ResetPasswordAsync(string token, string newPassword)
     {
         if (_redis == null) return false;
@@ -375,6 +381,7 @@ public class UserService(
         return true;
     }
 
+    /// <inheritdoc/>
     public async Task<bool> UpdatePushTokenAsync(string userId, string token)
     {
         var user = await userRepo.GetByIdAsync(userId);
@@ -385,6 +392,7 @@ public class UserService(
         return true;
     }
 
+    /// <inheritdoc/>
     public async Task<UserDto?> UpdateAsync(string id, UserUpdateDto updateDto)
     {
         var user = await userRepo.GetByIdAsync(id);
@@ -398,6 +406,7 @@ public class UserService(
         return MapToDto(user);
     }
 
+    /// <inheritdoc/>
     public async Task DeleteAsync(string id)
     {
         await userRepo.DeleteAsync(id);

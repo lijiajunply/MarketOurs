@@ -9,6 +9,12 @@ namespace MarketOurs.DataAPI.Services;
 
 public interface ISmsService
 {
+    /// <summary>
+    /// 发送请求
+    /// </summary>
+    /// <param name="action">方法</param>
+    /// <param name="data">数据</param>
+    /// <returns>返回 UniResponse </returns>
     public Task<SmsResponse> RequestAsync(string action, SmsModel data);
 }
 
@@ -57,20 +63,15 @@ public class UniSmsService(
         };
         query["signature"] = Convert.ToHexString(hashBytes).ToLower();
     }
-
-    /// <summary>
-    /// 发送请求
-    /// </summary>
-    /// <param name="action"></param>
-    /// <param name="data"></param>
-    /// <returns>返回 UniResponse </returns>
+    
+    /// <inheritdoc/>
     public async Task<SmsResponse> RequestAsync(string action, SmsModel data)
     {
         if (data is not UniSmsModel uniSmsModel)
         {
             throw new Exception("Invalid data");
         }
-        
+
         var query = new Dictionary<string, string>
         {
             { "action", action },
@@ -169,7 +170,7 @@ public class UniResponse : SmsResponse
 }
 
 [Serializable]
-public class UniSmsModel: SmsModel
+public class UniSmsModel : SmsModel
 {
     [JsonPropertyName("to")] public string To { get; set; } = "";
 

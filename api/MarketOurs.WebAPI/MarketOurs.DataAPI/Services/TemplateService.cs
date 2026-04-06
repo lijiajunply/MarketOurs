@@ -17,6 +17,7 @@ public class FluidTemplateService : ITemplateService
 {
     private static readonly FluidParser Parser = new();
 
+    /// <inheritdoc/>
     public async Task<string> RenderAsync(string templateContent, object model)
     {
         if (!Parser.TryParse(templateContent, out var template, out var error))

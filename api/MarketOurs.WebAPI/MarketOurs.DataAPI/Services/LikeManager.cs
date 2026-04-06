@@ -67,33 +67,41 @@ public class LikeManager(
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
 
+    /// <inheritdoc/>
     public async Task<int> GetPostLikesAsync(string postId, int fallbackCount) =>
         await GetCountAsync(CacheKeys.PostLikes(postId), fallbackCount);
 
+    /// <inheritdoc/>
     public async Task<int> GetPostDislikesAsync(string postId, int fallbackCount) =>
         await GetCountAsync(CacheKeys.PostDislikes(postId), fallbackCount);
 
+    /// <inheritdoc/>
     public async Task<int> GetCommentLikesAsync(string commentId, int fallbackCount) =>
         await GetCountAsync(CacheKeys.CommentLikes(commentId), fallbackCount);
 
+    /// <inheritdoc/>
     public async Task<int> GetCommentDislikesAsync(string commentId, int fallbackCount) =>
         await GetCountAsync(CacheKeys.CommentDislikes(commentId), fallbackCount);
 
+    /// <inheritdoc/>
     public async Task SetPostLikeAsync(string postId, string userId) =>
         await ToggleActionAsync(TargetType.Post, ActionType.Like, postId, userId, 
             () => postRepo.GetLikeUsersAsync(postId), 
             () => postRepo.GetDislikeUsersAsync(postId));
 
+    /// <inheritdoc/>
     public async Task SetPostDislikeAsync(string postId, string userId) =>
         await ToggleActionAsync(TargetType.Post, ActionType.Dislike, postId, userId, 
             () => postRepo.GetDislikeUsersAsync(postId), 
             () => postRepo.GetLikeUsersAsync(postId));
 
+    /// <inheritdoc/>
     public async Task SetCommentLikeAsync(string commentId, string userId) =>
         await ToggleActionAsync(TargetType.Comment, ActionType.Like, commentId, userId, 
             () => commentRepo.GetLikeUsersAsync(commentId), 
             () => commentRepo.GetDislikeUsersAsync(commentId));
 
+    /// <inheritdoc/>
     public async Task SetCommentDislikeAsync(string commentId, string userId) =>
         await ToggleActionAsync(TargetType.Comment, ActionType.Dislike, commentId, userId, 
             () => commentRepo.GetDislikeUsersAsync(commentId), 

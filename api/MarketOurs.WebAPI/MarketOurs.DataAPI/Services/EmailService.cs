@@ -61,6 +61,7 @@ public class EmailService(
         }
     }
 
+    /// <inheritdoc/>
     public async Task<bool> SendEmailAsync(string to, string subject, string body, bool isHtml = false)
     {
         try

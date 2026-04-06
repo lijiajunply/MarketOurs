@@ -13,6 +13,7 @@ public class JwtService(
     RsaKeyManager rsaKeyManager,
     ILogger<JwtService> logger) : IJwtService
 {
+    /// <inheritdoc/>
     public Task<string> GetAccessToken(UserDto user, DeviceType deviceType)
     {
         try

@@ -51,6 +51,7 @@ public class AIService : IAIService
         _chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
     }
 
+    /// <inheritdoc/>
     public Kernel GetKernel()
     {
         return _kernel;

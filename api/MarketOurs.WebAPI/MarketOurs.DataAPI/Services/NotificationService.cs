@@ -104,6 +104,7 @@ public class NotificationService(
         }
     }
 
+    /// <inheritdoc/>
     public async Task UpdatePushSettingsAsync(string userId, PushSettingsDto settings)
     {
         var user = await userRepo.GetByIdAsync(userId);
