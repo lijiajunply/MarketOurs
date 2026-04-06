@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { authService } from "../../services/authService";
 import { setCredentials } from "../../stores/authSlice";
 import { Mail, Lock, Loader2, ArrowRight, GitBranch } from "lucide-react";
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +32,7 @@ export default function LoginPage() {
         navigate("/");
       }
     } catch (err: any) {
-      setError(err.message || "Failed to login. Please check your credentials.");
+      setError(err.message || t("auth.error_failed_to_login"));
     } finally {
       setIsLoading(false);
     }
@@ -69,8 +71,8 @@ export default function LoginPage() {
           <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 mx-auto mb-4">
             <span className="text-white font-bold text-2xl">M</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-          <p className="text-muted-foreground">Sign in to your MarketOurs account</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("auth.welcome_back")}</h1>
+          <p className="text-muted-foreground">{t("auth.signin_to_account")}</p>
         </div>
 
         {error && (
@@ -82,12 +84,12 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold ml-1">Account</label>
+              <label className="text-sm font-semibold ml-1">{t("auth.account")}</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <input
                   type="text"
-                  placeholder="Email or Phone"
+                  placeholder={t("auth.account_placeholder")}
                   value={account}
                   onChange={(e) => setAccount(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
@@ -97,12 +99,17 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold ml-1">Password</label>
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-sm font-semibold">{t("auth.password")}</label>
+                <Link to="/forgot-password" className="text-xs font-bold text-primary hover:underline">
+                  {t("auth.forgot_password")}
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <input
                   type="password"
-                  placeholder="••••••••"
+                  placeholder={t("auth.password_placeholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
@@ -121,7 +128,7 @@ export default function LoginPage() {
               <Loader2 className="animate-spin" size={20} />
             ) : (
               <>
-                Sign In <ArrowRight size={20} />
+                {t("auth.signin")} <ArrowRight size={20} />
               </>
             )}
           </button>
@@ -133,7 +140,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-border/50"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-4 text-muted-foreground font-medium tracking-widest">Or continue with</span>
+              <span className="bg-card px-4 text-muted-foreground font-medium tracking-widest">{t("auth.or_continue_with")}</span>
             </div>
           </div>
 
@@ -142,7 +149,7 @@ export default function LoginPage() {
               <button
                 key={provider.name}
                 className="flex items-center justify-center p-3 rounded-2xl border border-border/50 hover:bg-muted transition-all duration-300 group"
-                title={`Login with ${provider.name}`}
+                title={t("auth.login_with", { provider: provider.name })}
               >
                 <div className="group-hover:scale-110 transition-transform">
                   {provider.icon}
@@ -154,8 +161,8 @@ export default function LoginPage() {
 
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link to="/register" className="font-bold text-primary hover:underline">Sign up</Link>
+            {t("auth.dont_have_account")}{" "}
+            <Link to="/register" className="font-bold text-primary hover:underline">{t("auth.signup")}</Link>
           </p>
         </div>
       </div>

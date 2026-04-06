@@ -33,6 +33,9 @@ export const userService = {
   updateProfile: (data: UserUpdateDto) =>
     apiClient.put<UserDto>('/User/profile', data),
 
+  changePassword: (data: any) =>
+    apiClient.put<void>('/User/password', data),
+
   searchUsers: (pageIndex?: number, pageSize?: number, keyword?: string) => {
     const params = new URLSearchParams();
     if (pageIndex !== undefined) params.append('PageIndex', pageIndex.toString());

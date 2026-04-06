@@ -186,6 +186,24 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     }
 
     /// <summary>
+    /// 修改当前登录用户的密码
+    /// </summary>
+    /// <param name="request">包含旧密码和新密码的请求对象</param>
+    /// <returns>操作结果描述</returns>
+    [HttpPut("password")]
+    [Authorize]
+    public async Task<ApiResponse> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
+
+        var result = await userService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
+        return result 
+            ? ApiResponse.Success("密码修改成功") 
+            : ApiResponse.Fail(400, "旧密码错误或修改失败");
+    }
+
+    /// <summary>
     /// 更新当前登录用户的移动端推送 Token (用于移动端消息推送)
     /// </summary>
     /// <param name="token">FCM 或其他平台的推送 Token</param>

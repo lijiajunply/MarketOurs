@@ -1,6 +1,7 @@
 using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
+using MarketOurs.DataAPI.Services.Background;
 using MarketOurs.WebAPI.Services;
 
 namespace MarketOurs.WebAPI.Extensions;
@@ -19,11 +20,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationRepo, NotificationRepo>();
 
         // Background queue for async DB sync
-        services.AddSingleton<DataAPI.Services.Background.LikeMessageQueue>();
-        services.AddSingleton<DataAPI.Services.Background.NotificationMessageQueue>();
-        services.AddHostedService<DataAPI.Services.Background.LikeSyncBackgroundService>();
-        services.AddHostedService<DataAPI.Services.Background.NotificationSyncBackgroundService>();
-        services.AddHostedService<DataAPI.Services.Background.DailyHotListBackgroundService>();
+        services.AddSingleton<LikeMessageQueue>();
+        services.AddSingleton<NotificationMessageQueue>();
+        services.AddHostedService<LikeSyncBackgroundService>();
+        services.AddHostedService<NotificationSyncBackgroundService>();
+        services.AddHostedService<DailyHotListBackgroundService>();
 
         // Services
         services.AddScoped<ILockService, RedisLockService>();

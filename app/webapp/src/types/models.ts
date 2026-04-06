@@ -60,6 +60,13 @@ export interface UserUpdateDto {
   name?: string;
   avatar?: string;
   info?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
 }
 
 /**

@@ -68,7 +68,7 @@ export function Navbar() {
                   )}
                 >
                   <PlusSquare size={16} />
-                  <span>{t('nav.home') === 'Home' ? 'Post' : '发布'}</span>
+                  <span>{t("nav.post")}</span>
                 </Link>
               )}
             </nav>
@@ -79,7 +79,7 @@ export function Navbar() {
               onClick={toggleLanguage}
               className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               aria-label="Toggle language"
-              title={i18n.language === 'en' ? 'Switch to Chinese' : '切换为英文'}
+              title={t("nav.toggle_language")}
             >
               <Languages size={20} />
             </button>
@@ -167,7 +167,7 @@ export function Navbar() {
                 )}
               >
                 <PlusSquare size={20} />
-                <span>{t('nav.home') === 'Home' ? 'Post' : '发布贴子'}</span>
+                <span>{t("nav.post")}</span>
               </Link>
             )}
           </div>

@@ -125,6 +125,20 @@ public class UserUpdateDto
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// 电子邮箱
+    /// </summary>
+    [MaxLength(128, ErrorMessage = "邮箱长度不能超过128位")]
+    [EmailAddress(ErrorMessage = "邮箱格式不正确")]
+    public string? Email { get; set; }
+
+    /// <summary>
+    /// 手机号码
+    /// </summary>
+    [MaxLength(32, ErrorMessage = "手机号长度不能超过32位")]
+    [Phone(ErrorMessage = "手机号格式不正确")]
+    public string? Phone { get; set; }
+
+    /// <summary>
     /// 头像地址
     /// </summary>
     [MaxLength(128, ErrorMessage = "头像地址长度不能超过128位")]
@@ -135,4 +149,24 @@ public class UserUpdateDto
     /// </summary>
     [MaxLength(1024, ErrorMessage = "个人简介长度不能超过1024位")]
     public string Info { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 修改密码请求对象
+/// </summary>
+public class ChangePasswordRequest
+{
+    /// <summary>
+    /// 旧密码
+    /// </summary>
+    [Required(ErrorMessage = "旧密码不能为空")]
+    public string OldPassword { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 新密码
+    /// </summary>
+    [Required(ErrorMessage = "新密码不能为空")]
+    [MinLength(6, ErrorMessage = "新密码长度不能少于6位")]
+    [MaxLength(128, ErrorMessage = "新密码长度不能超过128位")]
+    public string NewPassword { get; set; } = string.Empty;
 }

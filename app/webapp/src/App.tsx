@@ -8,6 +8,9 @@ import RegisterPage from "./pages/register"
 import PostDetailPage from "./pages/post/detail"
 import CreatePostPage from "./pages/post/create"
 import NotificationsPage from "./pages/notifications"
+import ProfilePage from "./pages/profile"
+import ForgotPasswordPage from "./pages/forgot-password"
+import ResetPasswordPage from "./pages/profile/reset-password"
 
 export function App() {
   return (
@@ -22,7 +25,9 @@ export function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/profile" element={<div className="text-center py-20 text-2xl font-bold text-muted-foreground animate-in fade-in duration-700">Profile Page Coming Soon</div>} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile/reset-password" element={<ResetPasswordPage />} />
           </Routes>
         </MainLayout>
       </BrowserRouter>

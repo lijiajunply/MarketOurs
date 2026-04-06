@@ -95,6 +95,11 @@ public interface IUserService
     /// 更新用户的推送 Token (用于移动端推送)
     /// </summary>
     Task<bool> UpdatePushTokenAsync(string userId, string token);
+
+    /// <summary>
+    /// 修改密码
+    /// </summary>
+    Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword);
 }
 
 public class UserService(
@@ -393,14 +398,42 @@ public class UserService(
     }
 
     /// <inheritdoc/>
+    public async Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword)
+    {
+        var user = await userRepo.GetByIdAsync(userId);
+        if (user == null || !DataTool.IsOk(oldPassword, user.Password)) return false;
+
+        user.Password = newPassword.StringToHash();
+        await userRepo.UpdateAsync(user);
+        return true;
+    }
+
+    /// <inheritdoc/>
     public async Task<UserDto?> UpdateAsync(string id, UserUpdateDto updateDto)
     {
         var user = await userRepo.GetByIdAsync(id);
         if (user == null) return null;
 
-        user.Name = updateDto.Name;
-        user.Avatar = updateDto.Avatar;
+        if (!string.IsNullOrEmpty(updateDto.Name))
+            user.Name = updateDto.Name;
+        
+        if (!string.IsNullOrEmpty(updateDto.Avatar))
+            user.Avatar = updateDto.Avatar;
+        
         user.Info = updateDto.Info;
+
+        // 如果修改了邮箱或手机号，标记为未验证
+        if (updateDto.Email != null && updateDto.Email != user.Email)
+        {
+            user.Email = updateDto.Email;
+            user.IsEmailVerified = false;
+        }
+
+        if (updateDto.Phone != null && updateDto.Phone != user.Phone)
+        {
+            user.Phone = updateDto.Phone;
+            user.IsPhoneVerified = false;
+        }
 
         await userRepo.UpdateAsync(user);
         return MapToDto(user);
