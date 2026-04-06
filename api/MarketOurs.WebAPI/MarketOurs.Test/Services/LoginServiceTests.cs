@@ -1,6 +1,8 @@
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
+using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
 
@@ -13,15 +15,21 @@ public class LoginServiceTests
     private Mock<IJwtService> _mockJwtService;
     private Mock<IConnectionMultiplexer> _mockRedis;
     private Mock<IDatabase> _mockDatabase;
+    private Mock<ILogger<LoginService>> _mockLogger;
     private LoginService _loginService;
+    private Mock<ISmsService> _mockSmsService;
+    private Mock<IEmailService> _mockEmailService;
 
     [SetUp]
-    public void Setup()
+    public void SetUp()
     {
         _mockUserService = new Mock<IUserService>();
         _mockJwtService = new Mock<IJwtService>();
         _mockRedis = new Mock<IConnectionMultiplexer>();
         _mockDatabase = new Mock<IDatabase>();
+        _mockLogger = new Mock<ILogger<LoginService>>();
+        _mockEmailService = new Mock<IEmailService>();
+        _mockSmsService = new Mock<ISmsService>();
 
         _mockRedis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_mockDatabase.Object);
         var redisList = new List<IConnectionMultiplexer> { _mockRedis.Object };
@@ -29,7 +37,10 @@ public class LoginServiceTests
         _loginService = new LoginService(
             _mockUserService.Object,
             redisList,
-            _mockJwtService.Object
+            _mockJwtService.Object,
+            _mockEmailService.Object,
+            _mockSmsService.Object,
+            _mockLogger.Object
         );
     }
 
@@ -102,7 +113,8 @@ public class LoginServiceTests
     {
         // Arrange
         var user = new UserDto { Id = "1", Name = "User 1", IsActive = true };
-        _mockDatabase.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>())).ReturnsAsync(new RedisValue("1"));
+        _mockDatabase.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync(new RedisValue("1"));
         _mockUserService.Setup(s => s.GetByIdAsync("1")).ReturnsAsync(user);
         _mockJwtService.Setup(j => j.GetAccessToken(user, It.IsAny<DeviceType>())).ReturnsAsync("new_access_token");
         _mockJwtService.Setup(j => j.GetRefreshToken(It.IsAny<DeviceType>())).ReturnsAsync("new_refresh_token");

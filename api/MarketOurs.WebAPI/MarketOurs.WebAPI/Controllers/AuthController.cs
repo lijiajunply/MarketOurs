@@ -31,16 +31,41 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 用户注册新账户
+    /// 用户注册：第一步，提交信息获取注册令牌
     /// </summary>
     /// <param name="request">用户注册请求对象</param>
-    /// <returns>注册成功的用户信息</returns>
+    /// <returns>注册令牌</returns>
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ApiResponse<UserDto>> Register([FromBody] UserCreateDto request)
+    public async Task<ApiResponse<string>> Register([FromBody] UserCreateDto request)
     {
-        logger.LogInformation("新用户注册: {Account}", request.Account);
-        var user = await userService.CreateAsync(request);
+        logger.LogInformation("新用户发起注册: {Account}", request.Account);
+        var regToken = await loginService.RegisterUserAsync(request);
+        return ApiResponse<string>.Success(regToken, "请继续进行验证码验证");
+    }
+
+    /// <summary>
+    /// 用户注册：第二步，发送验证码
+    /// </summary>
+    /// <param name="regToken">注册令牌</param>
+    [HttpPost("send-registration-code")]
+    [AllowAnonymous]
+    public async Task<ApiResponse> SendRegistrationCode([FromQuery] string regToken)
+    {
+        var result = await loginService.SendRegistrationCodeAsync(regToken);
+        return result
+            ? ApiResponse.Success("验证码已发送")
+            : ApiResponse.Fail(500, "发送失败");
+    }
+
+    /// <summary>
+    /// 用户注册：第三步，验证并完成注册
+    /// </summary>
+    [HttpPost("verify-registration")]
+    [AllowAnonymous]
+    public async Task<ApiResponse<UserDto>> VerifyRegistration([FromBody] VerifyRegistrationRequest request)
+    {
+        var user = await loginService.VerifyAndRegisterAsync(request.RegistrationToken, request.Code);
         return ApiResponse<UserDto>.Success(user, "注册成功");
     }
 
@@ -108,13 +133,14 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// <summary>
     /// 验证邮箱激活令牌
     /// </summary>
-    /// <param name="token">邮件中的验证令牌</param>
+    /// <param name="token">注册时需要的验证内容</param>
+    /// <param name="code">邮件中的验证令牌</param>
     /// <returns>验证结果描述</returns>
     [HttpGet("verify-email")]
     [AllowAnonymous]
-    public async Task<ApiResponse> VerifyEmail([FromQuery] string token)
+    public async Task<ApiResponse> VerifyEmail([FromQuery] string token ,string code)
     {
-        var result = await userService.VerifyEmailAsync(token);
+        var result = await userService.VerifyEmailAsync(code);
         return result
             ? ApiResponse.Success("邮箱验证成功，账号已激活")
             : ApiResponse.Fail(400, "验证码无效或已过期");
@@ -123,13 +149,14 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// <summary>
     /// 验证手机激活码
     /// </summary>
-    /// <param name="request">包含手机验证码的请求</param>
+    /// <param name="token">注册时需要的验证内容</param>
+    /// <param name="code">邮件中的验证令牌</param>
     /// <returns>验证结果描述</returns>
     [HttpPost("verify-phone")]
     [AllowAnonymous]
-    public async Task<ApiResponse> VerifyPhone([FromBody] VerifyCodeRequest request)
+    public async Task<ApiResponse> VerifyPhone([FromQuery] string token ,string code)
     {
-        var result = await userService.VerifyPhoneCodeAsync(request.Code);
+        var result = await userService.VerifyPhoneCodeAsync(code);
         return result
             ? ApiResponse.Success("手机号验证成功，账号已激活")
             : ApiResponse.Fail(400, "验证码无效或已过期");
@@ -390,6 +417,24 @@ public class ResetPasswordRequest
     [MinLength(6, ErrorMessage = "新密码长度不能少于6位")] 
     [MaxLength(128, ErrorMessage = "新密码长度不能超过128位")]
     public string NewPassword { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 注册验证请求对象
+/// </summary>
+public class VerifyRegistrationRequest
+{
+    /// <summary>
+    /// 注册令牌 (从注册接口获取)
+    /// </summary>
+    [Required(ErrorMessage = "注册令牌不能为空")]
+    public string RegistrationToken { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [Required(ErrorMessage = "验证码不能为空")]
+    public string Code { get; set; } = string.Empty;
 }
 
 /// <summary>

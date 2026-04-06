@@ -123,6 +123,11 @@ public static class ErrorCode
     /// </summary>
     public const int UserLocked = 4006;
 
+    /// <summary>
+    /// 用户未激活
+    /// </summary>
+    public const int UserNotActive = 4007;
+
     #endregion
 
     #region 系统错误 (5000-5999)

@@ -1,5 +1,6 @@
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Services;
+using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
 
@@ -13,7 +14,10 @@ public class TokenBlacklistStressTests
     private Mock<IJwtService> _mockJwtService;
     private Mock<IConnectionMultiplexer> _mockRedis;
     private Mock<IDatabase> _mockDatabase;
+    private Mock<ILogger<LoginService>> _mockLogger;
     private LoginService _loginService;
+    private Mock<ISmsService> _mockSmsService;
+    private Mock<IEmailService> _mockEmailService;
 
     [SetUp]
     public void Setup()
@@ -22,6 +26,9 @@ public class TokenBlacklistStressTests
         _mockJwtService = new Mock<IJwtService>();
         _mockRedis = new Mock<IConnectionMultiplexer>();
         _mockDatabase = new Mock<IDatabase>();
+        _mockLogger = new Mock<ILogger<LoginService>>();
+        _mockEmailService = new Mock<IEmailService>();
+        _mockSmsService = new Mock<ISmsService>();
 
         _mockRedis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_mockDatabase.Object);
 
@@ -31,7 +38,14 @@ public class TokenBlacklistStressTests
         _mockDatabase.SetReturnsDefault(Task.FromResult(RedisValue.EmptyString));
 
         var redisList = new List<IConnectionMultiplexer> { _mockRedis.Object };
-        _loginService = new LoginService(_mockUserService.Object, redisList, _mockJwtService.Object);
+        _loginService = new LoginService(
+            _mockUserService.Object,
+            redisList,
+            _mockJwtService.Object,
+            _mockEmailService.Object,
+            _mockSmsService.Object,
+            _mockLogger.Object
+        );
     }
 
     [Test]

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MarketOurs.Data;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
@@ -47,7 +48,7 @@ public interface IUserService
     Task<UserDto?> LoginAsync(string account, string password);
 
     /// <summary>
-    /// 创建新用户 (注册)
+    /// 创建新用户（管理员注册或第三方平台注册）
     /// </summary>
     Task<UserDto> CreateAsync(UserCreateDto createDto);
 
@@ -114,7 +115,7 @@ public class UserService(
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
 
-    private const string VerificationEmailTemplate = @"
+    public const string VerificationEmailTemplate = @"
         <div style='font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 5px;'>
             <h2 style='color: #333;'>欢迎加入 MarketOurs</h2>
             <p>感谢您的注册！请使用以下验证码完成邮箱验证：</p>
@@ -126,7 +127,7 @@ public class UserService(
             </p>
         </div>";
 
-    private const string PasswordResetTemplate = @"
+    public const string PasswordResetTemplate = @"
         <div style='font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 5px;'>
             <h2 style='color: #333;'>重置您的密码</h2>
             <p>您好 {{ name }}，我们收到了重置您 MarketOurs 账号密码的请求。</p>
@@ -183,7 +184,7 @@ public class UserService(
         // 只有激活的用户可以登录
         if (!user.IsActive)
         {
-            throw new AuthException(ErrorCode.UserLocked, "您的账号已被锁定或禁用");
+            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用，请先完成验证");
         }
 
         return MapToDto(user);
@@ -204,7 +205,7 @@ public class UserService(
             Role = createDto.Role,
             CreatedAt = DateTime.UtcNow,
             LastLoginAt = DateTime.UtcNow,
-            IsActive = true, // 初始化默认激活，不需要强制验证
+            IsActive = true, // 创建时激活，不需要强制验证
             IsEmailVerified = false,
             IsPhoneVerified = false
         };
@@ -348,7 +349,7 @@ public class UserService(
         {
             var subject = "MarketOurs - 重置密码";
             return await emailService.SendEmailWithTemplateAsync(user.Email, subject, PasswordResetTemplate,
-                new { name = user.Name ?? "用户", token });
+                new { name = user.Name, token });
         }
 
         if (!string.IsNullOrEmpty(user.Phone))
@@ -411,6 +412,34 @@ public class UserService(
         user.Password = newPassword.StringToHash();
         await userRepo.UpdateAsync(user);
         return true;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> SendVerificationCodeAsync(string account, string code)
+    {
+        var isEmail = account.Contains('@');
+
+        if (isEmail)
+        {
+            var subject = "欢迎加入 MarketOurs - 验证您的注册信息";
+            return await emailService.SendEmailWithTemplateAsync(account, subject, VerificationEmailTemplate,
+                new { token = code });
+        }
+
+        // 发送短信验证码
+        var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
+        {
+            To = account,
+            Signature = "MarketOurs",
+            TemplateId = "pub_verif_ttl3",
+            TemplateData = new Dictionary<string, object>()
+            {
+                ["code"] = code,
+                ["ttl"] = 15
+            }
+        });
+
+        return response is UniResponse { Code: "0" };
     }
 
     /// <inheritdoc/>

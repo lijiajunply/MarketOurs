@@ -53,5 +53,11 @@ public static class CacheKeys
     // 重置密码验证码 (Redis) - Key 为验证码，Value 为 UserId
     public static string ResetToken(string token) => $"reset_token:{token}";
 
+    // 预注册信息 (Redis) - Key 为 RegistrationToken, Value 为 UserCreateDto JSON
+    public static string PreRegisterData(string token) => $"pre_reg_data:{token}";
+
+    // 注册验证码 (Redis) - Key 为 RegistrationToken, Value 为 Code
+    public static string RegistrationCode(string token) => $"reg_code:{token}";
+
     #endregion
 }
