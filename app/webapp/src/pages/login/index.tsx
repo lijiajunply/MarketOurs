@@ -74,9 +74,8 @@ export default function LoginPage() {
   };
 
   const handleThirdPartyLogin = (provider: string) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://marketours-api.zeabur.app";
     const returnUrl = window.location.origin + "/login-callback";
-    window.location.href = `${baseUrl}/Auth/external-login?provider=${provider}&returnUrl=${encodeURIComponent(returnUrl)}`;
+    window.location.href = authService.getExternalLoginUrl(provider, returnUrl);
   };
 
   const thirdPartyLogins = [

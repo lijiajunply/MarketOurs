@@ -1,7 +1,9 @@
 import { useState } from "react"
 import { Save } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 export default function AdminSettingsPage() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState({
     siteName: "MarketOurs",
     allowRegistration: true,
@@ -13,24 +15,24 @@ export default function AdminSettingsPage() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
     // Mock save
-    alert("Settings saved successfully!")
+    alert(t("admin.settings.success_msg"))
   }
 
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
-        <p className="text-muted-foreground mt-1">Configure global platform behavior.</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("admin.settings.title")}</h1>
+        <p className="text-muted-foreground mt-1">{t("admin.settings.subtitle")}</p>
       </header>
 
       <form onSubmit={handleSave} className="space-y-8">
         <div className="bg-card border border-border/50 rounded-[2.5rem] p-8 space-y-8">
           
           <div className="space-y-6">
-            <h2 className="text-xl font-bold tracking-tight">General</h2>
+            <h2 className="text-xl font-bold tracking-tight">{t("admin.settings.section_general")}</h2>
             
             <div className="grid gap-2">
-              <label htmlFor="siteName" className="text-sm font-medium">Site Name</label>
+              <label htmlFor="siteName" className="text-sm font-medium">{t("admin.settings.site_name")}</label>
               <input 
                 id="siteName"
                 type="text" 
@@ -42,8 +44,8 @@ export default function AdminSettingsPage() {
             
             <div className="flex items-center justify-between py-4 border-b border-border/50">
               <div>
-                <p className="font-medium">Allow New Registrations</p>
-                <p className="text-sm text-muted-foreground">When disabled, no new users can sign up.</p>
+                <p className="font-medium">{t("admin.settings.allow_registration")}</p>
+                <p className="text-sm text-muted-foreground">{t("admin.settings.allow_registration_desc")}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input 
@@ -58,8 +60,8 @@ export default function AdminSettingsPage() {
             
             <div className="flex items-center justify-between py-4">
               <div>
-                <p className="font-medium">Maintenance Mode</p>
-                <p className="text-sm text-muted-foreground">Show maintenance page to all non-admin users.</p>
+                <p className="font-medium">{t("admin.settings.maintenance_mode")}</p>
+                <p className="text-sm text-muted-foreground">{t("admin.settings.maintenance_mode_desc")}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input 
@@ -74,10 +76,10 @@ export default function AdminSettingsPage() {
           </div>
           
           <div className="space-y-6 pt-4 border-t border-border/50">
-            <h2 className="text-xl font-bold tracking-tight">Content</h2>
+            <h2 className="text-xl font-bold tracking-tight">{t("admin.settings.section_content")}</h2>
             
             <div className="grid gap-2">
-              <label htmlFor="maxPostImages" className="text-sm font-medium">Max Images per Post</label>
+              <label htmlFor="maxPostImages" className="text-sm font-medium">{t("admin.settings.max_images")}</label>
               <input 
                 id="maxPostImages"
                 type="number" 
@@ -91,8 +93,8 @@ export default function AdminSettingsPage() {
             
             <div className="flex items-center justify-between py-4">
               <div>
-                <p className="font-medium">Auto-Approve Posts</p>
-                <p className="text-sm text-muted-foreground">If disabled, all new posts require admin review.</p>
+                <p className="font-medium">{t("admin.settings.auto_approve")}</p>
+                <p className="text-sm text-muted-foreground">{t("admin.settings.auto_approve_desc")}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input 
@@ -114,7 +116,7 @@ export default function AdminSettingsPage() {
             className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-bold hover:opacity-90 transition-opacity"
           >
             <Save size={18} />
-            Save Settings
+            {t("admin.settings.save_btn")}
           </button>
         </div>
       </form>

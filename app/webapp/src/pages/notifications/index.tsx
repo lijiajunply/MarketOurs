@@ -6,11 +6,13 @@ import { notificationService } from "../../services/notificationService"
 import { NotificationType, type PushSettingsDto } from "../../types"
 import { Bell, MessageSquare, Reply, Flame, Check, Save, Loader2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
-import { zhCN } from "date-fns/locale"
+import { zhCN, enUS } from "date-fns/locale"
 import { Link } from "react-router"
 import { cn } from "../../lib/utils"
+import { useTranslation } from "react-i18next"
 
 export default function NotificationsPage() {
+  const { t, i18n } = useTranslation()
   const { notifications, loading, error } = useSelector((state: RootState) => state.notification)
   const dispatch = useDispatch<AppDispatch>()
   
@@ -95,7 +97,7 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold flex items-center gap-3">
           <Bell className="text-primary" />
-          通知中心
+          {t("notifications.title")}
         </h1>
         <div className="flex items-center gap-2">
           <div className="bg-muted p-1 rounded-full flex">
@@ -106,7 +108,7 @@ export default function NotificationsPage() {
                 activeTab === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              通知列表
+              {t("notifications.list_tab")}
             </button>
             <button
               onClick={() => setActiveTab("settings")}
@@ -115,14 +117,14 @@ export default function NotificationsPage() {
                 activeTab === "settings" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              推送设置
+              {t("notifications.settings_tab")}
             </button>
           </div>
           {activeTab === "list" && notifications.length > 0 && (
             <button
               onClick={handleMarkAllAsRead}
               className="p-2 text-muted-foreground hover:text-primary transition-colors bg-muted/50 rounded-full"
-              title="全部标记为已读"
+              title={t("notifications.mark_all_read")}
             >
               <Check size={18} />
             </button>
@@ -143,7 +145,7 @@ export default function NotificationsPage() {
               <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <Bell size={32} className="text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground">暂无通知</p>
+              <p className="text-muted-foreground">{t("notifications.empty")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -165,7 +167,10 @@ export default function NotificationsPage() {
                         <div className="flex items-center justify-between mb-1">
                           <h3 className="font-semibold">{n.title}</h3>
                           <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: zhCN })}
+                            {formatDistanceToNow(new Date(n.createdAt), { 
+                              addSuffix: true, 
+                              locale: i18n.language === 'zh' ? zhCN : enUS 
+                            })}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
@@ -178,7 +183,7 @@ export default function NotificationsPage() {
                               onClick={() => handleMarkAsRead(n.id)}
                               className="text-xs font-medium text-primary hover:underline"
                             >
-                              查看详情 →
+                              {t("notifications.view_detail")} →
                             </Link>
                           ) : (
                             <div />
@@ -188,7 +193,7 @@ export default function NotificationsPage() {
                               onClick={() => handleMarkAsRead(n.id)}
                               className="text-xs text-muted-foreground hover:text-primary"
                             >
-                              标记已读
+                              {t("notifications.mark_as_read")}
                             </button>
                           )}
                         </div>
@@ -205,8 +210,8 @@ export default function NotificationsPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <h3 className="text-lg font-bold">邮件通知</h3>
-                <p className="text-sm text-muted-foreground">当收到新回复或系统通知时向您的邮箱发送提醒</p>
+                <h3 className="text-lg font-bold">{t("notifications.email_notifications")}</h3>
+                <p className="text-sm text-muted-foreground">{t("notifications.email_notifications_desc")}</p>
               </div>
               <button
                 onClick={() => setSettings({ ...settings, enableEmailNotifications: !settings.enableEmailNotifications })}
@@ -224,8 +229,8 @@ export default function NotificationsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <h3 className="text-lg font-bold">评论回复推送</h3>
-                <p className="text-sm text-muted-foreground">当有人回复您的贴子或评论时实时推送通知</p>
+                <h3 className="text-lg font-bold">{t("notifications.comment_push")}</h3>
+                <p className="text-sm text-muted-foreground">{t("notifications.comment_push_desc")}</p>
               </div>
               <button
                 onClick={() => setSettings({ ...settings, enableCommentReplyPush: !settings.enableCommentReplyPush })}
@@ -243,8 +248,8 @@ export default function NotificationsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <h3 className="text-lg font-bold">每日热榜推送</h3>
-                <p className="text-sm text-muted-foreground">每天早晨 8 点接收校园内最热门的贴子精选</p>
+                <h3 className="text-lg font-bold">{t("notifications.hotlist_push")}</h3>
+                <p className="text-sm text-muted-foreground">{t("notifications.hotlist_push_desc")}</p>
               </div>
               <button
                 onClick={() => setSettings({ ...settings, enableHotListPush: !settings.enableHotListPush })}
@@ -267,7 +272,7 @@ export default function NotificationsPage() {
             className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-4 rounded-2xl font-bold hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-primary/20"
           >
             {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-            保存设置
+            {saving ? t("notifications.saving") : t("notifications.save_settings")}
           </button>
         </div>
       )}

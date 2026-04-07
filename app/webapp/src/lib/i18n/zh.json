@@ -18,6 +18,7 @@
     "register": "注册",
     "profile": "个人中心",
     "post": "发布",
+    "logout": "退出登录",
     "toggle_language": "切换为英文"
   },
   "auth": {
@@ -135,6 +136,99 @@
     "no_public_posts": "这个用户最近还没有发布内容。",
     "public_not_found": "没有找到这个用户的公开主页。",
     "public_fetch_error": "公开主页加载失败，请稍后重试。",
-    "public_empty_title": "公开主页暂时不可用"
+    "public_empty_title": "公开主页暂时不可用",
+    "third_party_bindings": "第三方账号绑定",
+    "bound": "已绑定",
+    "bind_now": "立即绑定"
+  },
+  "notifications": {
+    "title": "通知中心",
+    "list_tab": "通知列表",
+    "settings_tab": "推送设置",
+    "mark_all_read": "全部标记为已读",
+    "empty": "暂无通知",
+    "view_detail": "查看详情",
+    "mark_as_read": "标记已读",
+    "email_notifications": "邮件通知",
+    "email_notifications_desc": "当收到新回复或系统通知时向您的邮箱发送提醒",
+    "comment_push": "评论回复推送",
+    "comment_push_desc": "当有人回复您的贴子或评论时实时推送通知",
+    "hotlist_push": "每日热榜推送",
+    "hotlist_push_desc": "每天早晨 8 点接收校园内最热门的贴子精选",
+    "save_settings": "保存设置",
+    "saving": "保存中..."
+  },
+  "admin": {
+    "panel": "管理面板",
+    "sidebar": {
+      "dashboard": "控制面板",
+      "users": "用户管理",
+      "posts": "文章管理",
+      "settings": "系统设置",
+      "back_to_site": "返回前台"
+    },
+    "topbar": {
+      "admin": "管理"
+    },
+    "dashboard": {
+      "title": "控制面板",
+      "subtitle": "监控平台的运行状态与活跃度。",
+      "total_users": "总用户数",
+      "active_listings": "活跃发布",
+      "daily_posts": "今日贴子",
+      "revenue": "营收总额",
+      "activity_overview": "活动概览",
+      "last_7_days": "最近 7 天",
+      "last_30_days": "最近 30 天",
+      "recent_activity": "最近动态",
+      "new_user_registered": "新用户注册",
+      "view_all_activity": "查看所有动态"
+    },
+    "users": {
+      "title": "用户管理",
+      "subtitle": "管理用户账户与权限。",
+      "search_placeholder": "搜索用户...",
+      "table_user": "用户",
+      "table_role": "角色",
+      "table_status": "状态",
+      "table_joined": "加入时间",
+      "table_actions": "操作",
+      "action_ban": "禁用用户",
+      "action_unban": "解禁用户",
+      "action_delete": "删除用户",
+      "no_users_found": "未找到匹配 \"{{searchTerm}}\" 的用户"
+    },
+    "posts": {
+      "title": "文章管理",
+      "subtitle": "审查与管理用户发布的文章。",
+      "search_placeholder": "搜索文章...",
+      "table_title": "标题",
+      "table_author": "作者",
+      "table_status": "状态",
+      "table_date": "日期",
+      "table_actions": "操作",
+      "comments_count": "{{count}} 条评论",
+      "status_active": "正常",
+      "status_flagged": "被举报",
+      "action_view": "查看文章",
+      "action_delete": "删除文章",
+      "no_posts_found": "未找到匹配 \"{{searchTerm}}\" 的文章"
+    },
+    "settings": {
+      "title": "系统设置",
+      "subtitle": "配置全局平台行为。",
+      "section_general": "通用设置",
+      "site_name": "站点名称",
+      "allow_registration": "允许新用户注册",
+      "allow_registration_desc": "禁用后，新用户将无法注册。",
+      "maintenance_mode": "维护模式",
+      "maintenance_mode_desc": "对所有非管理员用户显示维护页面。",
+      "section_content": "内容设置",
+      "max_images": "单篇文章最大图片数",
+      "auto_approve": "自动审核文章",
+      "auto_approve_desc": "禁用后，所有新发布的文章都需要管理员审核。",
+      "save_btn": "保存设置",
+      "success_msg": "设置保存成功！"
+    }
   }
 }

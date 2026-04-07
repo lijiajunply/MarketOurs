@@ -2,12 +2,11 @@ import { Link, useLocation } from "react-router"
 import { cn } from "../../lib/utils"
 import { useTheme } from "../theme-provider"
 import { Sun, Moon, MessageSquare, User, Menu, LogIn, LogOut, PlusSquare, Languages } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useTranslation } from "react-i18next"
 import type { RootState } from "../../stores"
-import { logout, setUser } from "../../stores/authSlice"
-import { userService } from "../../services/userService"
+import { logout } from "../../stores/authSlice"
 import { NotificationBell } from "./NotificationBell"
 
 export function Navbar() {
@@ -17,27 +16,6 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (isAuthenticated && !user) {
-        try {
-          const response = await userService.getProfile()
-          if (response.data) {
-            dispatch(setUser(response.data))
-          }
-        } catch (error) {
-          console.error("Failed to fetch user profile:", error)
-          // If profile fetch fails, maybe the token is invalid
-          if (isAuthenticated) {
-            dispatch(logout())
-          }
-        }
-      }
-    }
-
-    fetchUser()
-  }, [isAuthenticated, user, dispatch])
 
   const navItems = [
     { name: t("nav.home"), href: "/", icon: MessageSquare },
@@ -132,7 +110,7 @@ export function Navbar() {
                 <button
                   onClick={handleLogout}
                   className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-destructive"
-                  title="Logout"
+                  title={t("nav.logout")}
                 >
                   <LogOut size={20} />
                 </button>

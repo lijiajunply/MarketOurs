@@ -69,6 +69,10 @@ export interface UserDto {
   isActive: boolean;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
+  oursId?: string;
+  githubId?: string;
+  googleId?: string;
+  weixinId?: string;
 }
 
 export interface PublicUserProfileDto {
@@ -86,6 +90,10 @@ export interface UserUpdateDto {
   info?: string;
   email?: string;
   phone?: string;
+  oursId?: string;
+  githubId?: string;
+  googleId?: string;
+  weixinId?: string;
 }
 
 export interface UserSimpleDto {

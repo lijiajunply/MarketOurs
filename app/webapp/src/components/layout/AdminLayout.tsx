@@ -6,12 +6,14 @@ import { useTheme } from "../theme-provider"
 import { useDispatch, useSelector } from "react-redux"
 import { logout } from "../../stores/authSlice"
 import type { RootState } from "../../stores"
+import { useTranslation } from "react-i18next"
 
 interface AdminLayoutProps {
   children: React.ReactNode
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
+  const { t } = useTranslation()
   const location = useLocation()
   const { theme, setTheme } = useTheme()
   const dispatch = useDispatch()
@@ -19,10 +21,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const navItems = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Users", href: "/admin/users", icon: Users },
-    { name: "Posts", href: "/admin/posts", icon: FileText },
-    { name: "Settings", href: "/admin/settings", icon: Settings },
+    { name: t("admin.sidebar.dashboard"), href: "/admin", icon: LayoutDashboard },
+    { name: t("admin.sidebar.users"), href: "/admin/users", icon: Users },
+    { name: t("admin.sidebar.posts"), href: "/admin/posts", icon: FileText },
+    { name: t("admin.sidebar.settings"), href: "/admin/settings", icon: Settings },
   ]
 
   const handleLogout = () => {
@@ -38,7 +40,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
               <span className="text-white font-bold text-lg">A</span>
             </div>
-            <span className="font-bold text-lg tracking-tight">Admin Panel</span>
+            <span className="font-bold text-lg tracking-tight">{t("admin.panel")}</span>
           </Link>
         </div>
 
@@ -69,7 +71,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <Home size={18} />
-            Back to Site
+            {t("admin.sidebar.back_to_site")}
           </Link>
         </div>
       </aside>
@@ -85,7 +87,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             >
               <Menu size={24} />
             </button>
-            <span className="font-bold text-lg tracking-tight">Admin</span>
+            <span className="font-bold text-lg tracking-tight">{t("admin.topbar.admin")}</span>
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
@@ -102,7 +104,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <div className="flex items-center gap-3 pl-2">
               <div className="flex flex-col items-end hidden sm:flex">
                 <span className="text-sm font-bold leading-none">{user?.name}</span>
-                <span className="text-xs text-muted-foreground">Admin</span>
+                <span className="text-xs text-muted-foreground">{t("admin.topbar.admin")}</span>
               </div>
               {user?.avatar ? (
                 <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
@@ -114,7 +116,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <button
                 onClick={handleLogout}
                 className="p-2 ml-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                title="Logout"
+                title={t("nav.logout")}
               >
                 <LogOut size={18} />
               </button>
@@ -143,7 +145,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
                   <span className="text-white font-bold text-lg">A</span>
                 </div>
-                <span className="font-bold text-lg tracking-tight">Admin Panel</span>
+                <span className="font-bold text-lg tracking-tight">{t("admin.panel")}</span>
               </Link>
             </div>
 
@@ -176,7 +178,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 <Home size={18} />
-                Back to Site
+                {t("admin.sidebar.back_to_site")}
               </Link>
             </div>
           </aside>

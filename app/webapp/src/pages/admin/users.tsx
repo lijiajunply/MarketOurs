@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Search, ShieldAlert, ShieldCheck, Trash2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 // Mock data
 const MOCK_USERS = [
@@ -10,6 +11,7 @@ const MOCK_USERS = [
 ]
 
 export default function AdminUsersPage() {
+  const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState("")
   
   const filteredUsers = MOCK_USERS.filter(user => 
@@ -21,15 +23,15 @@ export default function AdminUsersPage() {
     <div className="space-y-8">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-          <p className="text-muted-foreground mt-1">Manage user accounts and permissions.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("admin.users.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("admin.users.subtitle")}</p>
         </div>
         
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <input 
             type="text" 
-            placeholder="Search users..." 
+            placeholder={t("admin.users.search_placeholder")}
             className="pl-10 pr-4 py-2 bg-muted/50 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 w-full sm:w-64"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -42,11 +44,11 @@ export default function AdminUsersPage() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
               <tr>
-                <th className="px-6 py-4 font-semibold">User</th>
-                <th className="px-6 py-4 font-semibold">Role</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">Joined</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.users.table_user")}</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.users.table_role")}</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.users.table_status")}</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.users.table_joined")}</th>
+                <th className="px-6 py-4 font-semibold text-right">{t("admin.users.table_actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
@@ -77,10 +79,16 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors" title={user.status === 'Active' ? 'Ban User' : 'Unban User'}>
+                      <button 
+                        className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors" 
+                        title={user.status === 'Active' ? t("admin.users.action_ban") : t("admin.users.action_unban")}
+                      >
                         {user.status === 'Active' ? <ShieldAlert size={18} /> : <ShieldCheck size={18} />}
                       </button>
-                      <button className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors" title="Delete User">
+                      <button 
+                        className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors" 
+                        title={t("admin.users.action_delete")}
+                      >
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -92,7 +100,7 @@ export default function AdminUsersPage() {
           
           {filteredUsers.length === 0 && (
             <div className="p-8 text-center text-muted-foreground">
-              No users found matching "{searchTerm}"
+              {t("admin.users.no_users_found", { searchTerm })}
             </div>
           )}
         </div>

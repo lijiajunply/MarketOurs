@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Search, Eye, Trash2, ShieldAlert } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 // Mock data
 const MOCK_POSTS = [
@@ -10,6 +11,7 @@ const MOCK_POSTS = [
 ]
 
 export default function AdminPostsPage() {
+  const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState("")
   
   const filteredPosts = MOCK_POSTS.filter(post => 
@@ -21,15 +23,15 @@ export default function AdminPostsPage() {
     <div className="space-y-8">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Posts</h1>
-          <p className="text-muted-foreground mt-1">Review and moderate user posts.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("admin.posts.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("admin.posts.subtitle")}</p>
         </div>
         
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <input 
             type="text" 
-            placeholder="Search posts..." 
+            placeholder={t("admin.posts.search_placeholder")}
             className="pl-10 pr-4 py-2 bg-muted/50 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 w-full sm:w-64"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -42,11 +44,11 @@ export default function AdminPostsPage() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
               <tr>
-                <th className="px-6 py-4 font-semibold">Title</th>
-                <th className="px-6 py-4 font-semibold">Author</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">Date</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.posts.table_title")}</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.posts.table_author")}</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.posts.table_status")}</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.posts.table_date")}</th>
+                <th className="px-6 py-4 font-semibold text-right">{t("admin.posts.table_actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
@@ -54,7 +56,7 @@ export default function AdminPostsPage() {
                 <tr key={post.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4">
                     <span className="font-bold text-foreground line-clamp-1">{post.title}</span>
-                    <span className="text-xs text-muted-foreground">{post.comments} comments</span>
+                    <span className="text-xs text-muted-foreground">{t("admin.posts.comments_count", { count: post.comments })}</span>
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">
                     {post.author}
@@ -64,7 +66,7 @@ export default function AdminPostsPage() {
                       post.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'
                     }`}>
                       {post.status === 'Flagged' && <ShieldAlert size={12} />}
-                      {post.status}
+                      {post.status === 'Active' ? t("admin.posts.status_active") : t("admin.posts.status_flagged")}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">
@@ -72,10 +74,10 @@ export default function AdminPostsPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors" title="View Post">
+                      <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors" title={t("admin.posts.action_view")}>
                         <Eye size={18} />
                       </button>
-                      <button className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors" title="Delete Post">
+                      <button className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors" title={t("admin.posts.action_delete")}>
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -87,7 +89,7 @@ export default function AdminPostsPage() {
           
           {filteredPosts.length === 0 && (
             <div className="p-8 text-center text-muted-foreground">
-              No posts found matching "{searchTerm}"
+              {t("admin.posts.no_posts_found", { searchTerm })}
             </div>
           )}
         </div>

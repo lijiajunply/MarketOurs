@@ -330,149 +330,152 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="p-6 rounded-3xl bg-muted/30 border border-border/50 space-y-4">
-                <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                  {t("profile.third_party_bindings")}
-                </h4>
-                
-                {[
-                  { name: 'Ours', id: user.oursId },
-                  { name: 'Github', id: user.githubId },
-                  { name: 'Google', id: user.googleId },
-                  { name: 'Weixin', id: user.weixinId },
-                ].map((platform) => (
-                  <div key={platform.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${platform.id ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                        {platform.name[0]}
+                {/* Third Party Bindings */}
+                <div className="p-6 rounded-3xl bg-muted/30 border border-border/50 space-y-4">
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                    {t("profile.third_party_bindings")}
+                  </h4>
+                  
+                  {[
+                    { name: 'Ours', id: user.oursId },
+                    { name: 'Github', id: user.githubId },
+                    { name: 'Google', id: user.googleId },
+                    { name: 'Weixin', id: user.weixinId },
+                  ].map((platform) => (
+                    <div key={platform.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${platform.id ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                          {platform.name[0]}
+                        </div>
+                        <span className="text-sm font-medium">{platform.name}</span>
                       </div>
-                      <span className="text-sm font-medium">{platform.name}</span>
+                      {platform.id ? (
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">
+                          {t("profile.bound")}
+                        </span>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            const returnUrl = window.location.origin + "/profile";
+                            window.location.href = authService.getExternalLoginUrl(platform.name, returnUrl, 'bind');
+                          }}
+                          className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {t("profile.bind_now")}
+                        </button>
+                      )}
                     </div>
-                    {platform.id ? (
-                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">
-                        {t("profile.bound")}
-                      </span>
-                    ) : (
-                      <button 
-                        onClick={() => {
-                          const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://marketours-api.zeabur.app";
-                          const returnUrl = window.location.origin + "/profile";
-                          window.location.href = `${baseUrl}/Auth/external-login?provider=${platform.name}&purpose=bind&returnUrl=${encodeURIComponent(returnUrl)}`;
-                        }}
-                        className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        {t("profile.bind_now")}
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Calendar size={18} />
-                    <span className="text-sm font-medium">{t("profile.joined_at")}</span>
-                  </div>
-                  <span className="text-sm font-bold">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className={`p-4 rounded-3xl border border-border/50 flex flex-col items-center gap-2 ${
-                  user.isEmailVerified ? 'bg-primary/5 border-primary/20' : 'bg-muted/30'
-                }`}>
-                  <div className={user.isEmailVerified ? 'text-primary' : 'text-muted-foreground'}>
-                    <CheckCircle2 size={20} />
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-tighter">
-                    {t("profile.email_verified")}
-                  </span>
+                  ))}
                 </div>
 
-                <div className={`p-4 rounded-3xl border border-border/50 flex flex-col items-center gap-2 ${
-                  user.isPhoneVerified ? 'bg-primary/5 border-primary/20' : 'bg-muted/30'
-                }`}>
-                  <div className={user.isPhoneVerified ? 'text-primary' : 'text-muted-foreground'}>
-                    <CheckCircle2 size={20} />
+                {/* Account Metadata */}
+                <div className="p-6 rounded-3xl bg-muted/30 border border-border/50 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                      <Calendar size={18} />
+                      <span className="text-sm font-medium">{t("profile.joined_at")}</span>
+                    </div>
+                    <span className="text-sm font-bold">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-tighter">
-                    {t("profile.phone_verified")}
-                  </span>
+                </div>
+
+                {/* Verification Status */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`p-4 rounded-3xl border border-border/50 flex flex-col items-center gap-2 ${
+                    user.isEmailVerified ? 'bg-primary/5 border-primary/20' : 'bg-muted/30'
+                  }`}>
+                    <div className={user.isEmailVerified ? 'text-primary' : 'text-muted-foreground'}>
+                      <CheckCircle2 size={20} />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">
+                      {t("profile.email_verified")}
+                    </span>
+                  </div>
+
+                  <div className={`p-4 rounded-3xl border border-border/50 flex flex-col items-center gap-2 ${
+                    user.isPhoneVerified ? 'bg-primary/5 border-primary/20' : 'bg-muted/30'
+                  }`}>
+                    <div className={user.isPhoneVerified ? 'text-primary' : 'text-muted-foreground'}>
+                      <CheckCircle2 size={20} />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">
+                      {t("profile.phone_verified")}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="pt-6 border-t border-border/50">
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-destructive hover:text-destructive/80 font-bold transition-all"
-            >
-              <LogOut size={20} /> {t("profile.logout")}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Verification Modal */}
-      {showVerifyModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowVerifyModal(null)} />
-          <div className="relative w-full max-w-md glass-card rounded-[2.5rem] p-8 space-y-6 animate-in zoom-in duration-300">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold">{t("profile.verify_new", { type: showVerifyModal === 'email' ? 'Email' : 'Phone' })}</h3>
-              <button onClick={() => setShowVerifyModal(null)} className="p-2 hover:bg-muted rounded-full transition-colors">
-                <X size={20} />
+            <div className="pt-6 border-t border-border/50">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-destructive hover:text-destructive/80 font-bold transition-all"
+              >
+                <LogOut size={20} /> {t("profile.logout")}
               </button>
             </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold ml-1">
-                  {showVerifyModal === 'email' ? t("auth.account") : t("auth.account")}
-                </label>
-                <input
-                  type="text"
-                  value={newValue}
-                  onChange={(e) => setNewValue(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  placeholder={showVerifyModal === 'email' ? "new@email.com" : "13800138000"}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold ml-1">{t("auth.verification_code")}</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    placeholder="6-digit code"
-                  />
-                  <button
-                    onClick={handleSendCode}
-                    disabled={countdown > 0 || isVerifying || !newValue}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all disabled:opacity-50"
-                  >
-                    {countdown > 0 ? t("auth.resend_code", { count: countdown }) : t("auth.send_code")}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleVerifyAndSave}
-              disabled={isVerifying || !verificationCode}
-              className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {isVerifying ? <RefreshCw className="animate-spin" size={20} /> : t("profile.confirm_change")}
-            </button>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
+
+        {/* Verification Modal */}
+        {showVerifyModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowVerifyModal(null)} />
+            <div className="relative w-full max-w-md glass-card rounded-[2.5rem] p-8 space-y-6 animate-in zoom-in duration-300">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold">{t("profile.verify_new", { type: showVerifyModal === 'email' ? 'Email' : 'Phone' })}</h3>
+                <button onClick={() => setShowVerifyModal(null)} className="p-2 hover:bg-muted rounded-full transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold ml-1">
+                    {showVerifyModal === 'email' ? t("auth.account") : t("auth.account")}
+                  </label>
+                  <input
+                    type="text"
+                    value={newValue}
+                    onChange={(e) => setNewValue(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder={showVerifyModal === 'email' ? "new@email.com" : "13800138000"}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold ml-1">{t("auth.verification_code")}</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      placeholder="6-digit code"
+                    />
+                    <button
+                      onClick={handleSendCode}
+                      disabled={countdown > 0 || isVerifying || !newValue}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all disabled:opacity-50"
+                    >
+                      {countdown > 0 ? t("auth.resend_code", { count: countdown }) : t("auth.send_code")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleVerifyAndSave}
+                disabled={isVerifying || !verificationCode}
+                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isVerifying ? <RefreshCw className="animate-spin" size={20} /> : t("profile.confirm_change")}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }

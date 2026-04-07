@@ -19,8 +19,33 @@ import ProfilePage from "./pages/profile"
 import PublicProfilePage from "./pages/profile/public"
 import ForgotPasswordPage from "./pages/forgot-password"
 import ResetPasswordPage from "./pages/profile/reset-password"
+import { useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import type { RootState } from "./stores"
+import { userService } from "./services/userService"
+import { setUser, logout } from "./stores/authSlice"
 
 export function App() {
+  const dispatch = useDispatch()
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
+
+  useEffect(() => {
+    const initUser = async () => {
+      if (isAuthenticated && !user) {
+        try {
+          const response = await userService.getProfile()
+          if (response.data) {
+            dispatch(setUser(response.data))
+          }
+        } catch (error) {
+          console.error("Failed to initialize user:", error)
+          dispatch(logout())
+        }
+      }
+    }
+    initUser()
+  }, [isAuthenticated, user, dispatch])
+
   return (
     <ThemeProvider defaultTheme="system" storageKey="marketours-theme">
       <BrowserRouter>

@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient, BASE_URL } from './apiClient';
 import type {
   LoginRequest,
   TokenDto,
@@ -72,4 +72,8 @@ export const authService = {
   sendPhoneCode: () => apiClient.post<void>('/Auth/send-phone-code'),
 
   verifyEmailCode: (data: VerifyCodeRequest) => apiClient.post<void>('/Auth/verify-email-code', data),
+
+  getExternalLoginUrl: (provider: string, returnUrl: string, purpose: 'login' | 'bind' = 'login') => {
+    return `${BASE_URL}/Auth/external-login?provider=${provider}&returnUrl=${encodeURIComponent(returnUrl)}&purpose=${purpose}`;
+  },
 };

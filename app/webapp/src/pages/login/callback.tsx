@@ -4,8 +4,10 @@ import { useDispatch } from "react-redux";
 import { setCredentials } from "../../stores/authSlice";
 import { authService } from "../../services/authService";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function LoginCallbackPage() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -14,18 +16,24 @@ export default function LoginCallbackPage() {
     const accessToken = searchParams.get("accessToken");
     const refreshToken = searchParams.get("refreshToken");
     const error = searchParams.get("error");
+    const message = searchParams.get("message");
 
     if (error) {
       navigate(`/login?error=${encodeURIComponent(error)}`);
       return;
     }
 
+    if (message === "绑定成功" || message === "Binding successful") {
+      navigate("/profile?message=success");
+      return;
+    }
+
     if (accessToken && refreshToken) {
       handleLogin(accessToken, refreshToken);
     } else {
-      navigate("/login?error=Invalid+callback+parameters");
+      navigate(`/login?error=${encodeURIComponent(t("auth.error_failed_to_login"))}`);
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const handleLogin = async (accessToken: string, refreshToken: string) => {
     try {
@@ -43,7 +51,7 @@ export default function LoginCallbackPage() {
       navigate("/");
     } catch (err) {
       console.error("Failed to process login callback", err);
-      navigate("/login?error=Failed+to+get+user+info");
+      navigate(`/login?error=${encodeURIComponent(t("auth.error_failed_to_login"))}`);
     }
   };
 
@@ -51,7 +59,7 @@ export default function LoginCallbackPage() {
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
       <Loader2 className="animate-spin text-primary" size={48} />
       <p className="text-muted-foreground font-medium animate-pulse">
-        Completing login...
+        {t("common.loading")}
       </p>
     </div>
   );

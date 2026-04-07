@@ -1,29 +1,32 @@
 import { AreaChart } from "../../components/ui/chart"
 import { Users, MessageSquare, TrendingUp, ShoppingBag } from "lucide-react"
-
-const chartData = [
-  { date: new Date(2026, 3, 1), value: 45 },
-  { date: new Date(2026, 3, 2), value: 52 },
-  { date: new Date(2026, 3, 3), value: 48 },
-  { date: new Date(2026, 3, 4), value: 70 },
-  { date: new Date(2026, 3, 5), value: 65 },
-  { date: new Date(2026, 3, 6), value: 85 },
-  { date: new Date(2026, 3, 7), value: 95 },
-]
-
-const stats = [
-  { name: "Total Users", value: "12,453", change: "+12%", icon: Users },
-  { name: "Active Listings", value: "3,241", change: "+5%", icon: ShoppingBag },
-  { name: "Daily Posts", value: "842", change: "+18%", icon: MessageSquare },
-  { name: "Revenue", value: "$45,231", change: "+24%", icon: TrendingUp },
-]
+import { useTranslation } from "react-i18next"
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
+
+  const chartData = [
+    { date: new Date(2026, 3, 1), value: 45 },
+    { date: new Date(2026, 3, 2), value: 52 },
+    { date: new Date(2026, 3, 3), value: 48 },
+    { date: new Date(2026, 3, 4), value: 70 },
+    { date: new Date(2026, 3, 5), value: 65 },
+    { date: new Date(2026, 3, 6), value: 85 },
+    { date: new Date(2026, 3, 7), value: 95 },
+  ]
+
+  const stats = [
+    { name: t("admin.dashboard.total_users"), value: "12,453", change: "+12%", icon: Users },
+    { name: t("admin.dashboard.active_listings"), value: "3,241", change: "+5%", icon: ShoppingBag },
+    { name: t("admin.dashboard.daily_posts"), value: "842", change: "+18%", icon: MessageSquare },
+    { name: t("admin.dashboard.revenue"), value: "$45,231", change: "+24%", icon: TrendingUp },
+  ]
+
   return (
     <div className="space-y-10">
       <header className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Dashboard</h1>
-        <p className="text-lg text-muted-foreground">Monitor your platform's performance and activity.</p>
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{t("admin.dashboard.title")}</h1>
+        <p className="text-lg text-muted-foreground">{t("admin.dashboard.subtitle")}</p>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -48,30 +51,30 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 p-8 rounded-[2.5rem] bg-card border border-border/50 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-bold tracking-tight">Activity Overview</h3>
+            <h3 className="text-2xl font-bold tracking-tight">{t("admin.dashboard.activity_overview")}</h3>
             <select className="bg-muted border-none rounded-full px-4 py-1.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
+              <option>{t("admin.dashboard.last_7_days")}</option>
+              <option>{t("admin.dashboard.last_30_days")}</option>
             </select>
           </div>
           <AreaChart data={chartData} />
         </div>
 
         <div className="p-8 rounded-[2.5rem] bg-card border border-border/50 space-y-6">
-          <h3 className="text-2xl font-bold tracking-tight">Recent Activity</h3>
+          <h3 className="text-2xl font-bold tracking-tight">{t("admin.dashboard.recent_activity")}</h3>
           <div className="space-y-6">
             {[1, 2, 3, 4, 5].map((item) => (
               <div key={item} className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-muted flex-shrink-0" />
                 <div className="space-y-1">
-                  <p className="text-sm font-bold">New user registered</p>
+                  <p className="text-sm font-bold">{t("admin.dashboard.new_user_registered")}</p>
                   <p className="text-xs text-muted-foreground">2 minutes ago</p>
                 </div>
               </div>
             ))}
           </div>
           <button className="w-full py-3 rounded-2xl bg-muted hover:bg-muted/80 transition-colors text-sm font-bold mt-4">
-            View All Activity
+            {t("admin.dashboard.view_all_activity")}
           </button>
         </div>
       </div>

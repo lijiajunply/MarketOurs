@@ -18,6 +18,7 @@
     "register": "Register",
     "profile": "Profile",
     "post": "Post",
+    "logout": "Logout",
     "toggle_language": "Switch to Chinese"
   },
   "auth": {
@@ -135,6 +136,99 @@
     "no_public_posts": "This user has not published anything recently.",
     "public_not_found": "We couldn't find this public profile.",
     "public_fetch_error": "Failed to load this public profile. Please try again later.",
-    "public_empty_title": "Public profile unavailable"
+    "public_empty_title": "Public profile unavailable",
+    "third_party_bindings": "Third-party Bindings",
+    "bound": "Bound",
+    "bind_now": "Bind Now"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "list_tab": "All",
+    "settings_tab": "Settings",
+    "mark_all_read": "Mark all as read",
+    "empty": "No notifications yet",
+    "view_detail": "View Detail",
+    "mark_as_read": "Mark read",
+    "email_notifications": "Email Notifications",
+    "email_notifications_desc": "Get notified via email for new replies or system updates",
+    "comment_push": "Comment Push",
+    "comment_push_desc": "Real-time push for new comments or replies",
+    "hotlist_push": "Daily Hotlist",
+    "hotlist_push_desc": "Receive daily trending posts at 8:00 AM",
+    "save_settings": "Save Settings",
+    "saving": "Saving..."
+  },
+  "admin": {
+    "panel": "Admin Panel",
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "posts": "Posts",
+      "settings": "Settings",
+      "back_to_site": "Back to Site"
+    },
+    "topbar": {
+      "admin": "Admin"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Monitor your platform's performance and activity.",
+      "total_users": "Total Users",
+      "active_listings": "Active Listings",
+      "daily_posts": "Daily Posts",
+      "revenue": "Revenue",
+      "activity_overview": "Activity Overview",
+      "last_7_days": "Last 7 Days",
+      "last_30_days": "Last 30 Days",
+      "recent_activity": "Recent Activity",
+      "new_user_registered": "New user registered",
+      "view_all_activity": "View All Activity"
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Manage user accounts and permissions.",
+      "search_placeholder": "Search users...",
+      "table_user": "User",
+      "table_role": "Role",
+      "table_status": "Status",
+      "table_joined": "Joined",
+      "table_actions": "Actions",
+      "action_ban": "Ban User",
+      "action_unban": "Unban User",
+      "action_delete": "Delete User",
+      "no_users_found": "No users found matching \"{{searchTerm}}\""
+    },
+    "posts": {
+      "title": "Posts",
+      "subtitle": "Review and moderate user posts.",
+      "search_placeholder": "Search posts...",
+      "table_title": "Title",
+      "table_author": "Author",
+      "table_status": "Status",
+      "table_date": "Date",
+      "table_actions": "Actions",
+      "comments_count": "{{count}} comments",
+      "status_active": "Active",
+      "status_flagged": "Flagged",
+      "action_view": "View Post",
+      "action_delete": "Delete Post",
+      "no_posts_found": "No posts found matching \"{{searchTerm}}\""
+    },
+    "settings": {
+      "title": "System Settings",
+      "subtitle": "Configure global platform behavior.",
+      "section_general": "General",
+      "site_name": "Site Name",
+      "allow_registration": "Allow New Registrations",
+      "allow_registration_desc": "When disabled, no new users can sign up.",
+      "maintenance_mode": "Maintenance Mode",
+      "maintenance_mode_desc": "Show maintenance page to all non-admin users.",
+      "section_content": "Content",
+      "max_images": "Max Images per Post",
+      "auto_approve": "Auto-Approve Posts",
+      "auto_approve_desc": "If disabled, all new posts require admin review.",
+      "save_btn": "Save Settings",
+      "success_msg": "Settings saved successfully!"
+    }
   }
 }
