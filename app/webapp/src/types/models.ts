@@ -169,13 +169,13 @@ export interface CommentUpdateDto {
 }
 
 /**
- * Admin & Logs Models
+ * Admin Models
  */
 export interface LogEntry {
   timestamp: string;
   level: string;
   exception: string | null;
-  properties: any | null;
+  properties: unknown | null;
   message: string | null;
 }
 
@@ -215,6 +215,56 @@ export interface IpCheckResult {
   ip: string;
   isBlacklisted: boolean;
   checkTime: string;
+}
+
+export interface AdminTrendPointDto {
+  date: string;
+  posts: number;
+  users: number;
+}
+
+export interface AdminRecentActivityDto {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+}
+
+export interface AdminSystemSummaryDto {
+  siteName: string;
+  allowRegistration: boolean;
+  maintenanceMode: boolean;
+  maxPostImages: number;
+  autoApprovePosts: boolean;
+}
+
+export interface AdminOverviewDto {
+  totalUsers: number;
+  activeUsers: number;
+  totalPosts: number;
+  postsCreatedInLast7Days: number;
+  totalLogs: number;
+  errorLogs: number;
+  blacklistHits: number;
+  cacheHits: number;
+  postTrend: AdminTrendPointDto[];
+  recentActivities: AdminRecentActivityDto[];
+  systemSummary: AdminSystemSummaryDto;
+}
+
+export interface AdminSettingsDto {
+  siteName: string;
+  allowRegistration: boolean;
+  maintenanceMode: boolean;
+  maxPostImages: number;
+  autoApprovePosts: boolean;
+  supportEmail: string;
+  announcement: string;
+}
+
+export interface UpdateUserStatusRequest {
+  isActive: boolean;
 }
 
 /**

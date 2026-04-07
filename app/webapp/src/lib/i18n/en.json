@@ -159,11 +159,22 @@
     "saving": "Saving..."
   },
   "admin": {
+    "common": {
+      "load_error": "Failed to load admin data. Please try again later.",
+      "action_error": "Failed to complete the admin action. Please try again later.",
+      "empty": "No data available yet",
+      "previous": "Previous",
+      "next": "Next",
+      "total_count": "{{count}} total",
+      "saving": "Saving..."
+    },
     "panel": "Admin Panel",
     "sidebar": {
       "dashboard": "Dashboard",
       "users": "Users",
       "posts": "Posts",
+      "logs": "Logs",
+      "blacklist": "Blacklist",
       "settings": "Settings",
       "back_to_site": "Back to Site"
     },
@@ -174,15 +185,17 @@
       "title": "Dashboard",
       "subtitle": "Monitor your platform's performance and activity.",
       "total_users": "Total Users",
-      "active_listings": "Active Listings",
-      "daily_posts": "Daily Posts",
-      "revenue": "Revenue",
+      "active_users": "Active Users",
+      "total_posts": "Total Posts",
+      "last_7_days_posts": "Posts in Last 7 Days",
       "activity_overview": "Activity Overview",
       "last_7_days": "Last 7 Days",
       "last_30_days": "Last 30 Days",
       "recent_activity": "Recent Activity",
       "new_user_registered": "New user registered",
-      "view_all_activity": "View All Activity"
+      "view_all_activity": "View All Activity",
+      "no_activity": "No post trend data in the last 7 days",
+      "no_recent_activity": "No recent admin activity"
     },
     "users": {
       "title": "Users",
@@ -196,7 +209,11 @@
       "action_ban": "Ban User",
       "action_unban": "Unban User",
       "action_delete": "Delete User",
-      "no_users_found": "No users found matching \"{{searchTerm}}\""
+      "no_users_found": "No users found matching \"{{searchTerm}}\"",
+      "status_active": "Active",
+      "status_disabled": "Disabled",
+      "status_enabled": "User re-enabled",
+      "deleted": "User deleted"
     },
     "posts": {
       "title": "Posts",
@@ -208,17 +225,20 @@
       "table_date": "Date",
       "table_actions": "Actions",
       "comments_count": "{{count}} comments",
+      "comments_unavailable": "Comment stats unavailable",
       "status_active": "Active",
       "status_flagged": "Flagged",
       "action_view": "View Post",
       "action_delete": "Delete Post",
-      "no_posts_found": "No posts found matching \"{{searchTerm}}\""
+      "no_posts_found": "No posts found matching \"{{searchTerm}}\"",
+      "deleted": "Post deleted"
     },
     "settings": {
       "title": "System Settings",
       "subtitle": "Configure global platform behavior.",
       "section_general": "General",
       "site_name": "Site Name",
+      "support_email": "Support Email",
       "allow_registration": "Allow New Registrations",
       "allow_registration_desc": "When disabled, no new users can sign up.",
       "maintenance_mode": "Maintenance Mode",
@@ -227,8 +247,65 @@
       "max_images": "Max Images per Post",
       "auto_approve": "Auto-Approve Posts",
       "auto_approve_desc": "If disabled, all new posts require admin review.",
+      "announcement": "Announcement",
       "save_btn": "Save Settings",
-      "success_msg": "Settings saved successfully!"
+      "success_msg": "Settings saved successfully!",
+      "validation_site_name": "Site name cannot be empty",
+      "validation_max_images": "Max images per post must be between 1 and 20",
+      "validation_support_email": "Support email is invalid"
+    },
+    "logs": {
+      "title": "Logs",
+      "subtitle": "Review system logs, level distribution, and clean up old entries.",
+      "search_placeholder": "Search log content...",
+      "all_levels": "All Levels",
+      "today": "Today",
+      "last_7_days": "Last 7 Days",
+      "last_30_days": "Last 30 Days",
+      "reset_filters": "Reset Filters",
+      "cleanup": "Clean Old Logs",
+      "cleaning": "Cleaning...",
+      "cleanup_success": "Log cleanup completed",
+      "total_logs": "Total Logs",
+      "distribution_title": "Log Distribution",
+      "distribution_breakdown": "Errors {{errors}} · Warnings {{warnings}} · Info {{info}}",
+      "no_distribution": "No distribution data for the current filters",
+      "table_time": "Time",
+      "table_level": "Level",
+      "table_message": "Message",
+      "table_exception": "Exception",
+      "no_logs": "No logs found"
+    },
+    "blacklist": {
+      "title": "Blacklist",
+      "subtitle": "Manage IP blacklist entries and monitor cache behavior.",
+      "total_ips": "Blacklisted IPs",
+      "total_ranges": "CIDR Ranges",
+      "blacklist_hits": "Blacklist Hits",
+      "cache_hits": "Cache Hits",
+      "cache_misses": "Cache Misses",
+      "last_refresh": "Last Refresh",
+      "manage_title": "Manage Blacklist",
+      "ip_label": "IP or CIDR",
+      "ip_placeholder": "For example 192.168.1.10 or 10.0.0.0/24",
+      "reason_label": "Reason",
+      "reason_placeholder": "Record why this entry is being changed",
+      "add_action": "Add to Blacklist",
+      "remove_action": "Remove from Blacklist",
+      "refresh_action": "Refresh Cache",
+      "clean_cache_action": "Clear Cache",
+      "added": "Added to blacklist",
+      "removed": "Removed from blacklist",
+      "refreshed": "Blacklist cache refreshed",
+      "cache_cleared": "Cache cleared",
+      "check_title": "Check IP",
+      "check_placeholder": "Enter an IP to check",
+      "check_action": "Check Now",
+      "check_blocked": "This IP is currently blacklisted",
+      "check_allowed": "This IP is currently allowed",
+      "no_check_result": "Enter an IP to view the result",
+      "validation_ip": "Please enter an IP or CIDR to manage",
+      "validation_check_ip": "Please enter an IP to check"
     }
   }
 }

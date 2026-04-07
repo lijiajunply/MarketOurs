@@ -159,11 +159,22 @@
     "saving": "保存中..."
   },
   "admin": {
+    "common": {
+      "load_error": "加载管理数据失败，请稍后重试。",
+      "action_error": "执行管理操作失败，请稍后重试。",
+      "empty": "暂无可展示的数据",
+      "previous": "上一页",
+      "next": "下一页",
+      "total_count": "共 {{count}} 条",
+      "saving": "保存中..."
+    },
     "panel": "管理面板",
     "sidebar": {
       "dashboard": "控制面板",
       "users": "用户管理",
       "posts": "文章管理",
+      "logs": "日志中心",
+      "blacklist": "黑名单",
       "settings": "系统设置",
       "back_to_site": "返回前台"
     },
@@ -174,15 +185,17 @@
       "title": "控制面板",
       "subtitle": "监控平台的运行状态与活跃度。",
       "total_users": "总用户数",
-      "active_listings": "活跃发布",
-      "daily_posts": "今日贴子",
-      "revenue": "营收总额",
+      "active_users": "活跃用户",
+      "total_posts": "总贴子数",
+      "last_7_days_posts": "近 7 天新增贴子",
       "activity_overview": "活动概览",
       "last_7_days": "最近 7 天",
       "last_30_days": "最近 30 天",
       "recent_activity": "最近动态",
       "new_user_registered": "新用户注册",
-      "view_all_activity": "查看所有动态"
+      "view_all_activity": "查看所有动态",
+      "no_activity": "最近 7 天暂无贴子趋势数据",
+      "no_recent_activity": "最近暂无后台动态"
     },
     "users": {
       "title": "用户管理",
@@ -196,7 +209,11 @@
       "action_ban": "禁用用户",
       "action_unban": "解禁用户",
       "action_delete": "删除用户",
-      "no_users_found": "未找到匹配 \"{{searchTerm}}\" 的用户"
+      "no_users_found": "未找到匹配 \"{{searchTerm}}\" 的用户",
+      "status_active": "正常",
+      "status_disabled": "已禁用",
+      "status_enabled": "用户已恢复启用",
+      "deleted": "用户已删除"
     },
     "posts": {
       "title": "文章管理",
@@ -208,17 +225,20 @@
       "table_date": "日期",
       "table_actions": "操作",
       "comments_count": "{{count}} 条评论",
+      "comments_unavailable": "评论统计暂不可用",
       "status_active": "正常",
       "status_flagged": "被举报",
       "action_view": "查看文章",
       "action_delete": "删除文章",
-      "no_posts_found": "未找到匹配 \"{{searchTerm}}\" 的文章"
+      "no_posts_found": "未找到匹配 \"{{searchTerm}}\" 的文章",
+      "deleted": "文章已删除"
     },
     "settings": {
       "title": "系统设置",
       "subtitle": "配置全局平台行为。",
       "section_general": "通用设置",
       "site_name": "站点名称",
+      "support_email": "支持邮箱",
       "allow_registration": "允许新用户注册",
       "allow_registration_desc": "禁用后，新用户将无法注册。",
       "maintenance_mode": "维护模式",
@@ -227,8 +247,65 @@
       "max_images": "单篇文章最大图片数",
       "auto_approve": "自动审核文章",
       "auto_approve_desc": "禁用后，所有新发布的文章都需要管理员审核。",
+      "announcement": "站点公告",
       "save_btn": "保存设置",
-      "success_msg": "设置保存成功！"
+      "success_msg": "设置保存成功！",
+      "validation_site_name": "站点名称不能为空",
+      "validation_max_images": "单篇文章最大图片数必须在 1 到 20 之间",
+      "validation_support_email": "支持邮箱格式不正确"
+    },
+    "logs": {
+      "title": "日志中心",
+      "subtitle": "查看系统日志、级别分布并清理旧日志。",
+      "search_placeholder": "搜索日志内容...",
+      "all_levels": "全部级别",
+      "today": "今天",
+      "last_7_days": "最近 7 天",
+      "last_30_days": "最近 30 天",
+      "reset_filters": "重置筛选",
+      "cleanup": "清理旧日志",
+      "cleaning": "清理中...",
+      "cleanup_success": "日志清理完成",
+      "total_logs": "总日志数",
+      "distribution_title": "日志分布",
+      "distribution_breakdown": "错误 {{errors}} · 警告 {{warnings}} · 信息 {{info}}",
+      "no_distribution": "当前筛选条件下暂无分布数据",
+      "table_time": "时间",
+      "table_level": "级别",
+      "table_message": "消息",
+      "table_exception": "异常",
+      "no_logs": "暂无日志记录"
+    },
+    "blacklist": {
+      "title": "黑名单管理",
+      "subtitle": "维护 IP 黑名单并监控缓存命中情况。",
+      "total_ips": "黑名单 IP 数",
+      "total_ranges": "CIDR 范围数",
+      "blacklist_hits": "黑名单命中",
+      "cache_hits": "缓存命中",
+      "cache_misses": "缓存未命中",
+      "last_refresh": "上次刷新",
+      "manage_title": "维护黑名单",
+      "ip_label": "IP 或 CIDR",
+      "ip_placeholder": "例如 192.168.1.10 或 10.0.0.0/24",
+      "reason_label": "原因",
+      "reason_placeholder": "记录添加或移除原因",
+      "add_action": "加入黑名单",
+      "remove_action": "移出黑名单",
+      "refresh_action": "刷新缓存",
+      "clean_cache_action": "清理缓存",
+      "added": "已加入黑名单",
+      "removed": "已移出黑名单",
+      "refreshed": "黑名单缓存已刷新",
+      "cache_cleared": "缓存已清理",
+      "check_title": "检查 IP",
+      "check_placeholder": "输入要检查的 IP",
+      "check_action": "立即检查",
+      "check_blocked": "该 IP 当前在黑名单中",
+      "check_allowed": "该 IP 当前不在黑名单中",
+      "no_check_result": "输入 IP 后即可查看检查结果",
+      "validation_ip": "请输入要操作的 IP 或 CIDR",
+      "validation_check_ip": "请输入要检查的 IP"
     }
   }
 }
