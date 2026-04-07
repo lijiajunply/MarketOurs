@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using System.Text.Json;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using MarketOurs.Data;
@@ -8,6 +10,8 @@ using MarketOurs.WebAPI.Filters;
 using MarketOurs.WebAPI.IdentityModels;
 using MarketOurs.WebAPI.Middlewares;
 using MarketOurs.WebAPI.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
@@ -167,6 +171,46 @@ builder.Services.AddAuthentication(options =>
             Environment.GetEnvironmentVariable("WEIXIN_CLIENTSECRET", EnvironmentVariableTarget.Process) ?? "default";
         options.CallbackPath = "/Auth/signin-weixin";
         options.SignInScheme = "OAuth2";
+    })
+    .AddOAuth("Ours", options =>
+    {
+        options.ClientId = Environment.GetEnvironmentVariable("OURS_CLIENTID", EnvironmentVariableTarget.Process) ??
+                           "default";
+        options.ClientSecret =
+            Environment.GetEnvironmentVariable("OURS_CLIENTSECRET", EnvironmentVariableTarget.Process) ?? "default";
+        options.CallbackPath = "/Auth/signin-ours";
+        options.AuthorizationEndpoint = "https://ids.xauat.edu.cn/authserver/oauth2.0/authorize";
+        options.TokenEndpoint = "https://ids.xauat.edu.cn/authserver/oauth2.0/accessToken";
+        options.UserInformationEndpoint = "https://ids.xauat.edu.cn/authserver/oauth2.0/profile";
+        options.SignInScheme = "OAuth2";
+        options.SaveTokens = true;
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = async context =>
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                response.EnsureSuccessStatusCode();
+
+                var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                // OURS 返回的通常是学工号 id 和姓名 name
+                var root = user.RootElement;
+                var id = root.GetProperty("id").GetString();
+                var name = root.GetProperty("name").GetString();
+                
+                if (!string.IsNullOrEmpty(id))
+                {
+                    context.Identity?.AddClaim(new Claim(ClaimTypes.NameIdentifier, id));
+                }
+                if (!string.IsNullOrEmpty(name))
+                {
+                    context.Identity?.AddClaim(new Claim(ClaimTypes.Name, name));
+                }
+            }
+        };
     });
 
 #endregion

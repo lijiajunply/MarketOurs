@@ -328,6 +328,45 @@ export default function ProfilePage() {
                     <ArrowRight size={18} />
                   </Link>
                 </div>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-muted/30 border border-border/50 space-y-4">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                  {t("profile.third_party_bindings")}
+                </h4>
+                
+                {[
+                  { name: 'Ours', id: user.oursId },
+                  { name: 'Github', id: user.githubId },
+                  { name: 'Google', id: user.googleId },
+                  { name: 'Weixin', id: user.weixinId },
+                ].map((platform) => (
+                  <div key={platform.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${platform.id ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                        {platform.name[0]}
+                      </div>
+                      <span className="text-sm font-medium">{platform.name}</span>
+                    </div>
+                    {platform.id ? (
+                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">
+                        {t("profile.bound")}
+                      </span>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://marketours-api.zeabur.app";
+                          const returnUrl = window.location.origin + "/profile";
+                          window.location.href = `${baseUrl}/Auth/external-login?provider=${platform.name}&purpose=bind&returnUrl=${encodeURIComponent(returnUrl)}`;
+                        }}
+                        className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {t("profile.bind_now")}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-muted-foreground">

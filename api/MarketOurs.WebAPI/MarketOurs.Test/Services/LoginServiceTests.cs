@@ -78,13 +78,13 @@ public class LoginServiceTests
     public async Task LoginWithOAuthAsync_WhenUserExists_ShouldReturnTokens()
     {
         // Arrange
-        var user = new UserDto { Id = "1", Name = "OAuth User", IsActive = true };
-        _mockUserService.Setup(s => s.GetByAccountAsync("oauth@test.com")).ReturnsAsync(user);
+        var user = new UserDto { Id = "1", Name = "OAuth User", IsActive = true, GithubId = "github_id" };
+        _mockUserService.Setup(s => s.GetByThirdPartyIdAsync("Github", "github_id")).ReturnsAsync(user);
         _mockJwtService.Setup(j => j.GetAccessToken(user, It.IsAny<DeviceType>())).ReturnsAsync("access_token");
         _mockJwtService.Setup(j => j.GetRefreshToken(It.IsAny<DeviceType>())).ReturnsAsync("refresh_token");
 
         // Act
-        var result = await _loginService.LoginWithOAuthAsync("oauth@test.com", "OAuth User", "avatar_url", "Web");
+        var result = await _loginService.LoginWithOAuthAsync("Github", "github_id", "oauth@test.com", "OAuth User", "avatar_url", "Web");
 
         // Assert
         Assert.That(result, Is.Not.Null);
@@ -92,17 +92,19 @@ public class LoginServiceTests
     }
 
     [Test]
-    public async Task LoginWithOAuthAsync_WhenUserDoesNotExist_ShouldCreateUserAndReturnTokens()
+    public async Task LoginWithOAuthAsync_WhenUserDoesNotExist_AndIsOurs_ShouldCreateUserAndReturnTokens()
     {
         // Arrange
-        var newUser = new UserDto { Id = "2", Name = "New User", IsActive = true };
+        var newUser = new UserDto { Id = "2", Name = "New User", IsActive = true, OursId = "ours_id" };
+        _mockUserService.Setup(s => s.GetByThirdPartyIdAsync("Ours", "ours_id")).ReturnsAsync((UserDto?)null);
         _mockUserService.Setup(s => s.GetByAccountAsync("new@test.com")).ReturnsAsync((UserDto?)null);
         _mockUserService.Setup(s => s.CreateAsync(It.IsAny<UserCreateDto>())).ReturnsAsync(newUser);
+        _mockUserService.Setup(s => s.GetByIdAsync("2")).ReturnsAsync(newUser);
         _mockJwtService.Setup(j => j.GetAccessToken(newUser, It.IsAny<DeviceType>())).ReturnsAsync("access_token");
         _mockJwtService.Setup(j => j.GetRefreshToken(It.IsAny<DeviceType>())).ReturnsAsync("refresh_token");
 
         // Act
-        var result = await _loginService.LoginWithOAuthAsync("new@test.com", "New User", "avatar_url", "Web");
+        var result = await _loginService.LoginWithOAuthAsync("Ours", "ours_id", "new@test.com", "New User", "avatar_url", "Web");
 
         // Assert
         Assert.That(result, Is.Not.Null);

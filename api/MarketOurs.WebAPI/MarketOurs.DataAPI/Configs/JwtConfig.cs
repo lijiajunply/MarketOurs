@@ -36,13 +36,13 @@ public class JwtConfig
     /// 签发者
     /// </summary>
     [Required]
-    public string Issuer { get; set; } = "iOS Club of XAUAT";
+    public string Issuer { get; set; } = "iOS Club";
 
     /// <summary>
     /// 接收者
     /// </summary>
     [Required]
-    public string Audience { get; set; } = "iOS Club of XAUAT";
+    public string Audience { get; set; } = "iOS Club";
 
     /// <summary>
     /// 密钥轮换周期（天）

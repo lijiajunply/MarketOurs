@@ -32,12 +32,20 @@ public interface ILoginService
     /// <summary>
     /// OAuth2 第三方登录回调处理
     /// </summary>
+    /// <param name="provider">平台名称</param>
+    /// <param name="providerId">第三方平台用户唯一标识</param>
     /// <param name="account">第三方返回的唯一标识/邮箱</param>
     /// <param name="name">用户名</param>
     /// <param name="avatar">头像地址</param>
     /// <param name="deviceType">设备类型</param>
     /// <returns>登录成功的 Token</returns>
-    public Task<TokenDto> LoginWithOAuthAsync(string account, string name, string avatar, string deviceType);
+    public Task<TokenDto> LoginWithOAuthAsync(string provider, string providerId, string account, string name,
+        string avatar, string deviceType);
+
+    /// <summary>
+    /// 绑定第三方平台账号
+    /// </summary>
+    public Task<bool> BindThirdPartyAsync(string userId, string provider, string providerId);
 
     /// <summary>
     /// 注销登录，销毁会话缓存
@@ -106,38 +114,88 @@ public class LoginService(
     }
 
     /// <inheritdoc/>
-    public async Task<TokenDto> LoginWithOAuthAsync(string account, string name, string avatar, string deviceType)
+    public async Task<TokenDto> LoginWithOAuthAsync(string provider, string providerId, string account, string name,
+        string avatar, string deviceType)
     {
-        var user = await userService.GetByAccountAsync(account);
-        if (user == null)
-        {
-            // 如果不存在，则创建一个随机密码的用户，并进行加密
-            var randomPassword = Guid.NewGuid().ToString("N");
-            user = await userService.CreateAsync(new UserCreateDto
-            {
-                Account = account, // 使用统一的Account字段
-                Password = randomPassword,
-                Name = name,
-                Role = "User"
-            });
+        // 1. 优先通过第三方 ID 查找
+        var user = await userService.GetByThirdPartyIdAsync(provider, providerId);
 
-            // Update avatar if provided
-            if (!string.IsNullOrEmpty(avatar))
+        // 2. 如果没找到，且是 OURS，则尝试通过账号查找（自动注册逻辑）
+        if (user == null && provider.Equals("Ours", StringComparison.OrdinalIgnoreCase))
+        {
+            user = await userService.GetByAccountAsync(account);
+            if (user == null)
             {
-                await userService.UpdateAsync(user.Id, new UserUpdateDto
+                // OURS 自动注册
+                var randomPassword = Guid.NewGuid().ToString("N");
+                user = await userService.CreateAsync(new UserCreateDto
                 {
+                    Account = account,
+                    Password = randomPassword,
                     Name = name,
-                    Avatar = avatar,
-                    Info = "来自第三方登录"
+                    Role = "User",
+                    Avatar = avatar
                 });
             }
+
+            // 绑定 OURS ID
+            await BindThirdPartyAsync(user.Id, provider, providerId);
         }
-        else if (!user.IsActive)
+
+        // 3. 如果还是没有用户（对于 GitHub/Google/Weixin），且用户不存在
+        if (user == null)
+        {
+            throw new AuthException(ErrorCode.UserNotFound, "未找到关联账户，请先登录并绑定。");
+        }
+
+        if (!user.IsActive)
         {
             throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用");
         }
 
         return await GenerateTokenForUser(user, deviceType);
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> BindThirdPartyAsync(string userId, string provider, string providerId)
+    {
+        var userDto = await userService.GetByIdAsync(userId);
+        if (userDto == null) return false;
+
+        // 检查该第三方 ID 是否已被其他账户绑定
+        var existingUser = await userService.GetByThirdPartyIdAsync(provider, providerId);
+        if (existingUser != null && existingUser.Id != userId)
+        {
+            throw new BusinessException(ErrorCode.ResourceAlreadyExists, "该第三方账号已被其他账户绑定");
+        }
+
+        var updateDto = new UserUpdateDto
+        {
+            Name = userDto.Name,
+            Avatar = userDto.Avatar,
+            Info = userDto.Info
+        };
+
+        switch (provider.ToLower())
+        {
+            case "github":
+                updateDto.GithubId = providerId;
+                break;
+            case "google":
+                updateDto.GoogleId = providerId;
+                break;
+            case "weixin":
+                updateDto.WeixinId = providerId;
+                break;
+            case "ours":
+                updateDto.OursId = providerId;
+                break;
+            default:
+                throw new BusinessException(ErrorCode.ParameterFormatError, "不支持的第三方平台");
+        }
+
+        await userService.UpdateAsync(userId, updateDto);
+        return true;
     }
 
     /// <summary>

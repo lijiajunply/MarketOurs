@@ -10,6 +10,7 @@ import AdminUsersPage from "./pages/admin/users"
 import AdminPostsPage from "./pages/admin/posts"
 import AdminSettingsPage from "./pages/admin/settings"
 import LoginPage from "./pages/login"
+import LoginCallbackPage from "./pages/login/callback"
 import RegisterPage from "./pages/register"
 import PostDetailPage from "./pages/post/detail"
 import CreatePostPage from "./pages/post/create"
@@ -31,6 +32,7 @@ export function App() {
             <Route path="/post/create" element={<CreatePostPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/login-callback" element={<LoginCallbackPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/profile" element={<ProfilePage />} />

@@ -13,6 +13,7 @@ public interface IUserRepo
     Task<int> SearchCountAsync(string keyword);
     Task<UserModel?> GetByIdAsync(string id);
     Task<UserModel?> GetByAccountAsync(string account);
+    Task<UserModel?> GetByThirdPartyIdAsync(string provider, string providerId);
     Task<List<UserModel>> GetByDateAsync(DateTime before, DateTime after);
     Task<List<PostModel>?> GetPostsAsync(string id);
     Task<List<CommentModel>?> GetCommentsAsync(string id);
@@ -80,6 +81,22 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
         return await context.Users
             .Where(x => account.Contains('@') ? x.Email == account : x.Phone == account) // 如果含有 @ 的话就是 email
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<UserModel?> GetByThirdPartyIdAsync(string provider, string providerId)
+    {
+        if (string.IsNullOrWhiteSpace(providerId)) return null;
+        
+        await using var context = await factory.CreateDbContextAsync();
+        
+        return provider.ToLower() switch
+        {
+            "github" => await context.Users.FirstOrDefaultAsync(x => x.GithubId == providerId),
+            "google" => await context.Users.FirstOrDefaultAsync(x => x.GoogleId == providerId),
+            "weixin" => await context.Users.FirstOrDefaultAsync(x => x.WeixinId == providerId),
+            "ours" => await context.Users.FirstOrDefaultAsync(x => x.OursId == providerId),
+            _ => null
+        };
     }
 
     public async Task<List<UserModel>> GetByDateAsync(DateTime before, DateTime after)

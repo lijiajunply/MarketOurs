@@ -71,6 +71,14 @@ public class UserDto
     /// 推送设置 (JSON 格式)
     /// </summary>
     public string? PushSettings { get; set; }
+
+    /// <summary>
+    /// 第三方绑定 ID
+    /// </summary>
+    public string? GithubId { get; set; }
+    public string? GoogleId { get; set; }
+    public string? WeixinId { get; set; }
+    public string? OursId { get; set; }
 }
 
 /// <summary>
@@ -185,6 +193,14 @@ public class UserUpdateDto
     /// </summary>
     [MaxLength(1024, ErrorMessage = "个人简介长度不能超过1024位")]
     public string Info { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 第三方绑定 ID (仅允许绑定操作，不可随便修改)
+    /// </summary>
+    public string? GithubId { get; set; }
+    public string? GoogleId { get; set; }
+    public string? WeixinId { get; set; }
+    public string? OursId { get; set; }
 }
 
 /// <summary>

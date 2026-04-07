@@ -73,9 +73,25 @@ export default function LoginPage() {
     }
   };
 
+  const handleThirdPartyLogin = (provider: string) => {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://marketours-api.zeabur.app";
+    const returnUrl = window.location.origin + "/login-callback";
+    window.location.href = `${baseUrl}/Auth/external-login?provider=${provider}&returnUrl=${encodeURIComponent(returnUrl)}`;
+  };
+
   const thirdPartyLogins = [
     { 
+      name: "Ours", 
+      id: "Ours",
+      icon: (
+        <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[10px] text-white font-bold">
+          O
+        </div>
+      )
+    },
+    { 
       name: "Google", 
+      id: "Google",
       icon: (
         <svg viewBox="0 0 24 24" width="20" height="20" className="fill-current">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -87,10 +103,12 @@ export default function LoginPage() {
     },
     { 
       name: "Github", 
+      id: "Github",
       icon: <GitBranch size={18} /> 
     },
     { 
       name: "Weixin", 
+      id: "Weixin",
       icon: (
         <svg viewBox="0 0 24 24" width="18" height="18" className="fill-current">
           <path d="M8.2 13.5c-.5 0-1-.4-1-.9s.4-1 .9-1 1 .4 1 .9-.4.9-1 .9zm5.6 0c-.5 0-1-.4-1-.9s.4-1 1-1 .9.4.9.9-.4.9-.9.9zM18 10c0-3.9-3.8-7-8.5-7S2 6.1 2 10c0 2.1 1.1 4 2.9 5.3l-.7 2.2 2.5-1.3c.6.2 1.2.3 1.8.3 4.7 0 8.5-3.1 8.5-7zm3.5 6.5c0-3.3-3.1-6-7-6-.3 0-.6 0-.9.1 2.4 1.8 3.9 4.3 3.9 6.9 0 .5-.1 1-.2 1.5.9.6 1.5 1.4 1.5 2.3 0 .4-.1.8-.3 1.1l1.1.6-.3-1c.8-.7 1.2-1.6 1.2-2.5-1.3 0-2.3-1.1-2.3-2.3z" fill="#07C160"/>
@@ -232,10 +250,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             {thirdPartyLogins.map((provider) => (
               <button
                 key={provider.name}
+                onClick={() => handleThirdPartyLogin(provider.id)}
                 className="flex items-center justify-center p-3 rounded-2xl border border-border/50 hover:bg-muted transition-all duration-300 group"
                 title={t("auth.login_with", { provider: provider.name })}
               >

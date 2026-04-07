@@ -46,6 +46,11 @@ public interface IUserService
     Task<UserDto?> GetByAccountAsync(string account);
 
     /// <summary>
+    /// 根据 第三方平台 ID 获取用户详情
+    /// </summary>
+    Task<UserDto?> GetByThirdPartyIdAsync(string provider, string providerId);
+
+    /// <summary>
     /// 用户登录验证
     /// </summary>
     /// <param name="account">账号</param>
@@ -186,6 +191,13 @@ public class UserService(
     public async Task<UserDto?> GetByAccountAsync(string account)
     {
         var user = await userRepo.GetByAccountAsync(account);
+        return user != null ? MapToDto(user) : null;
+    }
+
+    /// <inheritdoc/>
+    public async Task<UserDto?> GetByThirdPartyIdAsync(string provider, string providerId)
+    {
+        var user = await userRepo.GetByThirdPartyIdAsync(provider, providerId);
         return user != null ? MapToDto(user) : null;
     }
 
@@ -507,6 +519,11 @@ public class UserService(
             user.IsPhoneVerified = false;
         }
 
+        if (updateDto.GithubId != null) user.GithubId = updateDto.GithubId;
+        if (updateDto.GoogleId != null) user.GoogleId = updateDto.GoogleId;
+        if (updateDto.WeixinId != null) user.WeixinId = updateDto.WeixinId;
+        if (updateDto.OursId != null) user.OursId = updateDto.OursId;
+
         await userRepo.UpdateAsync(user);
         return MapToDto(user);
     }
@@ -533,7 +550,11 @@ public class UserService(
             IsActive = user.IsActive,
             IsEmailVerified = user.IsEmailVerified,
             IsPhoneVerified = user.IsPhoneVerified,
-            PushSettings = user.PushSettings
+            PushSettings = user.PushSettings,
+            GithubId = user.GithubId,
+            GoogleId = user.GoogleId,
+            WeixinId = user.WeixinId,
+            OursId = user.OursId
         };
     }
 

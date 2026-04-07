@@ -124,6 +124,14 @@ public class UserModel : DataModel
     public string? PushToken { get; set; }
 
     /// <summary>
+    /// 第三方平台绑定信息
+    /// </summary>
+    [MaxLength(64)] public string? GithubId { get; set; }
+    [MaxLength(64)] public string? GoogleId { get; set; }
+    [MaxLength(64)] public string? WeixinId { get; set; }
+    [MaxLength(64)] public string? OursId { get; set; }
+
+    /// <summary>
     /// 更新实体属性
     /// </summary>
     public override void Update(DataModel model)
@@ -142,5 +150,9 @@ public class UserModel : DataModel
         IsPhoneVerified = userModel.IsPhoneVerified;
         PushSettings = userModel.PushSettings;
         PushToken = userModel.PushToken;
+        GithubId = userModel.GithubId;
+        GoogleId = userModel.GoogleId;
+        WeixinId = userModel.WeixinId;
+        OursId = userModel.OursId;
     }
 }

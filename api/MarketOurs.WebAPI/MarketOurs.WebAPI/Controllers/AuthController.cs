@@ -322,17 +322,26 @@ public class AuthController(ILoginService loginService, IUserService userService
     }
 
     /// <summary>
-    /// 第三方登录统一入口
+    /// 第三方登录/绑定统一入口
     /// </summary>
     /// <param name="provider">登录提供方 (如 GitHub, Google, Weixin)</param>
     /// <param name="returnUrl">登录成功后的回跳地址</param>
+    /// <param name="purpose">用途: login 或 bind</param>
     /// <returns>跳转至第三方平台的 Challenge 响应</returns>
     [HttpGet("external-login")]
     [AllowAnonymous]
-    public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string returnUrl = "/")
+    public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string returnUrl = "/", [FromQuery] string purpose = "login")
     {
         var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Auth", new { returnUrl });
         var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        properties.Items["purpose"] = purpose;
+        
+        // 如果是绑定，需要确保持有当前用户 ID
+        if (purpose == "bind" && User.Identity?.IsAuthenticated == true)
+        {
+            properties.Items["userId"] = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+        
         return Challenge(properties, provider);
     }
 
@@ -358,32 +367,48 @@ public class AuthController(ILoginService loginService, IUserService userService
             return Redirect($"{returnUrl}?error={Uri.EscapeDataString("认证失败")}");
         }
 
+        var purpose = result.Properties?.Items["purpose"] ?? "login";
+        var userIdForBind = result.Properties?.Items.ContainsKey("userId") == true ? result.Properties.Items["userId"] : null;
+
+        var provider = result.Properties?.Items[".AuthScheme"] ?? "Unknown";
+        var providerId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
         var email = result.Principal.FindFirstValue(ClaimTypes.Email);
         var name = result.Principal.FindFirstValue(ClaimTypes.Name) ?? email?.Split('@')[0];
         var avatar = result.Principal.FindFirstValue("urn:github:avatar")
                      ?? result.Principal.FindFirstValue("image")
                      ?? string.Empty;
 
+        if (string.IsNullOrEmpty(providerId))
+        {
+            return Redirect($"{returnUrl}?error={Uri.EscapeDataString("无法获取第三方用户信息")}");
+        }
+
         if (string.IsNullOrEmpty(email))
         {
-            var nameIdentifier = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(nameIdentifier))
-            {
-                return Redirect($"{returnUrl}?error={Uri.EscapeDataString("无法获取用户邮箱信息")}");
-            }
-
-            email = $"{nameIdentifier}@external.local";
+            email = $"{providerId}@external.local";
         }
 
         try
         {
-            var token = await loginService.LoginWithOAuthAsync(email, name ?? "User", avatar, "Web");
+            if (purpose == "bind" && !string.IsNullOrEmpty(userIdForBind))
+            {
+                await loginService.BindThirdPartyAsync(userIdForBind, provider, providerId);
+                await HttpContext.SignOutAsync("OAuth2");
+                return Redirect($"{returnUrl}?message={Uri.EscapeDataString("绑定成功")}");
+            }
+
+            var token = await loginService.LoginWithOAuthAsync(provider, providerId, email, name ?? "User", avatar, "Web");
 
             // 登录成功后注销外部cookie，保持状态清晰
             await HttpContext.SignOutAsync("OAuth2");
 
             return Redirect(
                 $"{returnUrl}?accessToken={Uri.EscapeDataString(token.AccessToken)}&refreshToken={Uri.EscapeDataString(token.RefreshToken)}");
+        }
+        catch (AuthException ex)
+        {
+            logger.LogWarning("第三方登录认证失败: {Message}", ex.Message);
+            return Redirect($"{returnUrl}?error={Uri.EscapeDataString(ex.Message)}");
         }
         catch (Exception ex)
         {
