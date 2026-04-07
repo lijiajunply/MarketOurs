@@ -27,7 +27,7 @@ public class DataMaskingAttribute : ActionFilterAttribute
             return;
         }
 
-        if (context.Result is ObjectResult objectResult && objectResult.Value != null)
+        if (context.Result is ObjectResult { Value: not null } objectResult)
         {
             var maskingService = context.HttpContext.RequestServices.GetRequiredService<DataMaskingService>();
             objectResult.Value = maskingService.MaskData(objectResult.Value);

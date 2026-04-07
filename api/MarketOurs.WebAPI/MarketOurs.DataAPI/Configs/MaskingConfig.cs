@@ -62,11 +62,11 @@ public class MaskingConfig
     /// </summary>
     public Dictionary<string, MaskingRule> Rules { get; set; } = new()
     {
-        { "PhoneNumber", new MaskingRule { Type = MaskingType.PhoneNumber } },
+        { "Phone", new MaskingRule { Type = MaskingType.PhoneNumber } },
         { "IdCard", new MaskingRule { Type = MaskingType.IdCard } },
         { "BankCard", new MaskingRule { Type = MaskingType.BankCard } },
         { "Email", new MaskingRule { Type = MaskingType.Email } },
-        { "Name", new MaskingRule { Type = MaskingType.Name } },
+        { "UserName", new MaskingRule { Type = MaskingType.Name } },
         { "Address", new MaskingRule { Type = MaskingType.Address } },
         { "Password", new MaskingRule { Type = MaskingType.Password } }
     };
