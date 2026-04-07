@@ -13,6 +13,7 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
     public DbSet<PostModel> Posts { get; set; }
     public DbSet<CommentModel> Commits { get; set; }
     public DbSet<NotificationModel> Notifications { get; set; }
+    public DbSet<SystemSettingsModel> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

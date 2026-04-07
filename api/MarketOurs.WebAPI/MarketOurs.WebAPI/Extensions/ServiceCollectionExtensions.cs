@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPostRepo, PostRepo>();
         services.AddScoped<ICommentRepo, CommentRepo>();
         services.AddScoped<INotificationRepo, NotificationRepo>();
+        services.AddScoped<IAdminRepo, AdminRepo>();
 
         // Background queue for async DB sync
         services.AddSingleton<LikeMessageQueue>();
@@ -39,6 +40,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISmsService, UniSmsService>();
         services.AddScoped<ILoginService, LoginService>();
         services.AddScoped<IAIService, AIService>();
+        services.AddScoped<IAdminService, AdminService>();
 
         services.AddScoped<IJwtService, JwtService>();
     }
