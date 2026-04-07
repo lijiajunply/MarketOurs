@@ -137,6 +137,25 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     #region Normal Operations (普通用户操作)
 
     /// <summary>
+    /// 获取公开用户主页资料
+    /// </summary>
+    /// <param name="id">用户唯一标识</param>
+    /// <returns>公开用户资料</returns>
+    [HttpGet("public/{id}")]
+    [AllowAnonymous]
+    public async Task<ApiResponse<PublicUserProfileDto>> GetPublicProfileById(string id)
+    {
+        logger.LogInformation("Public profile requested: {Id}", id);
+        var user = await userService.GetPublicProfileByIdAsync(id);
+        if (user == null)
+        {
+            return ApiResponse<PublicUserProfileDto>.Fail(404, "用户不存在");
+        }
+
+        return ApiResponse<PublicUserProfileDto>.Success(user, "获取公开资料成功");
+    }
+
+    /// <summary>
     /// 获取当前登录用户的个人资料
     /// </summary>
     /// <returns>当前用户信息</returns>

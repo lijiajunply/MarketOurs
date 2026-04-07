@@ -84,6 +84,29 @@ public class UserServiceTests
     }
 
     [Test]
+    public async Task GetPublicProfileByIdAsync_WhenUserExists_ShouldReturnPublicProfileDto()
+    {
+        var user = new UserModel
+        {
+            Id = "1",
+            Name = "Test User",
+            Email = "private@test.com",
+            Phone = "13800000000",
+            Role = "User",
+            Avatar = "avatar.png",
+            Info = "Hello"
+        };
+        _mockUserRepo.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(user);
+
+        var result = await _userService.GetPublicProfileByIdAsync("1");
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Id, Is.EqualTo("1"));
+        Assert.That(result.Name, Is.EqualTo("Test User"));
+        Assert.That(result.Info, Is.EqualTo("Hello"));
+    }
+
+    [Test]
     public async Task GetByIdAsync_WhenUserDoesNotExist_ShouldReturnNull()
     {
         // Arrange

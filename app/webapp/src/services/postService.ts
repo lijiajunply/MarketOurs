@@ -16,6 +16,13 @@ export const postService = {
     return apiClient.get<PagedResult<PostDto>>(`/Post?${params.toString()}`);
   },
 
+  getUserPosts: (userId: string, pageIndex?: number, pageSize?: number) => {
+    const params = new URLSearchParams();
+    if (pageIndex !== undefined) params.append('PageIndex', pageIndex.toString());
+    if (pageSize !== undefined) params.append('PageSize', pageSize.toString());
+    return apiClient.get<PagedResult<PostDto>>(`/Post/user/${userId}?${params.toString()}`);
+  },
+
   getHotPosts: (count: number = 10) =>
     apiClient.get<PostDto[]>(`/Post/hot?count=${count}`),
 

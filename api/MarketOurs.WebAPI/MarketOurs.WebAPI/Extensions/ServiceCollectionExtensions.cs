@@ -78,9 +78,9 @@ public static class ServiceCollectionExtensions
                     ? refreshTokenExpiry
                     : 72,
             RsaPrivateKeyPath = Environment.GetEnvironmentVariable("JWT_RSA_PRIVATE_KEY_PATH") ??
-                                "./app/keys/rsa_private.pem",
+                                "./keys/rsa_private.pem",
             RsaPublicKeyPath = Environment.GetEnvironmentVariable("JWT_RSA_PUBLIC_KEY_PATH") ??
-                               "./app/keys/rsa_public.pem",
+                               "./keys/rsa_public.pem",
             Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "MarketOurs",
             Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "MarketOurs",
             KeyRotationDays = int.TryParse(Environment.GetEnvironmentVariable("JWT_KEY_ROTATION_DAYS"),

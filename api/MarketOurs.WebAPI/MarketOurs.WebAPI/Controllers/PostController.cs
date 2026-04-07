@@ -27,6 +27,20 @@ public class PostController(IPostService postService) : ControllerBase
     }
 
     /// <summary>
+    /// 获取指定用户发布的帖子 (分页)
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="params">分页参数</param>
+    /// <returns>分页后的帖子列表</returns>
+    [HttpGet("user/{userId}")]
+    [AllowAnonymous]
+    public async Task<ApiResponse<PagedResultDto<PostDto>>> GetByUserId(string userId, [FromQuery] PaginationParams @params)
+    {
+        var posts = await postService.GetByUserIdAsync(userId, @params);
+        return ApiResponse<PagedResultDto<PostDto>>.Success(posts, "获取成功");
+    }
+
+    /// <summary>
     /// 获取热门帖子列表
     /// </summary>
     /// <param name="count">获取数量，默认为 10</param>

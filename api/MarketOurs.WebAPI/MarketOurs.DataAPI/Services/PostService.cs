@@ -31,6 +31,14 @@ public interface IPostService
     Task<List<PostDto>> GetHotAsync(int count = 10);
 
     /// <summary>
+    /// 分页获取指定用户发布的帖子
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="params">分页参数</param>
+    /// <returns>分页结果</returns>
+    Task<PagedResultDto<PostDto>> GetByUserIdAsync(string userId, PaginationParams @params);
+
+    /// <summary>
     /// 根据ID获取帖子详情
     /// </summary>
     /// <param name="id">帖子ID</param>
@@ -194,6 +202,21 @@ public class PostService(
         {
             CacheLock.Release();
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task<PagedResultDto<PostDto>> GetByUserIdAsync(string userId, PaginationParams @params)
+    {
+        var totalCount = await postRepo.CountByUserIdAsync(userId);
+        var posts = await postRepo.GetByUserIdAsync(userId, @params.PageIndex, @params.PageSize);
+        var dtos = posts.Select(MapToDto).ToList();
+
+        foreach (var dto in dtos)
+        {
+            await FillDynamicData(dto);
+        }
+
+        return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
     private readonly ConcurrentDictionary<string, Task<PostDto?>> _getByIdTasks = new();

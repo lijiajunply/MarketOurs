@@ -8,6 +8,8 @@ public interface IPostRepo
 {
     Task<List<PostModel>> GetAllAsync(int pageIndex, int pageSize);
     Task<int> CountAsync();
+    Task<List<PostModel>> GetByUserIdAsync(string userId, int pageIndex, int pageSize);
+    Task<int> CountByUserIdAsync(string userId);
     Task<List<PostModel>> GetHotAsync(int count);
     Task<PostModel?> GetByIdAsync(string id);
     Task<List<PostModel>?> GetByDateAsync(DateTime before, DateTime after);
@@ -52,6 +54,24 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts.CountAsync();
+    }
+
+    public async Task<List<PostModel>> GetByUserIdAsync(string userId, int pageIndex, int pageSize)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Posts
+            .Include(x => x.User)
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<int> CountByUserIdAsync(string userId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Posts.CountAsync(x => x.UserId == userId);
     }
 
     public async Task<List<PostModel>> GetHotAsync(int count)

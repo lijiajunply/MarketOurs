@@ -187,6 +187,12 @@ export default function ProfilePage() {
           </div>
           
           <div className="absolute top-4 right-4 flex gap-2">
+            <Link
+              to={`/user/${user.id}`}
+              className="flex items-center gap-2 px-4 py-2 bg-background/50 backdrop-blur-md hover:bg-background/80 rounded-xl text-sm font-bold transition-all"
+            >
+              {t("profile.view_public_profile")}
+            </Link>
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}

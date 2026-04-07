@@ -131,6 +131,19 @@ public class UserControllerTests : ControllerTestBase
     }
 
     [Test]
+    public async Task GetPublicProfileById_WhenUserExists_ShouldReturnPublicProfile()
+    {
+        var profile = new PublicUserProfileDto { Id = "2", Name = "Public User" };
+        _mockUserService.Setup(s => s.GetPublicProfileByIdAsync("2")).ReturnsAsync(profile);
+
+        var result = await _controller.GetPublicProfileById("2");
+
+        Assert.That(result.Code, Is.EqualTo(200));
+        Assert.That(result.Data, Is.Not.Null);
+        Assert.That(result.Data!.Name, Is.EqualTo("Public User"));
+    }
+
+    [Test]
     public async Task GetMyProfile_WhenUserIsLoggedIn_ShouldReturnProfile()
     {
         // Arrange

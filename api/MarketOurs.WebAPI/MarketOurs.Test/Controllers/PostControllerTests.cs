@@ -37,6 +37,21 @@ public class PostControllerTests : ControllerTestBase
     }
 
     [Test]
+    public async Task GetByUserId_ShouldReturnPagedPosts()
+    {
+        var posts = new List<PostDto> { new PostDto { Id = "1", Title = "Post 1", UserId = "user-1" } };
+        var pagedResult = PagedResultDto<PostDto>.Success(posts, 1, 1, 10);
+        _mockPostService.Setup(s => s.GetByUserIdAsync("user-1", It.IsAny<PaginationParams>())).ReturnsAsync(pagedResult);
+
+        var result = await _controller.GetByUserId("user-1", new PaginationParams());
+
+        Assert.That(result.Code, Is.EqualTo(200));
+        Assert.That(result.Data, Is.Not.Null);
+        Assert.That(result.Data!.Items.Count, Is.EqualTo(1));
+        Assert.That(result.Data.Items[0].UserId, Is.EqualTo("user-1"));
+    }
+
+    [Test]
     public async Task GetById_WhenExists_ShouldReturnPostAndIncrementWatch()
     {
         // Arrange

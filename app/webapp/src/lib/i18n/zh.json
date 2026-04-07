@@ -119,6 +119,16 @@
     "verification_sent": "验证码已发送！",
     "confirm_change": "确认修改",
     "confirm_password": "确认新密码",
-    "passwords_not_match": "两次输入的密码不一致"
+    "passwords_not_match": "两次输入的密码不一致",
+    "view_public_profile": "查看公开主页",
+    "manage_profile": "编辑我的资料",
+    "public_badge": "公开主页",
+    "public_bio_empty": "这个人很低调，还没有留下自我介绍。",
+    "recent_posts": "最近发布",
+    "public_posts_hint": "这里展示该用户最近发布的内容。",
+    "no_public_posts": "这个用户最近还没有发布内容。",
+    "public_not_found": "没有找到这个用户的公开主页。",
+    "public_fetch_error": "公开主页加载失败，请稍后重试。",
+    "public_empty_title": "公开主页暂时不可用"
   }
 }

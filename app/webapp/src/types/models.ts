@@ -61,6 +61,15 @@ export interface UserDto {
   isPhoneVerified: boolean;
 }
 
+export interface PublicUserProfileDto {
+  id: string;
+  name: string;
+  role: string;
+  avatar: string;
+  info: string;
+  createdAt: string;
+}
+
 export interface UserUpdateDto {
   name?: string;
   avatar?: string;
@@ -218,4 +227,3 @@ export interface PushSettingsDto {
   enableHotListPush: boolean;
   enableCommentReplyPush: boolean;
 }
-

@@ -1,7 +1,8 @@
-import { MessageSquare, Heart, Share2, MoreHorizontal, Search, Loader2, WatchIcon, LucideWatch, Watch, Eye } from "lucide-react"
+import { Heart, Share2, MoreHorizontal, Search, Loader2, Eye } from "lucide-react"
 import { useNavigate } from "react-router"
 import { useState, useEffect, useRef } from "react"
-import { useTranslation, type i18n } from "react-i18next"
+import { useTranslation } from "react-i18next"
+import type { i18n } from "i18next"
 import { useSelector } from "react-redux"
 import { type RootState } from "../../stores"
 import { postService } from "../../services/postService"
@@ -54,17 +55,28 @@ export function PostCard({ post, onDelete }: { post: PostDto; onDelete?: (id: st
     }
   };
 
+  const handleAuthorClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/user/${post.userId}`);
+  };
+
   return (
     <article
       onClick={() => navigate(`/post/${post.id}`)}
       className="group relative bg-card rounded-[2rem] p-6 border border-border/50 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 cursor-pointer"
     >
       <div className="flex items-center gap-3 mb-4">
-        <img src={authorAvatar} alt={authorName} className="w-10 h-10 rounded-full bg-muted" />
-        <div className="flex-1">
+        <button
+          type="button"
+          onClick={handleAuthorClick}
+          className="flex flex-1 items-center gap-3 rounded-2xl text-left transition-colors hover:text-primary"
+        >
+          <img src={authorAvatar} alt={authorName} className="w-10 h-10 rounded-full bg-muted" />
+          <div className="flex-1">
           <p className="text-sm font-semibold">{displayName}</p>
           <p className="text-xs text-muted-foreground">{formatDate(post.createdAt, i18n, post.updatedAt, t)}</p>
-        </div>
+          </div>
+        </button>
         {(isMe || isAdmin) && (
           <button 
             onClick={handleDelete}

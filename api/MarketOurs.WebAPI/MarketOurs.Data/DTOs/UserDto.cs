@@ -74,6 +74,42 @@ public class UserDto
 }
 
 /// <summary>
+/// 公开用户主页数据传输对象
+/// </summary>
+public class PublicUserProfileDto
+{
+    /// <summary>
+    /// 用户唯一标识
+    /// </summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 用户名
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 角色
+    /// </summary>
+    public string Role { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 头像地址
+    /// </summary>
+    public string Avatar { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 个人简介
+    /// </summary>
+    public string Info { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>
 /// 创建用户请求对象
 /// </summary>
 public class UserCreateDto

@@ -22,6 +22,9 @@ export const userService = {
   getUser: (id: string) =>
     apiClient.get<UserDto>(`/User/${id}`),
 
+  getPublicProfile: (id: string) =>
+    apiClient.get<import('../types').PublicUserProfileDto>(`/User/public/${id}`),
+
   updateUser: (id: string, data: UserUpdateDto) =>
     apiClient.put<UserDto>(`/User/${id}`, data),
 

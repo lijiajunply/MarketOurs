@@ -34,6 +34,12 @@ public interface IUserService
     Task<UserDto?> GetByIdAsync(string id);
 
     /// <summary>
+    /// 根据 ID 获取公开用户资料
+    /// </summary>
+    /// <param name="id">id</param>
+    Task<PublicUserProfileDto?> GetPublicProfileByIdAsync(string id);
+
+    /// <summary>
     /// 根据 邮箱或手机号 获取用户详情
     /// </summary>
     /// <param name="account">邮箱或手机号</param>
@@ -167,6 +173,13 @@ public class UserService(
     {
         var user = await userRepo.GetByIdAsync(id);
         return user != null ? MapToDto(user) : null;
+    }
+
+    /// <inheritdoc/>
+    public async Task<PublicUserProfileDto?> GetPublicProfileByIdAsync(string id)
+    {
+        var user = await userRepo.GetByIdAsync(id);
+        return user != null ? MapToPublicProfileDto(user) : null;
     }
 
     /// <inheritdoc/>
@@ -521,6 +534,19 @@ public class UserService(
             IsEmailVerified = user.IsEmailVerified,
             IsPhoneVerified = user.IsPhoneVerified,
             PushSettings = user.PushSettings
+        };
+    }
+
+    public static PublicUserProfileDto MapToPublicProfileDto(UserModel user)
+    {
+        return new PublicUserProfileDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Role = user.Role,
+            Avatar = user.Avatar,
+            Info = user.Info,
+            CreatedAt = user.CreatedAt
         };
     }
 }

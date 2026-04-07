@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router"
+import { Link, useParams, useNavigate } from "react-router"
 import { Heart, Share2, ArrowLeft, MoreHorizontal, Send, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { postService } from "../../services/postService"
@@ -6,7 +6,8 @@ import { commentService } from "../../services/commentService"
 import type { PostDto, CommentDto } from "../../types"
 import { useSelector } from "react-redux"
 import type { RootState } from "../../stores"
-import { useTranslation, type i18n } from "react-i18next"
+import { useTranslation } from "react-i18next"
+import type { i18n } from "i18next"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN, enUS } from "date-fns/locale"
 import { cn } from "../../lib/utils"
@@ -95,11 +96,15 @@ function CommentItem({
 
   return (
     <div className={cn("flex gap-4 group transition-opacity", isDeleting && "opacity-50 pointer-events-none")}>
-      <img src={authorAvatar} alt={authorName} className="w-10 h-10 rounded-full bg-muted shadow-sm flex-shrink-0" />
+      <Link to={`/user/${comment.userId}`} className="flex-shrink-0">
+        <img src={authorAvatar} alt={authorName} className="w-10 h-10 rounded-full bg-muted shadow-sm" />
+      </Link>
       <div className="flex-1 space-y-2">
         <div className="p-5 rounded-[1.5rem] bg-card border border-border/40 shadow-sm group-hover:border-primary/20 transition-colors">
           <div className="flex items-center justify-between mb-1">
-            <p className="font-bold text-sm">{displayName}</p>
+            <Link to={`/user/${comment.userId}`} className="font-bold text-sm transition-colors hover:text-primary">
+              {displayName}
+            </Link>
             <p className="text-xs text-muted-foreground">{formatDate(comment.createdAt, i18n, comment.updatedAt, t)}</p>
           </div>
           
@@ -429,9 +434,13 @@ export default function PostDetailPage() {
           )}
           
           <div className="flex items-center gap-4 py-6 border-y border-border/30">
-            <img src={authorAvatar} alt={authorName} className="w-12 h-12 rounded-full bg-muted shadow-inner" />
+            <Link to={`/user/${post.userId}`} className="shrink-0">
+              <img src={authorAvatar} alt={authorName} className="w-12 h-12 rounded-full bg-muted shadow-inner" />
+            </Link>
             <div className="flex-1">
-              <p className="font-bold text-lg">{displayName}</p>
+              <Link to={`/user/${post.userId}`} className="font-bold text-lg transition-colors hover:text-primary">
+                {displayName}
+              </Link>
               <p className="text-sm text-muted-foreground">{formatDate(post.createdAt, i18n, post.updatedAt, t)}</p>
             </div>
             {(isMe || isAdmin) && !isEditingPost && (

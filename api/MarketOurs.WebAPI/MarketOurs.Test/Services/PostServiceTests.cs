@@ -88,6 +88,31 @@ public class PostServiceTests
     }
 
     [Test]
+    public async Task GetByUserIdAsync_ShouldReturnPagedPostsWithDynamicData()
+    {
+        var posts = new List<PostModel>
+        {
+            new PostModel { Id = "1", Title = "Post 1", Content = "Content 1", UserId = "user-1" },
+            new PostModel { Id = "2", Title = "Post 2", Content = "Content 2", UserId = "user-1" }
+        };
+
+        _mockPostRepo.Setup(r => r.CountByUserIdAsync("user-1")).ReturnsAsync(2);
+        _mockPostRepo.Setup(r => r.GetByUserIdAsync("user-1", It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(posts);
+        _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(3);
+        _mockLikeManager.Setup(m => m.GetPostDislikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(1);
+        _mockDatabase.Setup(db => db.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
+            .ReturnsAsync(new RedisValue("9"));
+
+        var result = await _postService.GetByUserIdAsync("user-1", new PaginationParams());
+
+        Assert.That(result.Items.Count, Is.EqualTo(2));
+        Assert.That(result.TotalCount, Is.EqualTo(2));
+        Assert.That(result.Items.All(x => x.UserId == "user-1"), Is.True);
+        Assert.That(result.Items[0].Likes, Is.EqualTo(3));
+        Assert.That(result.Items[0].Watch, Is.EqualTo(9));
+    }
+
+    [Test]
     public async Task GetByIdAsync_WhenPostExists_ShouldReturnPostDto()
     {
         // Arrange

@@ -119,6 +119,16 @@
     "verification_sent": "Verification code has been sent!",
     "confirm_change": "Confirm Change",
     "confirm_password": "Confirm New Password",
-    "passwords_not_match": "Passwords do not match"
+    "passwords_not_match": "Passwords do not match",
+    "view_public_profile": "View public profile",
+    "manage_profile": "Manage my profile",
+    "public_badge": "Public profile",
+    "public_bio_empty": "This user has not added a bio yet.",
+    "recent_posts": "Recent posts",
+    "public_posts_hint": "Showing this user's recently published posts.",
+    "no_public_posts": "This user has not published anything recently.",
+    "public_not_found": "We couldn't find this public profile.",
+    "public_fetch_error": "Failed to load this public profile. Please try again later.",
+    "public_empty_title": "Public profile unavailable"
   }
 }

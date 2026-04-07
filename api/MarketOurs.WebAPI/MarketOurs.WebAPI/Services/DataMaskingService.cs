@@ -119,6 +119,11 @@ public class DataMaskingService(MaskingConfig config)
             return ApplyMasking(value.ToString(), rule.Type, rule.CustomRegex, rule.ReplacePattern);
         }
 
+        if (property.PropertyType == typeof(string))
+        {
+            return AutoDetectAndMask(value.ToString() ?? string.Empty);
+        }
+
         // 递归处理复杂类型
         if (!property.PropertyType.IsPrimitive && property.PropertyType != typeof(string) &&
             property.PropertyType != typeof(decimal) && property.PropertyType != typeof(DateTime))
