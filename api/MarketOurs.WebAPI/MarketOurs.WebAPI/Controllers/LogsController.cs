@@ -14,7 +14,7 @@ namespace MarketOurs.WebAPI.Controllers;
 [ApiController]
 [Authorize]
 [Route("[controller]")]
-public class LogsController(ILogger<LogsController> logger)
+public class LogsController(ILogger<LogsController> logger, IHostEnvironment env)
     : ControllerBase
 {
     /// <summary>
@@ -46,6 +46,11 @@ public class LogsController(ILogger<LogsController> logger)
         int pageSize = 10, string? searchTerm = null,
         string? levelFilter = null, string? timeRange = null)
     {
+        if (env.IsDevelopment())
+        {
+            return ApiResponse<PaginatedResponse<LogEntry>>.Success(new PaginatedResponse<LogEntry>(), "当前为开发环境");
+        }
+
         try
         {
             var logs = new List<LogEntry>();
@@ -246,6 +251,11 @@ public class LogsController(ILogger<LogsController> logger)
     [HttpGet("statistics")]
     public async Task<ActionResult<ApiResponse<LogStatistics>>> GetLogStatistics()
     {
+        if (env.IsDevelopment())
+        {
+            return ApiResponse<LogStatistics>.Success(new LogStatistics(), "当前为开发环境");
+        }
+
         try
         {
             var statistics = new LogStatistics();
@@ -295,6 +305,11 @@ public class LogsController(ILogger<LogsController> logger)
     [HttpPost("cleanup")]
     public async Task<ActionResult<ApiResponse<object>>> CleanupOldLogs([FromQuery] int days = 7)
     {
+        if (env.IsDevelopment())
+        {
+            return ApiResponse<object>.Success(new object(), "当前为开发环境");
+        }
+
         try
         {
             // 验证参数
@@ -340,6 +355,11 @@ public class LogsController(ILogger<LogsController> logger)
     [HttpGet("distribution")]
     public async Task<ActionResult<ApiResponse<List<LogDistribution>>>> GetLogDistribution(string? timeRange = "today")
     {
+        if (env.IsDevelopment())
+        {
+            return ApiResponse<List<LogDistribution>>.Success([], "当前为开发环境");
+        }
+
         try
         {
             var distributions = new List<LogDistribution>();
@@ -452,7 +472,7 @@ public class LogStatistics
     /// <summary>
     /// 各日志级别的数量统计
     /// </summary>
-    public Dictionary<string, int> LevelCounts { get; set; } = new Dictionary<string, int>();
+    public Dictionary<string, int> LevelCounts { get; set; } = new();
 }
 
 /// <summary>

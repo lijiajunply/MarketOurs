@@ -324,14 +324,23 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// <summary>
     /// 第三方登录/绑定统一入口
     /// </summary>
+    /// <param name="schemeProvider">用于校验提供商名称并查找认证方案的提供商</param>
     /// <param name="provider">登录提供方 (如 GitHub, Google, Weixin)</param>
     /// <param name="returnUrl">登录成功后的回跳地址</param>
     /// <param name="purpose">用途: login 或 bind</param>
     /// <returns>跳转至第三方平台的 Challenge 响应</returns>
     [HttpGet("external-login")]
     [AllowAnonymous]
-    public IActionResult ExternalLogin([FromQuery] string provider, [FromQuery] string returnUrl = "/", [FromQuery] string purpose = "login")
+    public async Task<IActionResult> ExternalLogin([FromServices] IAuthenticationSchemeProvider schemeProvider, [FromQuery] string provider, [FromQuery] string returnUrl = "/", [FromQuery] string purpose = "login")
     {
+        var scheme = (await schemeProvider.GetAllSchemesAsync())
+            .FirstOrDefault(s => string.Equals(s.Name, provider, StringComparison.OrdinalIgnoreCase));
+
+        if (scheme == null)
+        {
+            return BadRequest(ApiResponse.Fail(400, $"不支持的第三方登录: {provider}"));
+        }
+
         var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Auth", new { returnUrl });
         var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
         properties.Items["purpose"] = purpose;
@@ -342,7 +351,7 @@ public class AuthController(ILoginService loginService, IUserService userService
             properties.Items["userId"] = User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
         
-        return Challenge(properties, provider);
+        return Challenge(properties, scheme.Name);
     }
 
     /// <summary>

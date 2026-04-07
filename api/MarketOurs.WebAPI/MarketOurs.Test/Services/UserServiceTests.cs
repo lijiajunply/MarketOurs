@@ -160,7 +160,7 @@ public class UserServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<AuthException>(async () => await _userService.LoginAsync("test", "password"));
-        Assert.That(ex.Message, Does.Contain("账号已被锁定"));
+        Assert.That(ex.Message, Does.Contain("尚未激活或已被禁用"));
     }
 
     [Test]
