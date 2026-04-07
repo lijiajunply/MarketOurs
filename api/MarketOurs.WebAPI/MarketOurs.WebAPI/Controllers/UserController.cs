@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Services;
+using MarketOurs.WebAPI.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -161,6 +162,7 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     /// <returns>当前用户信息</returns>
     [HttpGet("profile")]
     [Authorize]
+    [DataMasking]
     public async Task<ApiResponse<UserDto>> GetMyProfile()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

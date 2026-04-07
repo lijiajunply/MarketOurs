@@ -1,4 +1,5 @@
 using System.Text;
+using MarketOurs.WebAPI.Filters;
 using MarketOurs.WebAPI.Services;
 
 namespace MarketOurs.WebAPI.Middlewares;
@@ -17,8 +18,19 @@ public class DataMaskingMiddleware(
     /// <param name="context">HTTP上下文</param>
     public async Task InvokeAsync(HttpContext context)
     {
-        // 仅拦截API路径（排除特定端点），ContentType在Next执行后才确定，延迟检查
-        if (!context.Request.Path.StartsWithSegments("/api") || IsExcludedPath(context))
+        // 检查端点是否标记了脱敏特性
+        var endpoint = context.GetEndpoint();
+        var dataMaskingAttr = endpoint?.Metadata.GetMetadata<DataMaskingAttribute>();
+        var ignoreMaskingAttr = endpoint?.Metadata.GetMetadata<IgnoreDataMaskingAttribute>();
+
+        // 如果显式标记了忽略脱敏，或者没有标记启用脱敏，则跳过
+        if (ignoreMaskingAttr != null || dataMaskingAttr == null)
+        {
+            await next(context);
+            return;
+        }
+
+        if (IsExcludedPath(context))
         {
             await next(context);
             return;
