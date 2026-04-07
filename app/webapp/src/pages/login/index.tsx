@@ -1,20 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { authService } from "../../services/authService";
 import { setCredentials } from "../../stores/authSlice";
-import { Mail, Lock, Loader2, ArrowRight, GitBranch } from "lucide-react";
+import { Mail, Lock, Loader2, ArrowRight, GitBranch, ShieldCheck } from "lucide-react";
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const [loginMode, setLoginMode] = useState<"password" | "otp">("password");
   const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [countdown, setCountdown] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
   const [error, setError] = useState("");
   
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    let timer: any;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleSendCode = async () => {
+    if (!account) {
+      setError(t("auth.invalid_account"));
+      return;
+    }
+
+    setIsSendingCode(true);
+    setError("");
+    try {
+      await authService.sendLoginCode({ account });
+      setCountdown(60);
+    } catch (err: any) {
+      setError(err.message || t("auth.error_failed_to_send_code"));
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +54,10 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await authService.login({ account, password });
+      const response = loginMode === "password" 
+        ? await authService.login({ account, password })
+        : await authService.loginByCode({ account, code: otpCode, deviceType: "Web" });
+
       if (response.data) {
         const userInfo = await authService.getInfo();
         dispatch(setCredentials({ 
@@ -32,7 +67,7 @@ export default function LoginPage() {
         navigate("/");
       }
     } catch (err: any) {
-      setError(err.message || t("auth.error_failed_to_login"));
+      setError(err.message || (loginMode === "password" ? t("auth.error_failed_to_login") : t("auth.error_invalid_otp")));
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +116,25 @@ export default function LoginPage() {
           </div>
         )}
 
+        <div className="flex p-1 bg-muted/50 rounded-2xl gap-1">
+          <button
+            onClick={() => setLoginMode("password")}
+            className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
+              loginMode === "password" ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            {t("auth.login_mode_password")}
+          </button>
+          <button
+            onClick={() => setLoginMode("otp")}
+            className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
+              loginMode === "otp" ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            {t("auth.login_mode_otp")}
+          </button>
+        </div>
+
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
@@ -98,25 +152,59 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label className="text-sm font-semibold">{t("auth.password")}</label>
-                <Link to="/forgot-password" className="text-xs font-bold text-primary hover:underline">
-                  {t("auth.forgot_password")}
-                </Link>
+            {loginMode === "password" ? (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-sm font-semibold">{t("auth.password")}</label>
+                  <Link to="/forgot-password" className="text-xs font-bold text-primary hover:underline">
+                    {t("auth.forgot_password")}
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                  <input
+                    type="password"
+                    placeholder={t("auth.password_placeholder")}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    required
+                  />
+                </div>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                <input
-                  type="password"
-                  placeholder={t("auth.password_placeholder")}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  required
-                />
+            ) : (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="text-sm font-semibold ml-1">{t("auth.verification_code")}</label>
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder={t("auth.verification_code_placeholder")}
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={countdown > 0 || isSendingCode}
+                    onClick={handleSendCode}
+                    className="px-6 rounded-2xl bg-primary/10 text-primary text-sm font-bold hover:bg-primary/20 transition-all disabled:opacity-50 whitespace-nowrap min-w-[120px]"
+                  >
+                    {isSendingCode ? (
+                      <Loader2 className="animate-spin mx-auto" size={18} />
+                    ) : countdown > 0 ? (
+                      t("auth.resend_code", { count: countdown })
+                    ) : (
+                      t("auth.send_code")
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <button

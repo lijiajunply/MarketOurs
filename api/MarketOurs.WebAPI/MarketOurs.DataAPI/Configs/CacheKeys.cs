@@ -59,5 +59,8 @@ public static class CacheKeys
     // 注册验证码 (Redis) - Key 为 RegistrationToken, Value 为 Code
     public static string RegistrationCode(string token) => $"reg_code:{token}";
 
+    // 登录验证码 (Redis) - Key 为 Account, Value 为 Code
+    public static string LoginCode(string account) => $"login_code:{account}";
+
     #endregion
 }

@@ -14,6 +14,19 @@ class AuthService {
     );
   }
 
+  Future<ApiResponse> sendLoginCode(SendCodeRequest request) async {
+    final response = await _api.post('/Auth/send-login-code', data: request.toJson());
+    return ApiResponse.fromJson(response.data, (json) => json);
+  }
+
+  Future<ApiResponse<TokenDto>> loginByCode(LoginByCodeRequest request) async {
+    final response = await _api.post('/Auth/login-by-code', data: request.toJson());
+    return ApiResponse<TokenDto>.fromJson(
+      response.data,
+      (json) => TokenDto.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
   Future<ApiResponse<UserDto>> register(UserCreateDto request) async {
     final response = await _api.post('/Auth/register', data: request.toJson());
     return ApiResponse<UserDto>.fromJson(

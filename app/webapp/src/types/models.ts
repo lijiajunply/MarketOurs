@@ -43,6 +43,16 @@ export interface VerifyCodeRequest {
   code: string;
 }
 
+export interface SendCodeRequest {
+  account: string;
+}
+
+export interface LoginByCodeRequest {
+  account: string;
+  code: string;
+  deviceType?: string;
+}
+
 /**
  * User Models
  */

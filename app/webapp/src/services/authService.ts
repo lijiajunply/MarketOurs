@@ -9,11 +9,24 @@ import type {
   VerifyRegistrationRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  SendCodeRequest,
+  LoginByCodeRequest,
 } from '../types';
 
 export const authService = {
   login: async (data: LoginRequest) => {
     const response = await apiClient.post<TokenDto>('/Auth/login', data);
+    if (response.data?.accessToken) {
+      localStorage.setItem('accessToken', response.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+    }
+    return response;
+  },
+
+  sendLoginCode: (data: SendCodeRequest) => apiClient.post<void>('/Auth/send-login-code', data),
+
+  loginByCode: async (data: LoginByCodeRequest) => {
+    const response = await apiClient.post<TokenDto>('/Auth/login-by-code', data);
     if (response.data?.accessToken) {
       localStorage.setItem('accessToken', response.data.accessToken);
       localStorage.setItem('refreshToken', response.data.refreshToken);

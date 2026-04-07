@@ -420,7 +420,8 @@ using (var scope = app.Services.CreateScope())
             {
                 Name = "root",
                 Password = "123456".StringToHash(),
-                Role = "Admin"
+                Role = "Admin",
+                Phone = "101010101"
             };
             var users = user?.Split(',');
             if (!string.IsNullOrEmpty(user) && users != null)

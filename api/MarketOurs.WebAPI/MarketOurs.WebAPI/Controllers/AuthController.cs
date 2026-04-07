@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,11 +24,58 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// <returns>包含双 Token 的成功结果</returns>
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<ApiResponse<TokenDto>> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<ApiResponse<TokenDto>>> Login([FromBody] LoginRequest request)
     {
-        logger.LogInformation("用户尝试登录: {Account}", request.Account);
-        var token = await loginService.Login(request.Account, request.Password, request.DeviceType);
-        return ApiResponse<TokenDto>.Success(token, "登录成功");
+        try
+        {
+            logger.LogInformation("用户尝试登录: {Account}", request.Account);
+            var token = await loginService.Login(request.Account, request.Password, request.DeviceType);
+            return ApiResponse<TokenDto>.Success(token, "登录成功");
+        }
+        catch (AuthException e)
+        {
+            return Unauthorized(ApiResponse<TokenDto>.Fail(ErrorCode.Unauthorized, e.Message));
+        }
+    }
+
+    /// <summary>
+    /// 发送登录验证码 (免密码登录)
+    /// </summary>
+    /// <param name="request">包含账号的请求对象</param>
+    [HttpPost("send-login-code")]
+    [AllowAnonymous]
+    public async Task<ApiResponse> SendLoginCode([FromBody] SendCodeRequest request)
+    {
+        logger.LogInformation("用户请求登录验证码: {Account}", request.Account);
+        var result = await loginService.SendLoginCodeAsync(request.Account);
+        return result
+            ? ApiResponse.Success("验证码已发送")
+            : ApiResponse.Fail(500, "发送失败，请稍后重试");
+    }
+
+    /// <summary>
+    /// 使用验证码登录 (免密码登录)
+    /// </summary>
+    /// <param name="request">包含账号、验证码和设备类型的请求对象</param>
+    [HttpPost("login-by-code")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponse<TokenDto>>> LoginByCode([FromBody] LoginByCodeRequest request)
+    {
+        try
+        {
+            logger.LogInformation("用户通过验证码尝试登录: {Account}", request.Account);
+            var token = await loginService.LoginByCodeAsync(request.Account, request.Code, request.DeviceType);
+            return ApiResponse<TokenDto>.Success(token, "登录成功");
+        }
+        catch (AuthException e)
+        {
+            return Unauthorized(ApiResponse<TokenDto>.Fail(ErrorCode.Unauthorized, e.Message));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "验证码登录失败");
+            return StatusCode(500, ApiResponse<TokenDto>.Fail(500, "登录处理失败"));
+        }
     }
 
     /// <summary>
@@ -138,7 +186,7 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// <returns>验证结果描述</returns>
     [HttpGet("verify-email")]
     [AllowAnonymous]
-    public async Task<ApiResponse> VerifyEmail([FromQuery] string token ,string code)
+    public async Task<ApiResponse> VerifyEmail([FromQuery] string token, string code)
     {
         var result = await userService.VerifyEmailAsync(code);
         return result
@@ -154,7 +202,7 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// <returns>验证结果描述</returns>
     [HttpPost("verify-phone")]
     [AllowAnonymous]
-    public async Task<ApiResponse> VerifyPhone([FromQuery] string token ,string code)
+    public async Task<ApiResponse> VerifyPhone([FromQuery] string token, string code)
     {
         var result = await userService.VerifyPhoneCodeAsync(code);
         return result
@@ -334,7 +382,8 @@ public class AuthController(ILoginService loginService, IUserService userService
             // 登录成功后注销外部cookie，保持状态清晰
             await HttpContext.SignOutAsync("OAuth2");
 
-            return Redirect($"{returnUrl}?accessToken={Uri.EscapeDataString(token.AccessToken)}&refreshToken={Uri.EscapeDataString(token.RefreshToken)}");
+            return Redirect(
+                $"{returnUrl}?accessToken={Uri.EscapeDataString(token.AccessToken)}&refreshToken={Uri.EscapeDataString(token.RefreshToken)}");
         }
         catch (Exception ex)
         {
@@ -352,14 +401,14 @@ public class LoginRequest
     /// <summary>
     /// 账号 (邮箱或手机号)
     /// </summary>
-    [Required(ErrorMessage = "账号不能为空")] 
+    [Required(ErrorMessage = "账号不能为空")]
     [MaxLength(128, ErrorMessage = "账号长度不能超过128位")]
     public string Account { get; set; } = string.Empty;
 
     /// <summary>
     /// 密码
     /// </summary>
-    [Required(ErrorMessage = "密码不能为空")] 
+    [Required(ErrorMessage = "密码不能为空")]
     [MaxLength(128, ErrorMessage = "密码长度不能超过128位")]
     public string Password { get; set; } = string.Empty;
 
@@ -377,7 +426,7 @@ public class RefreshRequest
     /// <summary>
     /// 刷新令牌 (RefreshToken)
     /// </summary>
-    [Required(ErrorMessage = "刷新令牌不能为空")] 
+    [Required(ErrorMessage = "刷新令牌不能为空")]
     public string RefreshToken { get; set; } = string.Empty;
 
     /// <summary>
@@ -394,7 +443,7 @@ public class ForgotPasswordRequest
     /// <summary>
     /// 账号 (邮箱或手机号)
     /// </summary>
-    [Required(ErrorMessage = "账号不能为空")] 
+    [Required(ErrorMessage = "账号不能为空")]
     [MaxLength(128, ErrorMessage = "账号长度不能超过128位")]
     public string Account { get; set; } = string.Empty;
 }
@@ -407,14 +456,14 @@ public class ResetPasswordRequest
     /// <summary>
     /// 验证码或重置令牌
     /// </summary>
-    [Required(ErrorMessage = "验证码不能为空")] 
+    [Required(ErrorMessage = "验证码不能为空")]
     public string Token { get; set; } = string.Empty;
 
     /// <summary>
     /// 新密码
     /// </summary>
-    [Required(ErrorMessage = "新密码不能为空")] 
-    [MinLength(6, ErrorMessage = "新密码长度不能少于6位")] 
+    [Required(ErrorMessage = "新密码不能为空")]
+    [MinLength(6, ErrorMessage = "新密码长度不能少于6位")]
     [MaxLength(128, ErrorMessage = "新密码长度不能超过128位")]
     public string NewPassword { get; set; } = string.Empty;
 }
@@ -445,6 +494,41 @@ public class VerifyCodeRequest
     /// <summary>
     /// 验证码
     /// </summary>
-    [Required(ErrorMessage = "验证码不能为空")] 
+    [Required(ErrorMessage = "验证码不能为空")]
     public string Code { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 发送验证码请求
+/// </summary>
+public class SendCodeRequest
+{
+    /// <summary>
+    /// 账号 (邮箱或手机号)
+    /// </summary>
+    [Required(ErrorMessage = "账号不能为空")]
+    public string Account { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 验证码登录请求
+/// </summary>
+public class LoginByCodeRequest
+{
+    /// <summary>
+    /// 账号 (邮箱或手机号)
+    /// </summary>
+    [Required(ErrorMessage = "账号不能为空")]
+    public string Account { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 验证码
+    /// </summary>
+    [Required(ErrorMessage = "验证码不能为空")]
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 设备类型 (Web/Mobile)
+    /// </summary>
+    public string DeviceType { get; set; } = "Web";
 }

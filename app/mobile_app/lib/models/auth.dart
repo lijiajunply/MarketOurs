@@ -73,3 +73,29 @@ class VerifyCodeRequest {
   factory VerifyCodeRequest.fromJson(Map<String, dynamic> json) => _$VerifyCodeRequestFromJson(json);
   Map<String, dynamic> toJson() => _$VerifyCodeRequestToJson(this);
 }
+
+@JsonSerializable()
+class SendCodeRequest {
+  final String account;
+
+  SendCodeRequest({required this.account});
+
+  factory SendCodeRequest.fromJson(Map<String, dynamic> json) => _$SendCodeRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$SendCodeRequestToJson(this);
+}
+
+@JsonSerializable()
+class LoginByCodeRequest {
+  final String account;
+  final String code;
+  final String? deviceType;
+
+  LoginByCodeRequest({
+    required this.account,
+    required this.code,
+    this.deviceType,
+  });
+
+  factory LoginByCodeRequest.fromJson(Map<String, dynamic> json) => _$LoginByCodeRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$LoginByCodeRequestToJson(this);
+}

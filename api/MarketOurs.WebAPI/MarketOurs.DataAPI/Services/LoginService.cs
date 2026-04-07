@@ -65,6 +65,22 @@ public interface ILoginService
     /// 验证并最终完成注册 (创建用户)
     /// </summary>
     public Task<UserDto> VerifyAndRegisterAsync(string regToken, string code);
+
+    /// <summary>
+    /// 发送登录验证码
+    /// </summary>
+    /// <param name="account">邮箱或手机号</param>
+    /// <returns>是否成功</returns>
+    public Task<bool> SendLoginCodeAsync(string account);
+
+    /// <summary>
+    /// 使用验证码登录 (自动注册)
+    /// </summary>
+    /// <param name="account">邮箱或手机号</param>
+    /// <param name="code">验证码</param>
+    /// <param name="deviceType">设备类型</param>
+    /// <returns>令牌对</returns>
+    public Task<TokenDto> LoginByCodeAsync(string account, string code, string deviceType);
 }
 
 public class LoginService(
@@ -329,5 +345,89 @@ public class LoginService(
 
         logger.LogInformation("用户 {Account} 验证通过，注册成功", request.Account);
         return user;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> SendLoginCodeAsync(string account)
+    {
+        if (_redis == null) throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
+        var db = _redis.GetDatabase();
+
+        // 1. 生成 6 位随机验证码
+        var isEmail = account.Contains('@');
+        var code = isEmail
+            ? Guid.NewGuid().ToString("N")[..6].ToUpper()
+            : new Random().Next(100000, 999999).ToString();
+
+        // 2. 存储验证码到 Redis，有效期 5 分钟
+        await db.StringSetAsync(CacheKeys.LoginCode(account), code, TimeSpan.FromMinutes(5));
+
+        // 3. 发送验证码
+        if (isEmail)
+        {
+            var subject = "MarketOurs - 登录验证码";
+            return await emailService.SendEmailWithTemplateAsync(account, subject, UserService.VerificationEmailTemplate,
+                new { token = code });
+        }
+
+        try
+        {
+            var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
+            {
+                To = account,
+                Signature = smsConfig.Signature,
+                TemplateId = "pub_verif_ttl3",
+                TemplateData = new Dictionary<string, object>()
+                {
+                    ["code"] = code,
+                    ["ttl"] = 5
+                }
+            });
+
+            return response is UniResponse { Code: "0" };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "发送登录验证码失败: {Account}", account);
+            return false;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<TokenDto> LoginByCodeAsync(string account, string code, string deviceType)
+    {
+        if (_redis == null) throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
+        var db = _redis.GetDatabase();
+
+        // 1. 验证验证码
+        var cachedCode = await db.StringGetAsync(CacheKeys.LoginCode(account));
+        if (!cachedCode.HasValue || cachedCode.ToString() != code)
+        {
+            throw new AuthException(ErrorCode.InvalidToken, "验证码无效或已过期");
+        }
+
+        // 2. 获取用户，如果不存在则注册
+        var user = await userService.GetByAccountAsync(account);
+        if (user == null)
+        {
+            logger.LogInformation("验证码登录：用户 {Account} 不存在，自动注册", account);
+            user = await userService.CreateAsync(new UserCreateDto
+            {
+                Account = account,
+                Password = Guid.NewGuid().ToString("N"), // 随机密码
+                Name = account.Split('@')[0], // 默认用户名
+                Role = "User"
+            });
+        }
+        else if (!user.IsActive)
+        {
+            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用");
+        }
+
+        // 3. 清理验证码
+        await db.KeyDeleteAsync(CacheKeys.LoginCode(account));
+
+        // 4. 生成 Token
+        return await GenerateTokenForUser(user, deviceType);
     }
 }
