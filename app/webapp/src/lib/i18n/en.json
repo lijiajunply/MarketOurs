@@ -93,7 +93,10 @@
     "save": "Save",
     "delete": "Delete",
     "confirm_delete": "Are you sure you want to delete? This action cannot be undone.",
-    "edited": "Edited"
+    "edited": "Edited",
+    "sort_recent": "Recent",
+    "sort_hot": "Hot",
+    "sort_by": "Sort by"
     },
     "profile": {
     "title": "Profile",

@@ -93,7 +93,10 @@
     "save": "保存",
     "delete": "删除",
     "confirm_delete": "确定要删除吗？此操作不可撤销。",
-    "edited": "已编辑"
+    "edited": "已编辑",
+    "sort_recent": "最新",
+    "sort_hot": "最热",
+    "sort_by": "排序方式"
     },
     "profile": {
     "title": "个人中心",

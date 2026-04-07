@@ -41,7 +41,8 @@ function CommentItem({
   t, 
   onUpdate,
   onReply,
-  onDelete
+  onDelete,
+  onLike
 }: { 
   comment: CommentDto; 
   user: any; 
@@ -50,6 +51,7 @@ function CommentItem({
   onUpdate: (id: string, content: string) => Promise<void>;
   onReply: (parentId: string, content: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onLike: (id: string) => Promise<void>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
@@ -139,8 +141,16 @@ function CommentItem({
         </div>
         
         <div className="flex items-center gap-4 ml-2">
-          <button className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-            <Heart size={12} /> {comment.likes}
+          <button 
+            onClick={() => onLike(comment.id)}
+            disabled={!user}
+            className={cn(
+              "text-xs font-bold transition-colors flex items-center gap-1.5 px-2 py-1 rounded-md",
+              user ? "hover:bg-primary/10 hover:text-primary text-muted-foreground" : "text-muted-foreground/50 cursor-not-allowed"
+            )}
+          >
+            <Heart size={14} className={cn(comment.likes > 0 && "fill-primary text-primary")} /> 
+            {comment.likes}
           </button>
           
           {user && (
@@ -213,6 +223,7 @@ function CommentItem({
                 onUpdate={onUpdate}
                 onReply={onReply}
                 onDelete={onDelete}
+                onLike={onLike}
               />
             ))}
           </div>
@@ -233,6 +244,7 @@ export default function PostDetailPage() {
   const [commentContent, setCommentContent] = useState("")
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [commentSort, setCommentSort] = useState<"recent" | "hot">("recent")
 
   // Editing state for post
   const [isEditingPost, setIsEditingPost] = useState(false)
@@ -247,7 +259,7 @@ export default function PostDetailPage() {
       try {
         const [postRes, commentsRes] = await Promise.all([
           postService.getPost(id, { signal: controller.signal }),
-          postService.getPostComments(id, "recent").catch(() => ({ data: [] }))
+          postService.getPostComments(id, commentSort).catch(() => ({ data: [] }))
         ])
         setPost(postRes.data)
         setEditTitle(postRes.data.title)
@@ -262,7 +274,7 @@ export default function PostDetailPage() {
     }
     fetchPostData()
     return () => controller.abort()
-  }, [id])
+  }, [id, commentSort])
 
   const handlePostUpdate = async () => {
     if (!id || !editTitle.trim() || !editContent.trim()) return;
@@ -293,6 +305,37 @@ export default function PostDetailPage() {
       console.error(err);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  const handlePostLike = async () => {
+    if (!id || !user || !post) return;
+    try {
+      await postService.likePost(id);
+      setPost({ ...post, likes: post.likes + 1 });
+    } catch (err) {
+      console.error("Failed to like post", err);
+    }
+  }
+
+  const handleCommentLike = async (commentId: string) => {
+    if (!user) return;
+    try {
+      await commentService.likeComment(commentId);
+      const updateInTree = (list: CommentDto[]): CommentDto[] => {
+        return list.map(c => {
+          if (c.id === commentId) {
+            return { ...c, likes: c.likes + 1 };
+          }
+          if (c.repliedComments && c.repliedComments.length > 0) {
+            return { ...c, repliedComments: updateInTree(c.repliedComments) };
+          }
+          return c;
+        });
+      };
+      setComments(updateInTree(comments));
+    } catch (err) {
+      console.error("Failed to like comment", err);
     }
   }
 
@@ -517,8 +560,15 @@ export default function PostDetailPage() {
         )}
 
         <footer className="flex items-center gap-6 py-8 border-t border-border/30">
-          <button className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold group">
-            <Heart size={20} className="group-hover:scale-110 transition-transform" />
+          <button 
+            onClick={handlePostLike}
+            disabled={!user}
+            className={cn(
+              "flex items-center gap-2 px-6 py-2.5 rounded-full transition-all font-bold group",
+              user ? "bg-primary/10 text-primary hover:bg-primary/20" : "bg-muted text-muted-foreground/50 cursor-not-allowed"
+            )}
+          >
+            <Heart size={20} className={cn("group-hover:scale-110 transition-transform", post.likes > 0 && "fill-primary")} />
             <span>{post.likes} {t("post.likes")}</span>
           </button>
           <button className="flex items-center gap-2 px-6 py-2.5 rounded-full hover:bg-muted transition-all font-bold text-muted-foreground group">
@@ -531,6 +581,26 @@ export default function PostDetailPage() {
       <section className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-bold tracking-tight">{t("post.comments_count", { count: comments.length })}</h3>
+          <div className="flex items-center gap-2 p-1 rounded-xl bg-muted/50 border border-border/50">
+            <button
+              onClick={() => setCommentSort("recent")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                commentSort === "recent" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t("post.sort_recent")}
+            </button>
+            <button
+              onClick={() => setCommentSort("hot")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                commentSort === "hot" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t("post.sort_hot")}
+            </button>
+          </div>
         </div>
 
         {user ? (
@@ -568,6 +638,7 @@ export default function PostDetailPage() {
               onUpdate={handleCommentUpdate} 
               onReply={handleCommentReply}
               onDelete={handleCommentDelete}
+              onLike={handleCommentLike}
             />
           ))}
           {comments.length === 0 && (
