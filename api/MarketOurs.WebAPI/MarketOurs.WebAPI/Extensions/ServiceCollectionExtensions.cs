@@ -25,8 +25,10 @@ public static class ServiceCollectionExtensions
         // Background queue for async DB sync
         services.AddSingleton<LikeMessageQueue>();
         services.AddSingleton<NotificationMessageQueue>();
+        services.AddSingleton<PostReviewMessageQueue>();
         services.AddHostedService<LikeSyncBackgroundService>();
         services.AddHostedService<NotificationSyncBackgroundService>();
+        services.AddHostedService<PostReviewBackgroundService>();
         services.AddHostedService<DailyHotListBackgroundService>();
 
         // Services

@@ -62,9 +62,15 @@ public class PostController(IPostService postService) : ControllerBase
     [AllowAnonymous]
     public async Task<ApiResponse<PostDto>> GetById(string id)
     {
-        await postService.IncrementWatchAsync(id);
         var post = await postService.GetByIdAsync(id);
-        return post == null ? ApiResponse<PostDto>.Fail(404, "帖子不存在") : ApiResponse<PostDto>.Success(post, "获取成功");
+        if (post == null)
+        {
+            return ApiResponse<PostDto>.Fail(404, "帖子不存在");
+        }
+
+        await postService.IncrementWatchAsync(id);
+        post.Watch += 1;
+        return ApiResponse<PostDto>.Success(post, "获取成功");
     }
 
     /// <summary>
@@ -89,7 +95,7 @@ public class PostController(IPostService postService) : ControllerBase
             return ApiResponse<PostDto>.Fail(500, "创建失败，用户可能不存在");
         }
 
-        return ApiResponse<PostDto>.Success(post, "创建成功");
+        return ApiResponse<PostDto>.Success(post, "创建成功，正在审核");
     }
 
     /// <summary>
@@ -108,7 +114,7 @@ public class PostController(IPostService postService) : ControllerBase
             return ApiResponse<PostDto>.Fail(401, "未授权");
         }
 
-        var existingPost = await postService.GetByIdAsync(id);
+        var existingPost = await postService.GetByIdIncludingPendingAsync(id);
         if (existingPost == null)
         {
             return ApiResponse<PostDto>.Fail(404, "帖子不存在");
@@ -126,7 +132,7 @@ public class PostController(IPostService postService) : ControllerBase
             return ApiResponse<PostDto>.Fail(500, "更新失败");
         }
 
-        return ApiResponse<PostDto>.Success(post, "更新成功");
+        return ApiResponse<PostDto>.Success(post, "更新成功，正在重新审核");
     }
 
     /// <summary>
@@ -144,7 +150,7 @@ public class PostController(IPostService postService) : ControllerBase
             return ApiResponse.Fail(401, "未授权");
         }
 
-        var existingPost = await postService.GetByIdAsync(id);
+        var existingPost = await postService.GetByIdIncludingPendingAsync(id);
         if (existingPost == null)
         {
             return ApiResponse.Fail(404, "帖子不存在");

@@ -12,6 +12,7 @@ public interface IPostRepo
     Task<int> CountByUserIdAsync(string userId);
     Task<List<PostModel>> GetHotAsync(int count);
     Task<PostModel?> GetByIdAsync(string id);
+    Task<PostModel?> GetReviewedByIdAsync(string id);
     Task<List<PostModel>?> GetByDateAsync(DateTime before, DateTime after);
     Task<List<UserModel>?> GetLikeUsersAsync(string id);
     Task<List<UserModel>?> GetLikeUsersAsync(string id, DateTime before, DateTime after);
@@ -24,6 +25,7 @@ public interface IPostRepo
 
     Task CreateAsync(PostModel post);
     Task UpdateAsync(PostModel post);
+    Task SetReviewStatusAsync(string id, bool isReview);
 
     Task SetLikesAsync(UserModel user, string id);
     Task SetDislikesAsync(UserModel user, string id);
@@ -54,7 +56,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     public async Task<int> CountAsync()
     {
         await using var context = await factory.CreateDbContextAsync();
-        return await context.Posts.CountAsync();
+        return await context.Posts.CountAsync(x => x.IsReview);
     }
 
     public async Task<List<PostModel>> GetByUserIdAsync(string userId, int pageIndex, int pageSize)
@@ -80,6 +82,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
             .Include(x => x.User)
+            .Where(x => x.IsReview)
             .OrderByDescending(x => x.Watch + (x.Likes * 3) - (x.Dislikes * 2))
             .Take(count)
             .ToListAsync();
@@ -91,6 +94,15 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         return await context.Posts
             .Include(x => x.User)
             .Where(x => x.Id == id)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<PostModel?> GetReviewedByIdAsync(string id)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Posts
+            .Include(x => x.User)
+            .Where(x => x.Id == id && x.IsReview)
             .FirstOrDefaultAsync();
     }
 
@@ -177,6 +189,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
                 return await context.Posts
                     .FromSqlRaw("SELECT * FROM posts WHERE posts @@@ {0}", keyword)
                     .Include(x => x.User)
+                    .Where(x => x.IsReview)
                     .OrderByDescending(x => x.CreatedAt)
                     .Skip((pageIndex - 1) * pageSize)
                     .Take(pageSize)
@@ -186,7 +199,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
             {
                 // 如果 ParadeDB 索引未就绪，则回退到 ILike 搜索
                 return await context.Posts
-                    .Where(x => EF.Functions.ILike(x.Title + " " + x.Content, $"%{keyword}%"))
+                    .Where(x => x.IsReview && EF.Functions.ILike(x.Title + " " + x.Content, $"%{keyword}%"))
                     .Include(x => x.User)
                     .OrderByDescending(x => x.CreatedAt)
                     .Skip((pageIndex - 1) * pageSize)
@@ -197,7 +210,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
 
         // SQLite 或其他数据库回退：简单关键词匹配
         return await context.Posts
-            .Where(x => x.Title.Contains(keyword) || x.Content.Contains(keyword))
+            .Where(x => x.IsReview && (x.Title.Contains(keyword) || x.Content.Contains(keyword)))
             .Include(x => x.User)
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
@@ -215,18 +228,19 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
             {
                 return await context.Posts
                     .FromSqlRaw("SELECT * FROM posts WHERE posts @@@ {0}", keyword)
+                    .Where(x => x.IsReview)
                     .CountAsync();
             }
             catch
             {
                 return await context.Posts
-                    .Where(x => EF.Functions.ILike(x.Title + " " + x.Content, $"%{keyword}%"))
+                    .Where(x => x.IsReview && EF.Functions.ILike(x.Title + " " + x.Content, $"%{keyword}%"))
                     .CountAsync();
             }
         }
 
         return await context.Posts
-            .Where(x => x.Title.Contains(keyword) || x.Content.Contains(keyword))
+            .Where(x => x.IsReview && (x.Title.Contains(keyword) || x.Content.Contains(keyword)))
             .CountAsync();
     }
 
@@ -242,6 +256,19 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         context.Posts.Update(post);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task SetReviewStatusAsync(string id, bool isReview)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        var post = await context.Posts.FirstOrDefaultAsync(x => x.Id == id);
+        if (post == null)
+        {
+            return;
+        }
+
+        post.IsReview = isReview;
         await context.SaveChangesAsync();
     }
 

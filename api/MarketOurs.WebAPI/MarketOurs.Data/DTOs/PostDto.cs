@@ -61,6 +61,11 @@ public class PostDto
     /// 浏览量
     /// </summary>
     public int Watch { get; set; }
+    
+    /// <summary>
+    /// 是否通过审核
+    /// </summary>
+    public bool IsReview { get; set; }
 }
 
 /// <summary>
@@ -118,4 +123,9 @@ public class PostUpdateDto
     /// 图片列表
     /// </summary>
     public List<string> Images { get; set; } = [];
+    
+    /// <summary>
+    /// 是否通过审核
+    /// </summary>
+    public bool IsReview { get; set; }
 }

@@ -4,6 +4,7 @@ using System.Text.Json;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Repos;
+using MarketOurs.DataAPI.Services.Background;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -44,6 +45,13 @@ public interface IPostService
     /// <param name="id">帖子ID</param>
     /// <returns>帖子DTO，不存在则返回null</returns>
     Task<PostDto?> GetByIdAsync(string id);
+
+    /// <summary>
+    /// 根据ID获取帖子详情，包含待审核帖子
+    /// </summary>
+    /// <param name="id">帖子ID</param>
+    /// <returns>帖子DTO，不存在则返回null</returns>
+    Task<PostDto?> GetByIdIncludingPendingAsync(string id);
 
     /// <summary>
     /// 创建新帖子
@@ -109,7 +117,8 @@ public class PostService(
     IDistributedCache distributedCache,
     IMemoryCache memoryCache,
     IEnumerable<IConnectionMultiplexer> redisEnumerable,
-    ILogger<PostService> logger) : IPostService
+    ILogger<PostService> logger,
+    PostReviewMessageQueue? postReviewQueue = null) : IPostService
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
     private static readonly SemaphoreSlim CacheLock = new(1, 1);
@@ -253,7 +262,7 @@ public class PostService(
 
                 if (dto == null)
                 {
-                    var post = await postRepo.GetByIdAsync(id);
+                    var post = await postRepo.GetReviewedByIdAsync(id);
                     if (post == null) return null;
                     dto = MapToDto(post);
 
@@ -291,6 +300,12 @@ public class PostService(
         // Create a new instance if needed, but FillDynamicData modifies it in-place which might be a race condition if multiple awaiters run it concurrently.
         // Wait, FillDynamicData modifies dto.Likes, etc. The original code also modified it in-place.
         return await FillDynamicData(resultDto);
+    }
+
+    public async Task<PostDto?> GetByIdIncludingPendingAsync(string id)
+    {
+        var post = await postRepo.GetByIdAsync(id);
+        return post == null ? null : await FillDynamicData(MapToDto(post));
     }
 
     private async Task<PostDto> FillDynamicData(PostDto dto)
@@ -353,11 +368,17 @@ public class PostService(
             UpdatedAt = DateTime.UtcNow,
             Likes = 0,
             Dislikes = 0,
-            Watch = 0
+            Watch = 0,
+            IsReview = false
         };
 
         await postRepo.CreateAsync(post);
         InvalidateGlobalCaches();
+        if (postReviewQueue != null)
+        {
+            await postReviewQueue.EnqueueAsync(new PostReviewMessage(post.Id));
+        }
+
         return MapToDto(post);
     }
 
@@ -370,9 +391,15 @@ public class PostService(
         post.Content = updateDto.Content;
         post.Images = updateDto.Images;
         post.UpdatedAt = DateTime.UtcNow;
+        post.IsReview = false;
 
         await postRepo.UpdateAsync(post);
         InvalidateCache(id);
+        if (postReviewQueue != null)
+        {
+            await postReviewQueue.EnqueueAsync(new PostReviewMessage(post.Id));
+        }
+
         return MapToDto(post);
     }
 
@@ -549,7 +576,8 @@ public class PostService(
             } : null,
             Likes = post.Likes,
             Dislikes = post.Dislikes,
-            Watch = post.Watch
+            Watch = post.Watch,
+            IsReview = post.IsReview,
         };
     }
 }

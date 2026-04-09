@@ -122,6 +122,7 @@ export interface PostDto {
   likes: number;
   dislikes: number;
   watch: number;
+  isReview: boolean;
 }
 
 export interface PostCreateDto {
@@ -135,6 +136,7 @@ export interface PostUpdateDto {
   title: string;
   content: string;
   images?: string[];
+  isReview: boolean;
 }
 
 /**
