@@ -77,7 +77,7 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
         if (string.IsNullOrWhiteSpace(account)) return null;
 
         await using var context = await factory.CreateDbContextAsync();
-        
+
         return await context.Users
             .Where(x => account.Contains('@') ? x.Email == account : x.Phone == account) // 如果含有 @ 的话就是 email
             .FirstOrDefaultAsync();
@@ -86,9 +86,9 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
     public async Task<UserModel?> GetByThirdPartyIdAsync(string provider, string providerId)
     {
         if (string.IsNullOrWhiteSpace(providerId)) return null;
-        
+
         await using var context = await factory.CreateDbContextAsync();
-        
+
         return provider.ToLower() switch
         {
             "github" => await context.Users.FirstOrDefaultAsync(x => x.GithubId == providerId),
@@ -170,14 +170,15 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
     public async Task CreateAsync(UserModel user)
     {
         await using var context = await factory.CreateDbContextAsync();
-        
-        var account = string.IsNullOrEmpty(user.Email)  ? user.Phone : user.Email;
 
-        if (await context.Users.AnyAsync(x => account.Contains('@') ? x.Email == account : x.Phone == account))
+        var account = string.IsNullOrEmpty(user.Email) ? user.Phone : user.Email;
+
+        if (await context.Users.AnyAsync(x =>
+                account.Contains('@') ? x.Email == account : x.Phone == account || x.Name == user.Name))
         {
             throw new AuthException(ErrorCode.ResourceAlreadyExists, "已有相关验证");
         }
-        
+
         user.Id = user.GetHashKey();
         await context.Users.AddAsync(user);
         await context.SaveChangesAsync();

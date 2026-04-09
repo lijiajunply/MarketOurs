@@ -7,8 +7,6 @@ namespace MarketOurs.DataAPI.Services;
 public interface IAdminService
 {
     Task<AdminOverviewDto> GetOverviewAsync();
-    Task<AdminSettingsDto> GetSettingsAsync();
-    Task<AdminSettingsDto> UpdateSettingsAsync(AdminSettingsDto request);
     Task<UserDto?> UpdateUserStatusAsync(string id, bool isActive);
 }
 
@@ -23,7 +21,6 @@ public class AdminService(IAdminRepo adminRepo) : IAdminService
         var activeUsersTask = adminRepo.GetActiveUsersAsync();
         var totalPostsTask = adminRepo.GetTotalPostsAsync();
         var postsCreatedTask = adminRepo.GetPostsCreatedSinceAsync(sevenDaysAgo);
-        var settingsTask = adminRepo.GetOrCreateSystemSettingsAsync();
         var postCountsTask = adminRepo.GetDailyPostCountsAsync(sevenDaysAgo, now.Date);
         var userCountsTask = adminRepo.GetDailyUserCountsAsync(sevenDaysAgo, now.Date);
         var recentActivitiesTask = adminRepo.GetRecentActivitiesAsync();
@@ -35,7 +32,6 @@ public class AdminService(IAdminRepo adminRepo) : IAdminService
             activeUsersTask,
             totalPostsTask,
             postsCreatedTask,
-            settingsTask,
             postCountsTask,
             userCountsTask,
             recentActivitiesTask,
@@ -44,7 +40,6 @@ public class AdminService(IAdminRepo adminRepo) : IAdminService
 
         var (totalLogs, errorLogs) = await logStatsTask;
         var (blacklistHits, cacheHits) = await hitStatsTask;
-        var settings = await settingsTask;
 
         return new AdminOverviewDto
         {
@@ -57,33 +52,8 @@ public class AdminService(IAdminRepo adminRepo) : IAdminService
             BlacklistHits = blacklistHits,
             CacheHits = cacheHits,
             PostTrend = BuildTrend(sevenDaysAgo, now.Date, await postCountsTask, await userCountsTask),
-            RecentActivities = MapRecentActivities(await recentActivitiesTask),
-            SystemSummary = MapToSummaryDto(settings)
+            RecentActivities = MapRecentActivities(await recentActivitiesTask)
         };
-    }
-
-    public async Task<AdminSettingsDto> GetSettingsAsync()
-    {
-        var settings = await adminRepo.GetOrCreateSystemSettingsAsync();
-        return MapToSettingsDto(settings);
-    }
-
-    public async Task<AdminSettingsDto> UpdateSettingsAsync(AdminSettingsDto request)
-    {
-        var settings = await adminRepo.GetOrCreateSystemSettingsAsync();
-
-        settings.SiteName = request.SiteName.Trim();
-        settings.AllowRegistration = request.AllowRegistration;
-        settings.MaintenanceMode = request.MaintenanceMode;
-        settings.MaxPostImages = request.MaxPostImages;
-        settings.AutoApprovePosts = request.AutoApprovePosts;
-        settings.SupportEmail = request.SupportEmail.Trim();
-        settings.Announcement = request.Announcement.Trim();
-        settings.UpdatedAt = DateTime.UtcNow;
-
-        await adminRepo.UpdateSystemSettingsAsync(settings);
-
-        return MapToSettingsDto(settings);
     }
 
     public async Task<UserDto?> UpdateUserStatusAsync(string id, bool isActive)
@@ -127,32 +97,6 @@ public class AdminService(IAdminRepo adminRepo) : IAdminService
             Description = activity.Description,
             Timestamp = activity.Timestamp
         }).ToList();
-    }
-
-    private static AdminSettingsDto MapToSettingsDto(SystemSettingsModel settings)
-    {
-        return new AdminSettingsDto
-        {
-            SiteName = settings.SiteName,
-            AllowRegistration = settings.AllowRegistration,
-            MaintenanceMode = settings.MaintenanceMode,
-            MaxPostImages = settings.MaxPostImages,
-            AutoApprovePosts = settings.AutoApprovePosts,
-            SupportEmail = settings.SupportEmail,
-            Announcement = settings.Announcement
-        };
-    }
-
-    private static AdminSystemSummaryDto MapToSummaryDto(SystemSettingsModel settings)
-    {
-        return new AdminSystemSummaryDto
-        {
-            SiteName = settings.SiteName,
-            AllowRegistration = settings.AllowRegistration,
-            MaintenanceMode = settings.MaintenanceMode,
-            MaxPostImages = settings.MaxPostImages,
-            AutoApprovePosts = settings.AutoApprovePosts
-        };
     }
 
     private static UserDto MapToUserDto(UserModel user)

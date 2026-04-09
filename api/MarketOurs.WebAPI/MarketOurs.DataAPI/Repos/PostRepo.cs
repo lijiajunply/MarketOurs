@@ -44,6 +44,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
             .Include(x => x.User)
+            .Where(x => x.IsReview)
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)

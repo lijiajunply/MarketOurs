@@ -13,7 +13,7 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
     public DbSet<PostModel> Posts { get; set; }
     public DbSet<CommentModel> Commits { get; set; }
     public DbSet<NotificationModel> Notifications { get; set; }
-    public DbSet<SystemSettingsModel> SystemSettings { get; set; }
+    public DbSet<SensitiveWordModel> SensitiveWords { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,6 +58,10 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
             .WithOne(x => x.ParentComment)
             .HasForeignKey(x => x.ParentCommentId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SensitiveWordModel>()
+            .HasIndex(x => x.Word)
+            .IsUnique();
     }
 }
 

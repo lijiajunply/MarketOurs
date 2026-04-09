@@ -3,6 +3,7 @@ using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.DataAPI.Services.Background;
 using MarketOurs.WebAPI.Services;
+using Microsoft.SemanticKernel;
 
 namespace MarketOurs.WebAPI.Extensions;
 
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICommentRepo, CommentRepo>();
         services.AddScoped<INotificationRepo, NotificationRepo>();
         services.AddScoped<IAdminRepo, AdminRepo>();
+        services.AddScoped<ISensitiveWordRepo, SensitiveWordRepo>();
 
         // Background queue for async DB sync
         services.AddSingleton<LikeMessageQueue>();
@@ -41,6 +43,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILoginService, LoginService>();
         services.AddScoped<IAIService, AIService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<ISensitiveWordService, SensitiveWordService>();
 
         services.AddScoped<IJwtService, JwtService>();
     }
@@ -107,7 +110,9 @@ public static class ServiceCollectionExtensions
             Endpoint = Environment.GetEnvironmentVariable("AI_ENDPOINT"),
             OrgId = Environment.GetEnvironmentVariable("AI_ORG_ID"),
             Provider = Environment.GetEnvironmentVariable("AI_PROVIDER") ?? "OpenAI",
-            DeploymentName = Environment.GetEnvironmentVariable("AI_DEPLOYMENT_NAME")
+            DeploymentName = Environment.GetEnvironmentVariable("AI_DEPLOYMENT_NAME"),
+            ContentSafetyEndpoint = Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_ENDPOINT"),
+            ContentSafetyApiKey = Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_API_KEY")
         };
 
         var smsConfig = new SmsConfig()
@@ -124,5 +129,29 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(aiConfig);
         services.AddSingleton(smsConfig);
         services.AddSingleton<RsaKeyManager>();
+        
+        var kernelBuilder = services.AddKernel();
+        if (aiConfig.Provider?.Equals("AzureOpenAI", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            kernelBuilder.AddAzureOpenAIChatCompletion(
+                aiConfig.DeploymentName ?? "gpt-4o",
+                aiConfig.Endpoint ?? string.Empty,
+                aiConfig.ApiKey ?? string.Empty,
+                aiConfig.ModelId ?? "gpt-4o");
+        }
+        else // Default to OpenAI
+        {
+            kernelBuilder.AddOpenAIChatCompletion(
+                aiConfig.ModelId ?? "gpt-4o",
+                aiConfig.ApiKey ?? string.Empty,
+                aiConfig.OrgId);
+        }
+
+        if (!string.IsNullOrEmpty(aiConfig.ContentSafetyEndpoint) && !string.IsNullOrEmpty(aiConfig.ContentSafetyApiKey))
+        {
+            services.AddSingleton(new Azure.AI.ContentSafety.ContentSafetyClient(
+                new Uri(aiConfig.ContentSafetyEndpoint),
+                new Azure.AzureKeyCredential(aiConfig.ContentSafetyApiKey)));
+        }
     }
 }

@@ -231,14 +231,6 @@ export interface AdminRecentActivityDto {
   timestamp: string;
 }
 
-export interface AdminSystemSummaryDto {
-  siteName: string;
-  allowRegistration: boolean;
-  maintenanceMode: boolean;
-  maxPostImages: number;
-  autoApprovePosts: boolean;
-}
-
 export interface AdminOverviewDto {
   totalUsers: number;
   activeUsers: number;
@@ -250,17 +242,6 @@ export interface AdminOverviewDto {
   cacheHits: number;
   postTrend: AdminTrendPointDto[];
   recentActivities: AdminRecentActivityDto[];
-  systemSummary: AdminSystemSummaryDto;
-}
-
-export interface AdminSettingsDto {
-  siteName: string;
-  allowRegistration: boolean;
-  maintenanceMode: boolean;
-  maxPostImages: number;
-  autoApprovePosts: boolean;
-  supportEmail: string;
-  announcement: string;
 }
 
 export interface UpdateUserStatusRequest {

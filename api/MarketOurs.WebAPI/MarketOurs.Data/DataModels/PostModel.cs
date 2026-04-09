@@ -80,6 +80,11 @@ public class PostModel : DataModel
     public int Watch { get; set; }
 
     /// <summary>
+    /// 是否通过审核
+    /// </summary>
+    public bool IsReview { get; set; }
+
+    /// <summary>
     /// 更新实体属性
     /// </summary>
     /// <param name="model">源模型</param>

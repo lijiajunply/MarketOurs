@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace MarketOurs.Data.DTOs;
 
 public class AdminOverviewDto
@@ -23,8 +21,6 @@ public class AdminOverviewDto
     public List<AdminTrendPointDto> PostTrend { get; set; } = [];
 
     public List<AdminRecentActivityDto> RecentActivities { get; set; } = [];
-
-    public AdminSystemSummaryDto SystemSummary { get; set; } = new();
 }
 
 public class AdminTrendPointDto
@@ -47,42 +43,6 @@ public class AdminRecentActivityDto
     public string Description { get; set; } = string.Empty;
 
     public DateTime Timestamp { get; set; }
-}
-
-public class AdminSystemSummaryDto
-{
-    public string SiteName { get; set; } = "MarketOurs";
-
-    public bool AllowRegistration { get; set; } = true;
-
-    public bool MaintenanceMode { get; set; }
-
-    public int MaxPostImages { get; set; } = 9;
-
-    public bool AutoApprovePosts { get; set; } = true;
-}
-
-public class AdminSettingsDto
-{
-    [Required]
-    [MaxLength(128)]
-    public string SiteName { get; set; } = "MarketOurs";
-
-    public bool AllowRegistration { get; set; } = true;
-
-    public bool MaintenanceMode { get; set; }
-
-    [Range(1, 20)]
-    public int MaxPostImages { get; set; } = 9;
-
-    public bool AutoApprovePosts { get; set; } = true;
-
-    [EmailAddress]
-    [MaxLength(512)]
-    public string SupportEmail { get; set; } = string.Empty;
-
-    [MaxLength(1024)]
-    public string Announcement { get; set; } = string.Empty;
 }
 
 public class UpdateUserStatusRequest

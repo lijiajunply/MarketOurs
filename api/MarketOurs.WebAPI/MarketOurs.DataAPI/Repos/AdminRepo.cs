@@ -12,8 +12,6 @@ public interface IAdminRepo
     Task<int> GetActiveUsersAsync();
     Task<int> GetTotalPostsAsync();
     Task<int> GetPostsCreatedSinceAsync(DateTime since);
-    Task<SystemSettingsModel> GetOrCreateSystemSettingsAsync();
-    Task UpdateSystemSettingsAsync(SystemSettingsModel settings);
     Task<UserModel?> GetUserByIdAsync(string id);
     Task UpdateUserAsync(UserModel user);
     Task<Dictionary<DateTime, int>> GetDailyPostCountsAsync(DateTime startDate, DateTime endDate);
@@ -51,29 +49,6 @@ public class AdminRepo(
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Posts.CountAsync(post => post.CreatedAt >= since);
-    }
-
-    public async Task<SystemSettingsModel> GetOrCreateSystemSettingsAsync()
-    {
-        await using var context = await dbContextFactory.CreateDbContextAsync();
-
-        var settings = await context.SystemSettings.FirstOrDefaultAsync(item => item.Id == "default");
-        if (settings != null)
-        {
-            return settings;
-        }
-
-        settings = new SystemSettingsModel();
-        context.SystemSettings.Add(settings);
-        await context.SaveChangesAsync();
-        return settings;
-    }
-
-    public async Task UpdateSystemSettingsAsync(SystemSettingsModel settings)
-    {
-        await using var context = await dbContextFactory.CreateDbContextAsync();
-        context.SystemSettings.Update(settings);
-        await context.SaveChangesAsync();
     }
 
     public async Task<UserModel?> GetUserByIdAsync(string id)

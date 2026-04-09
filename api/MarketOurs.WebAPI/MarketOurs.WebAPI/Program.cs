@@ -10,7 +10,6 @@ using MarketOurs.WebAPI.Filters;
 using MarketOurs.WebAPI.IdentityModels;
 using MarketOurs.WebAPI.Middlewares;
 using MarketOurs.WebAPI.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;

@@ -2,7 +2,6 @@ import { apiClient } from './apiClient';
 import type {
   AddIpRequest,
   AdminOverviewDto,
-  AdminSettingsDto,
   BlacklistStats,
   IpCheckResult,
   LogDistribution,
@@ -63,12 +62,6 @@ export const adminService = {
 
   getOverview: () =>
     apiClient.get<AdminOverviewDto>('/Admin/overview'),
-
-  getSettings: () =>
-    apiClient.get<AdminSettingsDto>('/Admin/settings'),
-
-  updateSettings: (data: AdminSettingsDto) =>
-    apiClient.put<AdminSettingsDto>('/Admin/settings', data),
 
   updateUserStatus: (id: string, data: UpdateUserStatusRequest) =>
     apiClient.put<UserDto>(`/Admin/users/${id}/status`, data),
