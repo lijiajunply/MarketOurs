@@ -6,12 +6,24 @@ namespace MarketOurs.DataAPI.Repos;
 
 public interface ISensitiveWordRepo
 {
+    /// <summary>
+    /// 获取数据
+    /// </summary>
+    /// <returns></returns>
     Task<List<string>> GetEnabledWordsAsync();
+    
+    /// <summary>
+    /// 如果为空的话进行保存
+    /// </summary>
+    /// <param name="words"></param>
+    /// <param name="category"></param>
+    /// <returns></returns>
     Task SeedIfEmptyAsync(IEnumerable<string> words, string category = "seed");
 }
 
 public class SensitiveWordRepo(IDbContextFactory<MarketContext> dbContextFactory) : ISensitiveWordRepo
 {
+    /// <inheritdoc/>
     public async Task<List<string>> GetEnabledWordsAsync()
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
@@ -22,6 +34,7 @@ public class SensitiveWordRepo(IDbContextFactory<MarketContext> dbContextFactory
             .ToListAsync();
     }
 
+    /// <inheritdoc/>
     public async Task SeedIfEmptyAsync(IEnumerable<string> words, string category = "seed")
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
