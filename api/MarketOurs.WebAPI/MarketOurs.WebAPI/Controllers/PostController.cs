@@ -245,4 +245,23 @@ public class PostController(IPostService postService) : ControllerBase
         var results = await postService.SearchAsync(@params);
         return ApiResponse<PagedResultDto<PostDto>>.Success(results, $"成功找到 {results.TotalCount} 条相关内容");
     }
+
+    /// <summary>
+    /// 审核帖子 (仅限管理员)
+    /// </summary>
+    /// <param name="id">帖子 ID</param>
+    /// <param name="request">审核请求对象</param>
+    /// <returns>操作后的帖子数据</returns>
+    [HttpPut("{id}/review")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ApiResponse<PostDto>> ReviewPost(string id, [FromBody] UpdatePostReviewRequest request)
+    {
+        var post = await postService.UpdateReviewAsync(id, request.IsReview);
+        if (post == null)
+        {
+            return ApiResponse<PostDto>.Fail(404, "帖子不存在");
+        }
+
+        return ApiResponse<PostDto>.Success(post, "审核成功");
+    }
 }

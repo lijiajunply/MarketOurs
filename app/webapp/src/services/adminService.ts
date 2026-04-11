@@ -66,6 +66,9 @@ export const adminService = {
   updateUserStatus: (id: string, data: UpdateUserStatusRequest) =>
     apiClient.put<UserDto>(`/Admin/users/${id}/status`, data),
 
+  updatePostReview: (id: string, data: { isReview: boolean }) =>
+    apiClient.put<PostDto>(`/Post/${id}/review`, data),
+
   getUsers: (pageIndex: number = 1, pageSize: number = 10, keyword?: string) => {
     const params = new URLSearchParams({
       PageIndex: pageIndex.toString(),

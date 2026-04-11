@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Search, Eye, Trash2 } from "lucide-react"
+import { Search, Eye, Trash2, CheckCircle, XCircle } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 import { adminService } from "../../services/adminService"
@@ -81,6 +81,22 @@ export default function AdminPostsPage() {
     }
   }
 
+  const handleToggleReview = async (post: PostDto) => {
+    try {
+      setActivePostId(post.id)
+      setMessage(null)
+      setError(null)
+      await adminService.updatePostReview(post.id, { isReview: !post.isReview })
+
+      await refreshCurrentPage()
+      setMessage(t(post.isReview ? "admin.posts.review_reverted" : "admin.posts.review_approved"))
+    } catch (err) {
+      setError(getErrorMessage(err, t("admin.common.action_error")))
+    } finally {
+      setActivePostId(null)
+    }
+  }
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -152,15 +168,34 @@ export default function AdminPostsPage() {
                         {post.author?.name || t("common.null")}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-500">
-                          {t("admin.posts.status_active")}
-                        </span>
+                        {post.isReview ? (
+                          <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-500">
+                            {t("admin.posts.status_active")}
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-500">
+                            {t("admin.posts.status_pending")}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {formatDate(post.createdAt)}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            disabled={isBusy}
+                            className={`rounded-lg p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                              post.isReview
+                                ? "text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500"
+                                : "text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-500"
+                            }`}
+                            title={post.isReview ? t("admin.posts.action_unapprove") : t("admin.posts.action_approve")}
+                            onClick={() => void handleToggleReview(post)}
+                          >
+                            {post.isReview ? <XCircle size={18} /> : <CheckCircle size={18} />}
+                          </button>
                           <Link
                             to={`/post/${post.id}`}
                             className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

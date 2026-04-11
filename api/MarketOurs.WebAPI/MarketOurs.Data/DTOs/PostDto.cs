@@ -129,3 +129,8 @@ public class PostUpdateDto
     /// </summary>
     public bool IsReview { get; set; }
 }
+
+public class UpdatePostReviewRequest
+{
+    public bool IsReview { get; set; }
+}

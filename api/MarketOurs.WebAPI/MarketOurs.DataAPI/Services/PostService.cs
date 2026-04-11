@@ -108,6 +108,14 @@ public interface IPostService
     /// <param name="params">包含关键词的分页参数</param>
     /// <returns>搜索结果分页对象</returns>
     Task<PagedResultDto<PostDto>> SearchAsync(PaginationParams @params);
+
+    /// <summary>
+    /// 更新帖子审核状态
+    /// </summary>
+    /// <param name="id">帖子 ID</param>
+    /// <param name="isReview">是否审核通过</param>
+    /// <returns>操作后的帖子DTO</returns>
+    Task<PostDto?> UpdateReviewAsync(string id, bool isReview);
 }
 
 public class PostService(
@@ -503,8 +511,8 @@ public class PostService(
             return PagedResultDto<PostDto>.Success([], 0, @params.PageIndex, @params.PageSize);
 
         var totalCount = await postRepo.SearchCountAsync(@params.Keyword);
-        var posts = await postRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize);
-        var dtos = posts.Select(MapToDto).ToList();
+        var results = await postRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize);
+        var dtos = results.Select(MapToDto).ToList();
 
         foreach (var dto in dtos)
         {
@@ -512,9 +520,23 @@ public class PostService(
         }
 
         return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
-    }
+        }
 
-    private async Task<int> GetPostWatchAsync(string postId, int fallbackCount)
+        public async Task<PostDto?> UpdateReviewAsync(string id, bool isReview)
+        {
+        var post = await postRepo.GetByIdAsync(id);
+        if (post == null) return null;
+
+        post.IsReview = isReview;
+        post.UpdatedAt = DateTime.UtcNow;
+
+        await postRepo.UpdateAsync(post);
+        InvalidateCache(id);
+        return MapToDto(post);
+        }
+
+        private async Task<int> GetPostWatchAsync(string postId, int fallbackCount)
+
     {
         if (_redis == null) return fallbackCount;
         try
@@ -568,7 +590,7 @@ public class PostService(
             CreatedAt = post.CreatedAt,
             UpdatedAt = post.UpdatedAt,
             UserId = post.UserId,
-            Author = post.User != null ? new UserSimpleDto
+            Author = post.User != null! ? new UserSimpleDto
             {
                 Id = post.User.Id,
                 Name = post.User.Name,

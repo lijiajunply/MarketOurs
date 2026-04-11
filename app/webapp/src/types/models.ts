@@ -250,6 +250,10 @@ export interface UpdateUserStatusRequest {
   isActive: boolean;
 }
 
+export interface UpdatePostReviewRequest {
+  isReview: boolean;
+}
+
 /**
  * Notification Models
  */
