@@ -75,22 +75,22 @@ public static class ServiceCollectionExtensions
         var jwtConfig = new JwtConfig
         {
             AccessTokenExpiryMinutes =
-                int.TryParse(Environment.GetEnvironmentVariable("JWT_ACCESS_TOKEN_EXPIRY_MINUTES"),
+                int.TryParse(Environment.GetEnvironmentVariable("JWT_ACCESS_TOKEN_EXPIRY_MINUTES", EnvironmentVariableTarget.Process),
                     out var accessTokenExpiry)
                     ? accessTokenExpiry
                     : 20,
             RefreshTokenExpiryHours =
-                int.TryParse(Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRY_HOURS"),
+                int.TryParse(Environment.GetEnvironmentVariable("JWT_REFRESH_TOKEN_EXPIRY_HOURS", EnvironmentVariableTarget.Process),
                     out var refreshTokenExpiry)
                     ? refreshTokenExpiry
                     : 72,
-            RsaPrivateKeyPath = Environment.GetEnvironmentVariable("JWT_RSA_PRIVATE_KEY_PATH") ??
+            RsaPrivateKeyPath = Environment.GetEnvironmentVariable("JWT_RSA_PRIVATE_KEY_PATH", EnvironmentVariableTarget.Process) ??
                                 "./keys/rsa_private.pem",
             RsaPublicKeyPath = Environment.GetEnvironmentVariable("JWT_RSA_PUBLIC_KEY_PATH") ??
                                "./keys/rsa_public.pem",
-            Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "MarketOurs",
-            Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "MarketOurs",
-            KeyRotationDays = int.TryParse(Environment.GetEnvironmentVariable("JWT_KEY_ROTATION_DAYS"),
+            Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER", EnvironmentVariableTarget.Process) ?? "MarketOurs",
+            Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE", EnvironmentVariableTarget.Process) ?? "MarketOurs",
+            KeyRotationDays = int.TryParse(Environment.GetEnvironmentVariable("JWT_KEY_ROTATION_DAYS", EnvironmentVariableTarget.Process),
                 out var keyRotationDays)
                 ? keyRotationDays
                 : 90
@@ -98,32 +98,32 @@ public static class ServiceCollectionExtensions
 
         var emailConfig = new EmailConfig()
         {
-            Host = Environment.GetEnvironmentVariable("EMAIL_HOST") ?? "localhost",
-            Port = Convert.ToInt32(Environment.GetEnvironmentVariable("EMAIL_PORT") ?? "564"),
-            Username = Environment.GetEnvironmentVariable("EMAIL_USERNAME"),
-            Password = Environment.GetEnvironmentVariable("EMAIL_PASSWORD"),
+            Host = Environment.GetEnvironmentVariable("EMAIL_HOST", EnvironmentVariableTarget.Process) ?? "localhost",
+            Port = Convert.ToInt32(Environment.GetEnvironmentVariable("EMAIL_PORT", EnvironmentVariableTarget.Process) ?? "564"),
+            Username = Environment.GetEnvironmentVariable("EMAIL_USERNAME", EnvironmentVariableTarget.Process),
+            Password = Environment.GetEnvironmentVariable("EMAIL_PASSWORD", EnvironmentVariableTarget.Process),
             Email = Environment.GetEnvironmentVariable("EMAIL")
         };
 
         var aiConfig = new AIConfig
         {
-            ApiKey = Environment.GetEnvironmentVariable("AI_API_KEY"),
-            ModelId = Environment.GetEnvironmentVariable("AI_MODEL_ID") ?? "gpt-4o",
-            Endpoint = Environment.GetEnvironmentVariable("AI_ENDPOINT"),
-            OrgId = Environment.GetEnvironmentVariable("AI_ORG_ID"),
-            Provider = Environment.GetEnvironmentVariable("AI_PROVIDER") ?? "OpenAI",
-            DeploymentName = Environment.GetEnvironmentVariable("AI_DEPLOYMENT_NAME"),
-            ContentSafetyEndpoint = Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_ENDPOINT"),
-            ContentSafetyApiKey = Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_API_KEY")
+            ApiKey = Environment.GetEnvironmentVariable("AI_API_KEY", EnvironmentVariableTarget.Process),
+            ModelId = Environment.GetEnvironmentVariable("AI_MODEL_ID", EnvironmentVariableTarget.Process) ?? "gpt-4o",
+            Endpoint = Environment.GetEnvironmentVariable("AI_ENDPOINT", EnvironmentVariableTarget.Process),
+            OrgId = Environment.GetEnvironmentVariable("AI_ORG_ID", EnvironmentVariableTarget.Process),
+            Provider = Environment.GetEnvironmentVariable("AI_PROVIDER", EnvironmentVariableTarget.Process) ?? "OpenAI",
+            DeploymentName = Environment.GetEnvironmentVariable("AI_DEPLOYMENT_NAME", EnvironmentVariableTarget.Process),
+            ContentSafetyEndpoint = Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_ENDPOINT", EnvironmentVariableTarget.Process),
+            ContentSafetyApiKey = Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_API_KEY", EnvironmentVariableTarget.Process)
         };
 
         var smsConfig = new SmsConfig()
         {
-            AccessKeyId = Environment.GetEnvironmentVariable("SMS_ACCESSKEY_ID") ?? "",
-            AccessKeySecret = Environment.GetEnvironmentVariable("SMS_ACCESSKEY_SECRET") ?? "",
-            Signature = Environment.GetEnvironmentVariable("SMS_SIGNATURE") ?? "MarketOurs",
-            Endpoint = Environment.GetEnvironmentVariable("SMS_ENDPOINT") ?? "uni.apistd.com",
-            SigningAlgorithm = Environment.GetEnvironmentVariable("SMS_SIGNING_ALGORITHM") ?? "hmac-sha256",
+            AccessKeyId = Environment.GetEnvironmentVariable("SMS_ACCESSKEY_ID", EnvironmentVariableTarget.Process) ?? "",
+            AccessKeySecret = Environment.GetEnvironmentVariable("SMS_ACCESSKEY_SECRET", EnvironmentVariableTarget.Process) ?? "",
+            Signature = Environment.GetEnvironmentVariable("SMS_SIGNATURE", EnvironmentVariableTarget.Process) ?? "MarketOurs",
+            Endpoint = Environment.GetEnvironmentVariable("SMS_ENDPOINT", EnvironmentVariableTarget.Process) ?? "uni.apistd.com",
+            SigningAlgorithm = Environment.GetEnvironmentVariable("SMS_SIGNING_ALGORITHM", EnvironmentVariableTarget.Process) ?? "hmac-sha256",
         };
 
         services.AddSingleton(jwtConfig);

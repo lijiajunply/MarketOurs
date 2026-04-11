@@ -4,7 +4,7 @@ public class TrieNode
 {
     // 子节点：Key 为字符，Value 为对应的子节点
     public Dictionary<char, TrieNode> Children { get; set; } = new();
-    
+
     // 标记当前节点是否为一个敏感词的结尾
     public bool IsEnd { get; set; }
 }
@@ -27,22 +27,29 @@ public class SensitiveWordFilter
         var current = _root;
         foreach (var ch in word)
         {
-            if (!current.Children.ContainsKey(ch))
+            if (!current.Children.TryGetValue(ch, out var value))
             {
-                current.Children[ch] = new TrieNode();
+                value = new TrieNode();
+                current.Children[ch] = value;
             }
-            current = current.Children[ch];
+
+            current = value;
         }
+
         current.IsEnd = true;
     }
 
-    // 仅检测是否存在敏感词（性能极高，用于快速前置审核）
+    /// <summary>
+    /// 检测是否存在敏感词
+    /// </summary>
+    /// <param name="text">文本</param>
+    /// <returns>是否存在</returns>
     public bool HasSensitiveWord(string text)
     {
-        for (int i = 0; i < text.Length; i++)
+        for (var i = 0; i < text.Length; i++)
         {
-            TrieNode current = _root;
-            for (int j = i; j < text.Length; j++)
+            var current = _root;
+            for (var j = i; j < text.Length; j++)
             {
                 if (!current.Children.TryGetValue(text[j], out var next))
                 {
@@ -53,6 +60,7 @@ public class SensitiveWordFilter
                 if (current.IsEnd) return true;
             }
         }
+
         return false;
     }
 }

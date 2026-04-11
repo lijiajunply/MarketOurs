@@ -471,7 +471,8 @@ using (var scope = app.Services.CreateScope())
                 Name = "root",
                 Password = "123456".StringToHash(),
                 Role = "Admin",
-                Phone = "101010101"
+                Phone = "101010101",
+                Email = "adminTest@marketours.com"
             };
             var users = user?.Split(',');
             if (!string.IsNullOrEmpty(user) && users != null)
