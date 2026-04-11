@@ -62,7 +62,7 @@ public class CommentService(
     ILikeManager likeManager,
     IMemoryCache memoryCache,
     IDistributedCache distributedCache,
-    DataAPI.Services.Background.NotificationMessageQueue notificationQueue,
+    Background.NotificationMessageQueue notificationQueue,
     ILogger<CommentService> logger) : ICommentService
 {
     private static readonly TimeSpan LocalCacheTtl = TimeSpan.FromMinutes(1);
@@ -188,7 +188,7 @@ public class CommentService(
                 var post = await postRepo.GetByIdAsync(comment.PostId);
                 if (post != null && post.UserId != comment.UserId)
                 {
-                    notificationQueue.Enqueue(new DataAPI.Services.Background.NotificationMessage
+                    notificationQueue.Enqueue(new Background.NotificationMessage
                     {
                         UserId = post.UserId,
                         Title = "你的贴子收到了新评论",
@@ -204,11 +204,11 @@ public class CommentService(
                 var parentComment = await commentRepo.GetByIdAsync(comment.ParentCommentId);
                 if (parentComment != null && parentComment.UserId != comment.UserId)
                 {
-                    notificationQueue.Enqueue(new DataAPI.Services.Background.NotificationMessage
+                    notificationQueue.Enqueue(new Background.NotificationMessage
                     {
                         UserId = parentComment.UserId,
                         Title = "你的评论收到了回复",
-                        Content = $"{commenter.Name} 回复了你: {comment.Content.Substring(0, Math.Min(comment.Content.Length, 20))}...",
+                        Content = $"{commenter.Name} 回复了你: {comment.Content[..Math.Min(comment.Content.Length, 20)]}...",
                         Type = NotificationType.CommentReply,
                         TargetId = comment.PostId // 指向贴子
                     });

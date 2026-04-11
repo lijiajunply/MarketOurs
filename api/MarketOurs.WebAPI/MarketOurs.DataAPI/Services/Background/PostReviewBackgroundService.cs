@@ -1,3 +1,4 @@
+using MarketOurs.Data.DataModels;
 using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Repos;
 using Microsoft.Extensions.Caching.Distributed;
@@ -11,6 +12,7 @@ namespace MarketOurs.DataAPI.Services.Background;
 public class PostReviewBackgroundService(
     PostReviewMessageQueue queue,
     IServiceScopeFactory scopeFactory,
+    NotificationMessageQueue notificationQueue,
     IMemoryCache memoryCache,
     IDistributedCache distributedCache,
     ILogger<PostReviewBackgroundService> logger) : BackgroundService
@@ -38,6 +40,14 @@ public class PostReviewBackgroundService(
                 var isApproved = string.IsNullOrWhiteSpace(reviewResult);
 
                 await postRepo.SetReviewStatusAsync(message.PostId, isApproved);
+                notificationQueue.Enqueue(new NotificationMessage()
+                {
+                    UserId = post.UserId,
+                    Type = NotificationType.Review,
+                    Content = isApproved ? "审核通过" : reviewResult,
+                    TargetId = post.Id,
+                    Title = "审核信息"
+                });
                 InvalidatePostCaches(message.PostId);
 
                 logger.LogInformation(

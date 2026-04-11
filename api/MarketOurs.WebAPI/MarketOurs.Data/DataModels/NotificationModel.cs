@@ -26,7 +26,12 @@ public enum NotificationType
     /// <summary>
     /// 系统全局消息
     /// </summary>
-    System
+    System,
+    
+    /// <summary>
+    /// 审核
+    /// </summary>
+    Review,
 }
 
 /// <summary>
@@ -84,7 +89,7 @@ public class NotificationModel : DataModel
     /// <summary>
     /// 是否已读
     /// </summary>
-    public bool IsRead { get; set; } = false;
+    public bool IsRead { get; set; }
 
     /// <summary>
     /// 创建时间
