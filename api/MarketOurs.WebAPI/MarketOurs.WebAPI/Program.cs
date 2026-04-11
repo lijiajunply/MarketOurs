@@ -390,6 +390,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+
+#region 中间件
+
 // 注册全局异常处理中间件
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
@@ -398,6 +401,8 @@ app.UseMiddleware<DataMaskingMiddleware>();
 
 // 限流中间件
 app.UseMiddleware<RateLimitMiddleware>();
+
+#endregion
 
 // 配置安全响应头
 app.Use(async (context, next) =>

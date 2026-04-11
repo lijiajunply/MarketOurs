@@ -448,7 +448,7 @@ public class PostService(
         }
 
         var comments = await postRepo.GetCommentsAsync(id, type);
-        if (comments == null || !comments.Any()) return [];
+        if (comments == null || comments.Count == 0) return [];
 
         var allDtos = comments.Select(CommentService.MapToDto).ToList();
 
@@ -488,10 +488,9 @@ public class PostService(
             else
                 list.Sort((a, b) => b.UpdatedAt.CompareTo(a.UpdatedAt));
 
-            foreach (var comment in list)
+            foreach (var comment in list.Where(comment => comment.RepliedComments.Count != 0))
             {
-                if (comment.RepliedComments.Any())
-                    SortComments(comment.RepliedComments);
+                SortComments(comment.RepliedComments);
             }
         }
 
@@ -507,7 +506,7 @@ public class PostService(
 
     public async Task<PagedResultDto<PostDto>> SearchAsync(PaginationParams @params)
     {
-        if (string.IsNullOrWhiteSpace(@params.Keyword)) 
+        if (string.IsNullOrWhiteSpace(@params.Keyword))
             return PagedResultDto<PostDto>.Success([], 0, @params.PageIndex, @params.PageSize);
 
         var totalCount = await postRepo.SearchCountAsync(@params.Keyword);
@@ -520,10 +519,10 @@ public class PostService(
         }
 
         return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
-        }
+    }
 
-        public async Task<PostDto?> UpdateReviewAsync(string id, bool isReview)
-        {
+    public async Task<PostDto?> UpdateReviewAsync(string id, bool isReview)
+    {
         var post = await postRepo.GetByIdAsync(id);
         if (post == null) return null;
 
@@ -533,9 +532,9 @@ public class PostService(
         await postRepo.UpdateAsync(post);
         InvalidateCache(id);
         return MapToDto(post);
-        }
+    }
 
-        private async Task<int> GetPostWatchAsync(string postId, int fallbackCount)
+    private async Task<int> GetPostWatchAsync(string postId, int fallbackCount)
 
     {
         if (_redis == null) return fallbackCount;
@@ -548,7 +547,8 @@ public class PostService(
             {
                 return Math.Max(count, fallbackCount);
             }
-            else if (fallbackCount > 0)
+
+            if (fallbackCount > 0)
             {
                 await db.StringSetAsync(watchKey, fallbackCount.ToString());
             }
@@ -590,12 +590,14 @@ public class PostService(
             CreatedAt = post.CreatedAt,
             UpdatedAt = post.UpdatedAt,
             UserId = post.UserId,
-            Author = post.User != null! ? new UserSimpleDto
-            {
-                Id = post.User.Id,
-                Name = post.User.Name,
-                Avatar = post.User.Avatar
-            } : null,
+            Author = post.User != null!
+                ? new UserSimpleDto
+                {
+                    Id = post.User.Id,
+                    Name = post.User.Name,
+                    Avatar = post.User.Avatar
+                }
+                : null,
             Likes = post.Likes,
             Dislikes = post.Dislikes,
             Watch = post.Watch,
