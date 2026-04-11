@@ -77,9 +77,11 @@ public class CommentServiceTests
     {
         // Arrange
         var user = new UserModel { Id = "user_1" };
+        var post = new PostModel { Id = "post_1", UserId = "author_1" };
         var createDto = new CommentCreateDto { UserId = "user_1", PostId = "post_1", Content = "New Comment" };
         
         _mockUserRepo.Setup(r => r.GetByIdAsync("user_1")).ReturnsAsync(user);
+        _mockPostRepo.Setup(r => r.GetByIdAsync("post_1")).ReturnsAsync(post);
         CommentModel? createdComment = null;
         _mockCommentRepo.Setup(r => r.CreateAsync(It.IsAny<CommentModel>()))
             .Callback<CommentModel>(c => createdComment = c)

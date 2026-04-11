@@ -1,4 +1,5 @@
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.WebAPI.Controllers;
 using Moq;
@@ -74,7 +75,7 @@ public class PostControllerTests : ControllerTestBase
         // Arrange
         var createDto = new PostCreateDto { Title = "New Post" };
         var createdPost = new PostDto { Id = "1", Title = "New Post", UserId = "1" };
-        _mockPostService.Setup(s => s.CreateAsync(createDto)).ReturnsAsync(createdPost);
+        _mockPostService.Setup(s => s.CreateAsync(It.IsAny<PostCreateDto>())).ReturnsAsync(createdPost);
 
         // Act
         var result = await _controller.Create(createDto);
@@ -93,7 +94,7 @@ public class PostControllerTests : ControllerTestBase
         var existingPost = new PostDto { Id = "1", UserId = "1" };
         var updatedPost = new PostDto { Id = "1", Title = "Updated", UserId = "1" };
         
-        _mockPostService.Setup(s => s.GetByIdAsync("1")).ReturnsAsync(existingPost);
+        _mockPostService.Setup(s => s.GetByIdIncludingPendingAsync("1")).ReturnsAsync(existingPost);
         _mockPostService.Setup(s => s.UpdateAsync("1", updateDto)).ReturnsAsync(updatedPost);
 
         // Act
@@ -105,18 +106,19 @@ public class PostControllerTests : ControllerTestBase
     }
 
     [Test]
-    public async Task Update_WhenUserIsNotAuthorAndNotAdmin_ShouldReturn403()
+    public void Update_WhenUserIsNotAuthorAndNotAdmin_ShouldThrowForbiddenException()
     {
         // Arrange
         var updateDto = new PostUpdateDto { Title = "Updated" };
         var existingPost = new PostDto { Id = "1", UserId = "other_user" };
-        _mockPostService.Setup(s => s.GetByIdAsync("1")).ReturnsAsync(existingPost);
+        _mockPostService.Setup(s => s.GetByIdIncludingPendingAsync("1")).ReturnsAsync(existingPost);
 
         // Act
-        var result = await _controller.Update("1", updateDto);
+        var ex = Assert.ThrowsAsync<AuthException>(async () => await _controller.Update("1", updateDto));
 
         // Assert
-        Assert.That(result.ErrorCode, Is.EqualTo(403));
+        Assert.That(ex!.ErrorCode, Is.EqualTo(ErrorCode.InsufficientPermission));
+        Assert.That(ex.HttpStatusCode, Is.EqualTo(403));
     }
 
     [Test]
@@ -125,7 +127,7 @@ public class PostControllerTests : ControllerTestBase
         // Arrange
         SetupUser(_controller, "admin_id", "Admin");
         var existingPost = new PostDto { Id = "1", UserId = "user_id" };
-        _mockPostService.Setup(s => s.GetByIdAsync("1")).ReturnsAsync(existingPost);
+        _mockPostService.Setup(s => s.GetByIdIncludingPendingAsync("1")).ReturnsAsync(existingPost);
         _mockPostService.Setup(s => s.DeleteAsync("1")).Returns(Task.CompletedTask);
 
         // Act

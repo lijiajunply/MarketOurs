@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Repos;
 using MarketOurs.DataAPI.Services.Background;
 using Microsoft.Extensions.Caching.Distributed;
@@ -58,7 +59,7 @@ public interface IPostService
     /// </summary>
     /// <param name="createDto">创建参数</param>
     /// <returns>创建成功的帖子DTO</returns>
-    Task<PostDto?> CreateAsync(PostCreateDto createDto);
+    Task<PostDto> CreateAsync(PostCreateDto createDto);
 
     /// <summary>
     /// 更新帖子内容
@@ -66,7 +67,7 @@ public interface IPostService
     /// <param name="id">帖子ID</param>
     /// <param name="updateDto">更新参数</param>
     /// <returns>更新后的帖子DTO</returns>
-    Task<PostDto?> UpdateAsync(string id, PostUpdateDto updateDto);
+    Task<PostDto> UpdateAsync(string id, PostUpdateDto updateDto);
 
     /// <summary>
     /// 删除帖子
@@ -115,7 +116,7 @@ public interface IPostService
     /// <param name="id">帖子 ID</param>
     /// <param name="isReview">是否审核通过</param>
     /// <returns>操作后的帖子DTO</returns>
-    Task<PostDto?> UpdateReviewAsync(string id, bool isReview);
+    Task<PostDto> UpdateReviewAsync(string id, bool isReview);
 }
 
 public class PostService(
@@ -361,10 +362,10 @@ public class PostService(
         }
     }
 
-    public async Task<PostDto?> CreateAsync(PostCreateDto createDto)
+    public async Task<PostDto> CreateAsync(PostCreateDto createDto)
     {
         var user = await userRepo.GetByIdAsync(createDto.UserId);
-        if (user == null) return null;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         var post = new PostModel
         {
@@ -390,10 +391,10 @@ public class PostService(
         return MapToDto(post);
     }
 
-    public async Task<PostDto?> UpdateAsync(string id, PostUpdateDto updateDto)
+    public async Task<PostDto> UpdateAsync(string id, PostUpdateDto updateDto)
     {
         var post = await postRepo.GetByIdAsync(id);
-        if (post == null) return null;
+        if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
 
         post.Title = updateDto.Title;
         post.Content = updateDto.Content;
@@ -413,6 +414,8 @@ public class PostService(
 
     public async Task DeleteAsync(string id)
     {
+        var post = await postRepo.GetByIdAsync(id);
+        if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
         await postRepo.DeleteAsync(id);
         InvalidateCache(id);
     }
@@ -421,20 +424,18 @@ public class PostService(
     public async Task SetLikesAsync(string userId, string postId)
     {
         var post = await postRepo.GetByIdAsync(postId);
-        if (post != null)
-        {
-            await likeManager.SetPostLikeAsync(postId, userId);
-            // Dynamic data fills automatically, no need to invalidate DTO cache
-        }
+        if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
+
+        await likeManager.SetPostLikeAsync(postId, userId);
+        // Dynamic data fills automatically, no need to invalidate DTO cache
     }
 
     public async Task SetDislikesAsync(string userId, string postId)
     {
         var post = await postRepo.GetByIdAsync(postId);
-        if (post != null)
-        {
-            await likeManager.SetPostDislikeAsync(postId, userId);
-        }
+        if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
+
+        await likeManager.SetPostDislikeAsync(postId, userId);
     }
 
     /// <inheritdoc/>
@@ -521,10 +522,10 @@ public class PostService(
         return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
-    public async Task<PostDto?> UpdateReviewAsync(string id, bool isReview)
+    public async Task<PostDto> UpdateReviewAsync(string id, bool isReview)
     {
         var post = await postRepo.GetByIdAsync(id);
-        if (post == null) return null;
+        if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
 
         post.IsReview = isReview;
         post.UpdatedAt = DateTime.UtcNow;

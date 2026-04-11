@@ -150,7 +150,7 @@ public class LoginService(
 
         if (!user.IsActive)
         {
-            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用");
+            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用", 403);
         }
 
         return await GenerateTokenForUser(user, deviceType);
@@ -238,19 +238,13 @@ public class LoginService(
         var db = _redis?.GetDatabase();
 
         if (db == null) throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis服务未找到");
-        var id = "";
         var idRedis = await db.StringGetAsync(CacheKeys.UserRefreshToken(token));
-        if (idRedis.HasValue)
-        {
-            id = idRedis;
-        }
+        if (!idRedis.HasValue) throw new AuthException(ErrorCode.InvalidToken, "刷新令牌无效或已过期");
 
-        if (string.IsNullOrEmpty(id)) return new TokenDto();
-
-        var user = await userService.GetByIdAsync(id);
+        var user = await userService.GetByIdAsync(idRedis.ToString());
         if (user is not { IsActive: true })
         {
-            return new TokenDto();
+            throw new AuthException(ErrorCode.InvalidToken, "刷新令牌无效或已过期");
         }
 
         // 刷新 Token 时重新生成一对令牌
@@ -292,7 +286,7 @@ public class LoginService(
         var existingUser = await userService.GetByAccountAsync(request.Account);
         if (existingUser != null)
         {
-            throw new AuthException(ErrorCode.ResourceAlreadyExists, "账号已存在");
+            throw new BusinessException(ErrorCode.AccountAlreadyExists, "账号已存在", 409, null);
         }
 
         // 2. 生成预注册令牌
@@ -316,7 +310,7 @@ public class LoginService(
     /// <inheritdoc/>
     public async Task<bool> SendRegistrationCodeAsync(string regToken)
     {
-        if (_redis == null) return false;
+        if (_redis == null) throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
         var db = _redis.GetDatabase();
 
         // 1. 从 Redis 获取预注册数据
@@ -327,7 +321,7 @@ public class LoginService(
         }
 
         var request = JsonSerializer.Deserialize<UserCreateDto>(json.ToString());
-        if (request == null) return false;
+        if (request == null) throw new BusinessException(ErrorCode.DataProcessingFailed, "解析注册信息失败");
 
         // 2. 生成 6 位随机验证码
         var isEmail = request.Account.Contains('@');
@@ -343,8 +337,10 @@ public class LoginService(
         if (isEmail)
         {
             var subject = "欢迎加入 MarketOurs - 验证您的注册信息";
-            return await emailService.SendEmailWithTemplateAsync(request.Account, subject, UserService.VerificationEmailTemplate,
+            var sent = await emailService.SendEmailWithTemplateAsync(request.Account, subject, UserService.VerificationEmailTemplate,
                 new { token = code });
+            if (!sent) throw new BusinessException(ErrorCode.ExternalServiceFailed, "注册验证码发送失败");
+            return true;
         }
 
         try
@@ -362,12 +358,17 @@ public class LoginService(
                 }
             });
 
-            return response is UniResponse { Code: "0" };
+            if (response is not UniResponse { Code: "0" })
+            {
+                throw new BusinessException(ErrorCode.ExternalServiceFailed, "注册验证码发送失败");
+            }
+
+            return true;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "发送注册短信验证码失败: {Account}", request.Account);
-            return false;
+            throw new BusinessException(ErrorCode.ExternalServiceFailed, "注册验证码发送失败", innerException: ex);
         }
     }
 
@@ -424,8 +425,10 @@ public class LoginService(
         if (isEmail)
         {
             var subject = "MarketOurs - 登录验证码";
-            return await emailService.SendEmailWithTemplateAsync(account, subject, UserService.VerificationEmailTemplate,
+            var sent = await emailService.SendEmailWithTemplateAsync(account, subject, UserService.VerificationEmailTemplate,
                 new { token = code });
+            if (!sent) throw new BusinessException(ErrorCode.ExternalServiceFailed, "登录验证码发送失败");
+            return true;
         }
 
         try
@@ -442,12 +445,17 @@ public class LoginService(
                 }
             });
 
-            return response is UniResponse { Code: "0" };
+            if (response is not UniResponse { Code: "0" })
+            {
+                throw new BusinessException(ErrorCode.ExternalServiceFailed, "登录验证码发送失败");
+            }
+
+            return true;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "发送登录验证码失败: {Account}", account);
-            return false;
+            throw new BusinessException(ErrorCode.ExternalServiceFailed, "登录验证码发送失败", innerException: ex);
         }
     }
 
@@ -479,7 +487,7 @@ public class LoginService(
         }
         else if (!user.IsActive)
         {
-            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用");
+            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用", 403);
         }
 
         // 3. 清理验证码

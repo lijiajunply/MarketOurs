@@ -1,6 +1,7 @@
 using MarketOurs.DataAPI.Configs;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Repos;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -32,12 +33,12 @@ public interface ICommentService
     /// <summary>
     /// 创建新评论 (支持回复)
     /// </summary>
-    Task<CommentDto?> CreateAsync(CommentCreateDto createDto);
+    Task<CommentDto> CreateAsync(CommentCreateDto createDto);
 
     /// <summary>
     /// 更新评论内容
     /// </summary>
-    Task<CommentDto?> UpdateAsync(string id, CommentUpdateDto updateDto);
+    Task<CommentDto> UpdateAsync(string id, CommentUpdateDto updateDto);
 
     /// <summary>
     /// 删除评论
@@ -156,10 +157,20 @@ public class CommentService(
         return dto;
     }
 
-    public async Task<CommentDto?> CreateAsync(CommentCreateDto createDto)
+    public async Task<CommentDto> CreateAsync(CommentCreateDto createDto)
     {
         var user = await userRepo.GetByIdAsync(createDto.UserId);
-        if (user == null) return null;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
+        var post = await postRepo.GetByIdAsync(createDto.PostId);
+        if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
+        if (!string.IsNullOrEmpty(createDto.ParentCommentId))
+        {
+            var parentComment = await commentRepo.GetByIdAsync(createDto.ParentCommentId);
+            if (parentComment == null)
+            {
+                throw new ResourceAccessException(ErrorCode.ParentCommentNotFound, "要回复的评论不存在");
+            }
+        }
 
         var comment = new CommentModel
         {
@@ -185,8 +196,7 @@ public class CommentService(
             if (string.IsNullOrEmpty(comment.ParentCommentId))
             {
                 // 贴子主评论，通知贴子作者
-                var post = await postRepo.GetByIdAsync(comment.PostId);
-                if (post != null && post.UserId != comment.UserId)
+                if (post.UserId != comment.UserId)
                 {
                     notificationQueue.Enqueue(new Background.NotificationMessage
                     {
@@ -223,10 +233,10 @@ public class CommentService(
         return MapToDto(comment);
     }
 
-    public async Task<CommentDto?> UpdateAsync(string id, CommentUpdateDto updateDto)
+    public async Task<CommentDto> UpdateAsync(string id, CommentUpdateDto updateDto)
     {
         var comment = await commentRepo.GetByIdAsync(id);
-        if (comment == null) return null;
+        if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
 
         comment.Content = updateDto.Content;
         comment.Images = updateDto.Images;
@@ -241,30 +251,27 @@ public class CommentService(
     public async Task DeleteAsync(string id)
     {
         var comment = await commentRepo.GetByIdAsync(id);
-        if (comment != null)
-        {
-            await commentRepo.DeleteAsync(id);
-            InvalidateCache(id, comment.PostId);
-        }
+        if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
+
+        await commentRepo.DeleteAsync(id);
+        InvalidateCache(id, comment.PostId);
     }
 
     public async Task SetLikesAsync(string userId, string commentId)
     {
         var comment = await commentRepo.GetByIdAsync(commentId);
-        if (comment != null)
-        {
-            await likeManager.SetCommentLikeAsync(commentId, userId);
-            // 互动操作不需要清除 DTO 缓存，因为 FillDynamicData 会实时获取最新计数
-        }
+        if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
+
+        await likeManager.SetCommentLikeAsync(commentId, userId);
+        // 互动操作不需要清除 DTO 缓存，因为 FillDynamicData 会实时获取最新计数
     }
 
     public async Task SetDislikesAsync(string userId, string commentId)
     {
         var comment = await commentRepo.GetByIdAsync(commentId);
-        if (comment != null)
-        {
-            await likeManager.SetCommentDislikeAsync(commentId, userId);
-        }
+        if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
+
+        await likeManager.SetCommentDislikeAsync(commentId, userId);
     }
 
     private void InvalidateCache(string id, string postId)

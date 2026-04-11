@@ -58,11 +58,82 @@ public class GlobalExceptionMiddleware
                 context.Request.ContentLength
             };
 
-            // 记录异常日志，包含请求上下文信息
-            _logger.LogError(ex, "Unhandled exception occurred. Request: {@RequestInfo}", requestInfo);
+            LogException(ex, requestInfo);
 
             await HandleExceptionAsync(context, ex, requestId);
         }
+    }
+
+    private void LogException(Exception exception, object requestInfo)
+    {
+        var (level, statusCode, errorCode) = GetLogMetadata(exception);
+
+        var message =
+            "Request failed. StatusCode: {StatusCode}, ErrorCode: {ErrorCode}, ExceptionType: {ExceptionType}, Request: {@RequestInfo}";
+
+        switch (level)
+        {
+            case LogLevel.Information:
+                _logger.LogInformation(message, statusCode, errorCode, exception.GetType().Name, requestInfo);
+                break;
+            case LogLevel.Warning:
+                _logger.LogWarning(exception, message, statusCode, errorCode, exception.GetType().Name, requestInfo);
+                break;
+            default:
+                _logger.LogError(exception, message, statusCode, errorCode, exception.GetType().Name, requestInfo);
+                break;
+        }
+    }
+
+    private static (LogLevel level, int statusCode, int errorCode) GetLogMetadata(Exception exception)
+    {
+        var statusCode = exception switch
+        {
+            CustomException customException => customException.HttpStatusCode,
+            ArgumentNullException => (int)HttpStatusCode.BadRequest,
+            ArgumentException => (int)HttpStatusCode.BadRequest,
+            InvalidOperationException => (int)HttpStatusCode.BadRequest,
+            KeyNotFoundException => (int)HttpStatusCode.NotFound,
+            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+            System.Security.Authentication.AuthenticationException => (int)HttpStatusCode.Unauthorized,
+            SecurityTokenExpiredException => (int)HttpStatusCode.Unauthorized,
+            FluentValidation.ValidationException => (int)HttpStatusCode.BadRequest,
+            Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException => (int)HttpStatusCode.Conflict,
+            Microsoft.EntityFrameworkCore.DbUpdateException => (int)HttpStatusCode.BadRequest,
+            HttpRequestException => (int)HttpStatusCode.ServiceUnavailable,
+            TimeoutException => (int)HttpStatusCode.RequestTimeout,
+            OperationCanceledException => (int)HttpStatusCode.ServiceUnavailable,
+            _ => (int)HttpStatusCode.InternalServerError
+        };
+
+        var errorCode = exception switch
+        {
+            CustomException customException => customException.ErrorCode,
+            ArgumentNullException => ErrorCode.ParameterEmpty,
+            ArgumentException => ErrorCode.ParameterFormatError,
+            InvalidOperationException => ErrorCode.InvalidStatusForOperation,
+            KeyNotFoundException => ErrorCode.ResourceNotFound,
+            UnauthorizedAccessException => ErrorCode.Unauthorized,
+            System.Security.Authentication.AuthenticationException => ErrorCode.InvalidToken,
+            SecurityTokenExpiredException => ErrorCode.TokenExpired,
+            FluentValidation.ValidationException => ErrorCode.ParameterValidationFailed,
+            Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException => ErrorCode.DataProcessingFailed,
+            Microsoft.EntityFrameworkCore.DbUpdateException => ErrorCode.DataProcessingFailed,
+            HttpRequestException => ErrorCode.NetworkError,
+            TimeoutException => ErrorCode.ExternalServiceTimeout,
+            OperationCanceledException => ErrorCode.OperationFailed,
+            _ => ErrorCode.InternalServerError
+        };
+
+        var level = statusCode switch
+        {
+            401 or 403 or 404 => LogLevel.Information,
+            400 or 409 or 429 => LogLevel.Warning,
+            _ when statusCode >= 500 => LogLevel.Error,
+            _ => LogLevel.Warning
+        };
+
+        return (level, statusCode, errorCode);
     }
 
     /// <summary>
@@ -81,7 +152,8 @@ public class GlobalExceptionMiddleware
             Code = (int)HttpStatusCode.InternalServerError,
             ErrorCode = ErrorCode.InternalServerError,
             Message = "服务器内部错误",
-            Data = null
+            Data = null,
+            RequestId = requestId
         };
 
         // 根据不同异常类型设置不同的错误码和消息
@@ -115,24 +187,24 @@ public class GlobalExceptionMiddleware
 
             // 处理访问权限不足异常
             case ResourceAccessException accessEx:
-                response.Code = (int)HttpStatusCode.Forbidden;
-                response.ErrorCode = ErrorCode.InsufficientPermission;
+                response.Code = accessEx.HttpStatusCode;
+                response.ErrorCode = accessEx.ErrorCode;
                 response.Message = accessEx.Message;
                 response.Detail = accessEx.Detail;
                 break;
 
             // 处理业务异常
             case BusinessException businessEx:
-                response.Code = (int)HttpStatusCode.BadRequest;
-                response.ErrorCode = ErrorCode.OperationFailed;
+                response.Code = businessEx.HttpStatusCode;
+                response.ErrorCode = businessEx.ErrorCode;
                 response.Message = businessEx.Message;
                 response.Detail = businessEx.Detail;
                 break;
 
             // 处理身份认证异常
             case AuthException authEx:
-                response.Code = (int)HttpStatusCode.Unauthorized;
-                response.ErrorCode = ErrorCode.Unauthorized;
+                response.Code = authEx.HttpStatusCode;
+                response.ErrorCode = authEx.ErrorCode;
                 response.Message = authEx.Message;
                 response.Detail = authEx.Detail;
                 break;
@@ -189,7 +261,7 @@ public class GlobalExceptionMiddleware
 
             case SecurityTokenExpiredException:
                 response.Code = (int)HttpStatusCode.Unauthorized;
-                response.ErrorCode = ErrorCode.InvalidToken;
+                response.ErrorCode = ErrorCode.TokenExpired;
                 response.Message = "访问令牌已过期";
                 break;
 

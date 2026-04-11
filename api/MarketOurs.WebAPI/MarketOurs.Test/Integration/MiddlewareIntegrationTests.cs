@@ -1,8 +1,10 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using MarketOurs.DataAPI.Configs;
 using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.WebAPI.Middlewares;
+using MarketOurs.WebAPI.Controllers;
 using MarketOurs.WebAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -319,6 +321,12 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
         await middleware.InvokeAsync(context);
 
         Assert.That(context.Response.StatusCode, Is.EqualTo(StatusCodes.Status401Unauthorized));
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var response = JsonSerializer.Deserialize<ApiResponse<object>>(await new StreamReader(context.Response.Body).ReadToEndAsync(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.ErrorCode, Is.EqualTo(ErrorCode.Unauthorized));
+        Assert.That(response.Code, Is.EqualTo(StatusCodes.Status401Unauthorized));
         return;
 
         Task Next(HttpContext ctx) =>
@@ -338,6 +346,11 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
         await middleware.InvokeAsync(context);
 
         Assert.That(context.Response.StatusCode, Is.EqualTo(StatusCodes.Status404NotFound));
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var response = JsonSerializer.Deserialize<ApiResponse<object>>(await new StreamReader(context.Response.Body).ReadToEndAsync(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.ErrorCode, Is.EqualTo(ErrorCode.ResourceNotFound));
         return;
 
         Task Next(HttpContext ctx) => throw new KeyNotFoundException("Resource not found");
@@ -355,6 +368,11 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
         await middleware.InvokeAsync(context);
 
         Assert.That(context.Response.StatusCode, Is.EqualTo(StatusCodes.Status400BadRequest));
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var response = JsonSerializer.Deserialize<ApiResponse<object>>(await new StreamReader(context.Response.Body).ReadToEndAsync(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.ErrorCode, Is.EqualTo(ErrorCode.ParameterEmpty));
         return;
 
         Task Next(HttpContext ctx) => throw new ArgumentNullException("userId");

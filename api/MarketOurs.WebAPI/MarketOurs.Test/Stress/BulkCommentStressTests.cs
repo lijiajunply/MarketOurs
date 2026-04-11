@@ -56,7 +56,9 @@ public class BulkCommentStressTests
         // Arrange
         const int totalComments = 10000;
         var user = new UserModel { Id = "user_1" };
+        var post = new PostModel { Id = "post_1", UserId = "post_owner" };
         _mockUserRepo.Setup(r => r.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(user);
+        _mockPostRepo.Setup(r => r.GetByIdAsync("post_1")).ReturnsAsync(post);
         
         int dbInsertCount = 0;
         _mockCommentRepo.Setup(r => r.CreateAsync(It.IsAny<CommentModel>()))

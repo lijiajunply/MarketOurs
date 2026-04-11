@@ -102,7 +102,7 @@ public class ServiceStressTests
             .Select(i => new PostModel { Id = i.ToString(), Title = $"Post {i}" })
             .ToList();
 
-        _mockPostRepo.Setup(r => r.GetByIdAsync(It.IsAny<string>()))
+        _mockPostRepo.Setup(r => r.GetReviewedByIdAsync(It.IsAny<string>()))
             .ReturnsAsync((string id) => postModels.FirstOrDefault(p => p.Id == id));
         _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync((byte[]?)null);
@@ -123,7 +123,7 @@ public class ServiceStressTests
 
         // Assert
         // Each unique post should hit DB once
-        _mockPostRepo.Verify(r => r.GetByIdAsync(It.IsAny<string>()), Times.Exactly(numUniquePosts));
+        _mockPostRepo.Verify(r => r.GetReviewedByIdAsync(It.IsAny<string>()), Times.Exactly(numUniquePosts));
 
         await TestContext.Out.WriteLineAsync(
             $"Processed {numUniquePosts * requestsPerPost} requests for {numUniquePosts} unique keys in {stopwatch.ElapsedMilliseconds}ms");

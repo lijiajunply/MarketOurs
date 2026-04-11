@@ -165,7 +165,7 @@ public class CacheScenariosTests
         int dbCallCount = 0;
 
         // 模拟数据库返回 null
-        _mockPostRepo.Setup(r => r.GetByIdAsync(fakePostId))
+        _mockPostRepo.Setup(r => r.GetReviewedByIdAsync(fakePostId))
             .Returns(async () =>
             {
                 Interlocked.Increment(ref dbCallCount);
@@ -173,7 +173,7 @@ public class CacheScenariosTests
                 return null;
             });
 
-        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), CancellationToken.None))
+        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((byte[]?)null);
 
         // Act - 发起 100 个并发请求

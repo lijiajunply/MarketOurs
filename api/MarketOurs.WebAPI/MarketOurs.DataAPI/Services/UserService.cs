@@ -68,7 +68,7 @@ public interface IUserService
     /// </summary>
     /// <param name="id">ID</param>
     /// <param name="updateDto">更新数据 DTO</param>
-    Task<UserDto?> UpdateAsync(string id, UserUpdateDto updateDto);
+    Task<UserDto> UpdateAsync(string id, UserUpdateDto updateDto);
 
     /// <summary>
     /// 删除用户
@@ -210,7 +210,7 @@ public class UserService(
         // 只有激活的用户可以登录
         if (!user.IsActive)
         {
-            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用，请先完成验证");
+            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用，请先完成验证", 403);
         }
 
         return MapToDto(user);
@@ -244,7 +244,8 @@ public class UserService(
     public async Task<bool> SendVerificationEmailAsync(string userId)
     {
         var user = await userRepo.GetByIdAsync(userId);
-        if (user == null || string.IsNullOrEmpty(user.Email)) return false;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
+        if (string.IsNullOrEmpty(user.Email)) throw new BusinessException(ErrorCode.ParameterEmpty, "用户未绑定邮箱");
 
         // 生成 6 位随机验证码
         var token = Guid.NewGuid().ToString("N")[..6].ToUpper();
@@ -257,26 +258,28 @@ public class UserService(
         else
         {
             logger.LogWarning("Redis 服务未找到，验证码无法存储。用户: {UserId}", userId);
-            return false;
+            throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
         }
 
         var subject = "欢迎加入 MarketOurs - 邮箱验证";
-        return await emailService.SendEmailWithTemplateAsync(user.Email, subject, VerificationEmailTemplate,
+        var sent = await emailService.SendEmailWithTemplateAsync(user.Email, subject, VerificationEmailTemplate,
             new { token });
+        if (!sent) throw new BusinessException(ErrorCode.ExternalServiceFailed, "邮箱验证码发送失败");
+        return true;
     }
 
     /// <inheritdoc/>
     public async Task<bool> VerifyEmailAsync(string token)
     {
-        if (_redis == null) return false;
+        if (_redis == null) throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
 
         var db = _redis.GetDatabase();
         var userId = await db.StringGetAsync(CacheKeys.VerificationToken(token));
 
-        if (!userId.HasValue) return false;
+        if (!userId.HasValue) throw new AuthException(ErrorCode.InvalidToken, "验证码无效或已过期");
 
         var user = await userRepo.GetByIdAsync(userId.ToString());
-        if (user == null) return false;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         user.IsEmailVerified = true;
         user.IsActive = true;
@@ -291,7 +294,8 @@ public class UserService(
     public async Task<bool> SendPhoneVerificationCodeAsync(string userId)
     {
         var user = await userRepo.GetByIdAsync(userId);
-        if (user == null || string.IsNullOrEmpty(user.Phone)) return false;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
+        if (string.IsNullOrEmpty(user.Phone)) throw new BusinessException(ErrorCode.ParameterEmpty, "用户未绑定手机号");
 
         // 生成 6 位纯数字随机验证码
         var token = new Random().Next(100000, 999999).ToString();
@@ -304,7 +308,7 @@ public class UserService(
         else
         {
             logger.LogWarning("Redis 服务未找到，验证码无法存储。用户: {UserId}", userId);
-            return false;
+            throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
         }
 
         try
@@ -329,27 +333,27 @@ public class UserService(
             }
 
             logger.LogWarning("Failed to send verification code to phone {Phone}", user.Phone);
-            return false;
+            throw new BusinessException(ErrorCode.ExternalServiceFailed, "短信验证码发送失败");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "发送手机验证码异常: {Phone}", user.Phone);
-            return false;
+            throw new BusinessException(ErrorCode.ExternalServiceFailed, "短信验证码发送失败", innerException: ex);
         }
     }
 
     /// <inheritdoc/>
     public async Task<bool> VerifyPhoneCodeAsync(string token)
     {
-        if (_redis == null) return false;
+        if (_redis == null) throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
 
         var db = _redis.GetDatabase();
         var userId = await db.StringGetAsync(CacheKeys.VerificationToken(token));
 
-        if (!userId.HasValue) return false;
+        if (!userId.HasValue) throw new AuthException(ErrorCode.InvalidToken, "验证码无效或已过期");
 
         var user = await userRepo.GetByIdAsync(userId.ToString());
-        if (user == null) return false;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         user.IsPhoneVerified = true;
         user.IsActive = true;
@@ -364,7 +368,7 @@ public class UserService(
     public async Task<bool> ForgotPasswordAsync(string account)
     {
         var user = await userRepo.GetByAccountAsync(account);
-        if (user == null) return false;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "该账号未注册");
 
         var token = Guid.NewGuid().ToString("N")[..6].ToUpper();
 
@@ -376,14 +380,16 @@ public class UserService(
         else
         {
             logger.LogWarning("Redis 服务未找到，重置码无法存储。用户: {Account}", account);
-            return false;
+            throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
         }
 
         if (!string.IsNullOrEmpty(user.Email) && account.Contains('@'))
         {
             var subject = "MarketOurs - 重置密码";
-            return await emailService.SendEmailWithTemplateAsync(user.Email, subject, PasswordResetTemplate,
+            var sent = await emailService.SendEmailWithTemplateAsync(user.Email, subject, PasswordResetTemplate,
                 new { name = user.Name, token });
+            if (!sent) throw new BusinessException(ErrorCode.ExternalServiceFailed, "重置密码邮件发送失败");
+            return true;
         }
 
         if (!string.IsNullOrEmpty(user.Phone))
@@ -401,30 +407,32 @@ public class UserService(
                         ["code"] = token,
                         ["ttl"] = 15
                     }
-                }) is UniResponse { Code: "0" };
+                }) is UniResponse { Code: "0" }
+                    ? true
+                    : throw new BusinessException(ErrorCode.ExternalServiceFailed, "重置密码短信发送失败");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "发送重置密码验证码异常: {Phone}", user.Phone);
-                return false;
+                throw new BusinessException(ErrorCode.ExternalServiceFailed, "重置密码短信发送失败", innerException: ex);
             }
         }
 
-        return false;
+        throw new BusinessException(ErrorCode.OperationFailed, "该账号无法接收重置验证码");
     }
 
     /// <inheritdoc/>
     public async Task<bool> ResetPasswordAsync(string token, string newPassword)
     {
-        if (_redis == null) return false;
+        if (_redis == null) throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis 服务不可用");
 
         var db = _redis.GetDatabase();
         var userId = await db.StringGetAsync(CacheKeys.ResetToken(token));
 
-        if (!userId.HasValue) return false;
+        if (!userId.HasValue) throw new AuthException(ErrorCode.InvalidToken, "验证码无效或已过期");
 
         var user = await userRepo.GetByIdAsync(userId.ToString());
-        if (user == null) return false;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         user.Password = newPassword.StringToHash();
         await userRepo.UpdateAsync(user);
@@ -438,7 +446,7 @@ public class UserService(
     public async Task<bool> UpdatePushTokenAsync(string userId, string token)
     {
         var user = await userRepo.GetByIdAsync(userId);
-        if (user == null) return false;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         user.PushToken = token;
         await userRepo.UpdateAsync(user);
@@ -449,7 +457,9 @@ public class UserService(
     public async Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword)
     {
         var user = await userRepo.GetByIdAsync(userId);
-        if (user == null || !DataTool.IsOk(oldPassword, user.Password)) return false;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
+        if (!DataTool.IsOk(oldPassword, user.Password))
+            throw new ValidationException(ErrorCode.PasswordMismatch, "旧密码错误");
 
         user.Password = newPassword.StringToHash();
         await userRepo.UpdateAsync(user);
@@ -493,10 +503,10 @@ public class UserService(
     }
 
     /// <inheritdoc/>
-    public async Task<UserDto?> UpdateAsync(string id, UserUpdateDto updateDto)
+    public async Task<UserDto> UpdateAsync(string id, UserUpdateDto updateDto)
     {
         var user = await userRepo.GetByIdAsync(id);
-        if (user == null) return null;
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         if (!string.IsNullOrEmpty(updateDto.Name))
             user.Name = updateDto.Name;

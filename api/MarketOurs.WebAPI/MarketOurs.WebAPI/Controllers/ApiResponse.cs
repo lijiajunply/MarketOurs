@@ -65,7 +65,7 @@ namespace MarketOurs.WebAPI.Controllers;
             return new ApiResponse<T>
             {
                 Code = 200,
-                ErrorCode = 0,
+                ErrorCode = MarketOurs.DataAPI.Exceptions.ErrorCode.Success,
                 Message = message,
                 Detail = detail,
                 Data = data,
@@ -124,20 +124,7 @@ namespace MarketOurs.WebAPI.Controllers;
     /// <returns>HTTP状态码</returns>
     protected static int GetHttpStatusCodeFromErrorCode(int errorCode)
     {
-        if (errorCode is >= 1000 and < 2000) // 参数错误
-            return 400;
-        if (errorCode is >= 2000 and < 3000) // 业务逻辑错误
-            return 400;
-        if (errorCode is >= 3000 and < 4000) // 权限错误
-            return 403;
-        if (errorCode is >= 4000 and < 5000) // 资源错误
-            return 404;
-        if (errorCode is >= 5000 and < 6000) // 系统错误
-            return 500;
-        if (errorCode is >= 6000 and < 7000) // 外部服务错误
-            return 500;
-
-        return 400; // 默认返回400
+        return MarketOurs.DataAPI.Exceptions.ErrorCode.ToHttpStatusCode(errorCode);
     }
 }
 
@@ -158,7 +145,7 @@ namespace MarketOurs.WebAPI.Controllers;
             return new ApiResponse
             {
                 Code = 200,
-                ErrorCode = 0,
+                ErrorCode = MarketOurs.DataAPI.Exceptions.ErrorCode.Success,
                 Message = message,
                 Detail = detail,
                 RequestId = requestId,

@@ -64,7 +64,7 @@ public class CacheAvalancheTests
         int dbCallCount = 0;
 
         // Mock DB with a delay to simulate high load/slow response
-        _mockPostRepo.Setup(r => r.GetByIdAsync(postId))
+        _mockPostRepo.Setup(r => r.GetReviewedByIdAsync(postId))
             .Returns(async () => 
             {
                 Interlocked.Increment(ref dbCallCount);
@@ -72,7 +72,7 @@ public class CacheAvalancheTests
                 return post;
             });
 
-        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), CancellationToken.None)).ReturnsAsync((byte[]?)null);
+        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((byte[]?)null);
         _mockLikeManager.Setup(m => m.GetPostLikesAsync(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(0);
 
         // Act
@@ -80,7 +80,7 @@ public class CacheAvalancheTests
         var tasks = new List<Task>();
         for (int i = 0; i < 100; i++)
         {
-            tasks.Add(_postService.GetByIdAsync(postId));
+            tasks.Add(_postService.GetByIdAsync(postId)!);
         }
         await Task.WhenAll(tasks);
 

@@ -30,4 +30,21 @@ public class ResourceAccessException : CustomException
         ResourceName = resourceName;
         ResourceId = resourceId;
     }
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="errorCode">错误代码</param>
+    /// <param name="message">错误消息</param>
+    /// <param name="resourceName">资源名称</param>
+    /// <param name="resourceId">资源ID</param>
+    /// <param name="httpStatusCode">HTTP状态码</param>
+    /// <param name="detail">详细描述</param>
+    /// <param name="innerException">内部异常</param>
+    public ResourceAccessException(int errorCode, string message, string? resourceName, string? resourceId, int httpStatusCode, string? detail = null, Exception? innerException = null)
+        : base(errorCode, message, httpStatusCode, detail, innerException)
+    {
+        ResourceName = resourceName;
+        ResourceId = resourceId;
+    }
 }

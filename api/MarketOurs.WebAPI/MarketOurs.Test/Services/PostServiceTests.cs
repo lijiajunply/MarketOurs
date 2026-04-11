@@ -117,10 +117,10 @@ public class PostServiceTests
     {
         // Arrange
         var post = new PostModel { Id = "1", Title = "Test Post" };
-        _mockPostRepo.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(post);
+        _mockPostRepo.Setup(r => r.GetReviewedByIdAsync("1")).ReturnsAsync(post);
 
         // Mock redis missing the distributed cache
-        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), CancellationToken.None))
+        _mockDistributedCache.Setup(d => d.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((byte[]?)null);
 
         // Act
@@ -180,6 +180,7 @@ public class PostServiceTests
     public async Task DeleteAsync_ShouldCallDeleteOnRepoAndInvalidateCache()
     {
         // Arrange
+        _mockPostRepo.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(new PostModel { Id = "1" });
         _mockPostRepo.Setup(r => r.DeleteAsync("1")).Returns(Task.CompletedTask);
 
         // Act

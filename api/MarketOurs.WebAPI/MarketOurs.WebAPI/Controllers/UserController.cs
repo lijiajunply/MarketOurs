@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.WebAPI.Filters;
 using Microsoft.AspNetCore.Authorization;
@@ -59,10 +60,7 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     {
         logger.LogInformation("Admin requested user: {Id}", id);
         var user = await userService.GetByIdAsync(id);
-        if (user == null)
-        {
-            return ApiResponse<UserDto>.Fail(404, "用户不存在");
-        }
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
         return ApiResponse<UserDto>.Success(user, "获取用户成功");
     }
 
@@ -78,10 +76,7 @@ public class UserController(IUserService userService, ILogger<UserController> lo
         logger.LogInformation("Admin creating user: {Account}, Role: {Role}", request.Account, request.Role);
         
         var existingUser = await userService.GetByAccountAsync(request.Account);
-        if (existingUser != null)
-        {
-            return ApiResponse<UserDto>.Fail(400, "该账号已被注册");
-        }
+        if (existingUser != null) throw new BusinessException(ErrorCode.AccountAlreadyExists, "该账号已被注册", 409, "账号已存在");
 
         var user = await userService.CreateAsync(request);
         return ApiResponse<UserDto>.Success(user, "创建用户成功");
@@ -99,10 +94,6 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     {
         logger.LogInformation("Admin updating user: {Id}", id);
         var updatedUser = await userService.UpdateAsync(id, request);
-        if (updatedUser == null)
-        {
-            return ApiResponse<UserDto>.Fail(404, "用户不存在");
-        }
         return ApiResponse<UserDto>.Success(updatedUser, "更新用户成功");
     }
 
@@ -120,14 +111,11 @@ public class UserController(IUserService userService, ILogger<UserController> lo
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (currentUserId == id)
         {
-            return ApiResponse.Fail(400, "不能删除当前登录的管理员账号");
+            throw new BusinessException(ErrorCode.OperationFailed, "不能删除当前登录的管理员账号");
         }
 
         var user = await userService.GetByIdAsync(id);
-        if (user == null)
-        {
-            return ApiResponse.Fail(404, "用户不存在");
-        }
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         await userService.DeleteAsync(id);
         return ApiResponse.Success("删除用户成功");
@@ -148,10 +136,7 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     {
         logger.LogInformation("Public profile requested: {Id}", id);
         var user = await userService.GetPublicProfileByIdAsync(id);
-        if (user == null)
-        {
-            return ApiResponse<PublicUserProfileDto>.Fail(404, "用户不存在");
-        }
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         return ApiResponse<PublicUserProfileDto>.Success(user, "获取公开资料成功");
     }
@@ -165,17 +150,10 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     [DataMasking]
     public async Task<ApiResponse<UserDto>> GetMyProfile()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse<UserDto>.Fail(401, "未授权");
-        }
+        var userId = this.GetRequiredUserId();
 
         var user = await userService.GetByIdAsync(userId);
-        if (user == null)
-        {
-            return ApiResponse<UserDto>.Fail(404, "用户不存在");
-        }
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         return ApiResponse<UserDto>.Success(user, "获取个人资料成功");
     }
@@ -189,20 +167,11 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     [Authorize]
     public async Task<ApiResponse<UserDto>> UpdateMyProfile([FromBody] UserUpdateDto request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse<UserDto>.Fail(401, "未授权");
-        }
+        var userId = this.GetRequiredUserId();
 
         logger.LogInformation("User updating their profile: {Id}", userId);
         
         var updatedUser = await userService.UpdateAsync(userId, request);
-        if (updatedUser == null)
-        {
-            return ApiResponse<UserDto>.Fail(404, "用户不存在");
-        }
-
         return ApiResponse<UserDto>.Success(updatedUser, "更新个人资料成功");
     }
 
@@ -215,13 +184,9 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     [Authorize]
     public async Task<ApiResponse> ChangePassword([FromBody] ChangePasswordRequest request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
-
-        var result = await userService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
-        return result 
-            ? ApiResponse.Success("密码修改成功") 
-            : ApiResponse.Fail(400, "旧密码错误或修改失败");
+        var userId = this.GetRequiredUserId();
+        await userService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
+        return ApiResponse.Success("密码修改成功");
     }
 
     /// <summary>
@@ -233,20 +198,11 @@ public class UserController(IUserService userService, ILogger<UserController> lo
     [Authorize]
     public async Task<ApiResponse> UpdatePushToken([FromBody] string token)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse.Fail(401, "未授权");
-        }
+        var userId = this.GetRequiredUserId();
 
         logger.LogInformation("User updating their push token: {Id}", userId);
         
-        var success = await userService.UpdatePushTokenAsync(userId, token);
-        if (!success)
-        {
-            return ApiResponse.Fail(404, "用户不存在");
-        }
-
+        await userService.UpdatePushTokenAsync(userId, token);
         return ApiResponse.Success("更新成功");
     }
 

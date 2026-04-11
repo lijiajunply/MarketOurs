@@ -1,4 +1,5 @@
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.WebAPI.Controllers;
 using Microsoft.Extensions.Logging;
@@ -73,17 +74,18 @@ public class CommentControllerTests : ControllerTestBase
     }
 
     [Test]
-    public async Task Delete_WhenNotAuthorAndNotAdmin_ShouldReturn403()
+    public void Delete_WhenNotAuthorAndNotAdmin_ShouldThrowForbiddenException()
     {
         // Arrange
         var comment = new CommentDto { Id = "1", UserId = "other_user" };
         _mockCommentService.Setup(s => s.GetByIdAsync("1")).ReturnsAsync(comment);
 
         // Act
-        var result = await _controller.Delete("1");
+        var ex = Assert.ThrowsAsync<AuthException>(async () => await _controller.Delete("1"));
 
         // Assert
-        Assert.That(result.ErrorCode, Is.EqualTo(403));
+        Assert.That(ex!.ErrorCode, Is.EqualTo(ErrorCode.CommentDeleteDenied));
+        Assert.That(ex.HttpStatusCode, Is.EqualTo(403));
         _mockCommentService.Verify(s => s.DeleteAsync("1"), Times.Never);
     }
 }

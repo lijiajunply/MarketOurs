@@ -1,4 +1,5 @@
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using MarketOurs.WebAPI.Controllers;
 using Microsoft.Extensions.Logging;
@@ -64,22 +65,21 @@ public class UserControllerTests : ControllerTestBase
     }
 
     [Test]
-    public async Task GetUserById_WhenUserDoesNotExist_ShouldReturn404()
+    public void GetUserById_WhenUserDoesNotExist_ShouldThrowNotFoundException()
     {
         // Arrange
         _mockUserService.Setup(s => s.GetByIdAsync("2")).ReturnsAsync((UserDto?)null);
 
         // Act
-        var result = await _controller.GetUserById("2");
+        var ex = Assert.ThrowsAsync<ResourceAccessException>(async () => await _controller.GetUserById("2"));
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.ErrorCode, Is.EqualTo(404));
-        Assert.That(result.Message, Is.EqualTo("用户不存在"));
+        Assert.That(ex!.ErrorCode, Is.EqualTo(ErrorCode.UserNotFound));
+        Assert.That(ex.HttpStatusCode, Is.EqualTo(404));
     }
 
     [Test]
-    public async Task CreateUser_WithExistingAccount_ShouldReturn400()
+    public void CreateUser_WithExistingAccount_ShouldThrowConflictException()
     {
         // Arrange
         var createDto = new UserCreateDto { Account = "existing@test.com" };
@@ -87,12 +87,11 @@ public class UserControllerTests : ControllerTestBase
             .ReturnsAsync(new UserDto { Id = "1" });
 
         // Act
-        var result = await _controller.CreateUser(createDto);
+        var ex = Assert.ThrowsAsync<BusinessException>(async () => await _controller.CreateUser(createDto));
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.ErrorCode, Is.EqualTo(400));
-        Assert.That(result.Message, Is.EqualTo("该账号已被注册"));
+        Assert.That(ex!.ErrorCode, Is.EqualTo(ErrorCode.AccountAlreadyExists));
+        Assert.That(ex.HttpStatusCode, Is.EqualTo(409));
     }
 
     [Test]
@@ -117,17 +116,16 @@ public class UserControllerTests : ControllerTestBase
     }
 
     [Test]
-    public async Task DeleteUser_WhenDeletingSelf_ShouldReturn400()
+    public void DeleteUser_WhenDeletingSelf_ShouldThrowBusinessException()
     {
         // Arrange (current user is "1" based on Setup)
 
         // Act
-        var result = await _controller.DeleteUser("1");
+        var ex = Assert.ThrowsAsync<BusinessException>(async () => await _controller.DeleteUser("1"));
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.ErrorCode, Is.EqualTo(400));
-        Assert.That(result.Message, Is.EqualTo("不能删除当前登录的管理员账号"));
+        Assert.That(ex!.ErrorCode, Is.EqualTo(ErrorCode.OperationFailed));
+        Assert.That(ex.HttpStatusCode, Is.EqualTo(400));
     }
 
     [Test]

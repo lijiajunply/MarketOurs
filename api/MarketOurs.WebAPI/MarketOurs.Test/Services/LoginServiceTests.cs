@@ -71,7 +71,7 @@ public class LoginServiceTests
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<AuthException>(async () => await _loginService.Login("test", "wrong", "Web"));
-        Assert.That(ex.ErrorCode, Is.EqualTo(4003)); // ErrorCode.UserNotFound is 4003
+        Assert.That(ex.ErrorCode, Is.EqualTo(ErrorCode.UserNotFound));
     }
 
     [Test]

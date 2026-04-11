@@ -26,16 +26,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<TokenDto>>> Login([FromBody] LoginRequest request)
     {
-        try
-        {
-            logger.LogInformation("用户尝试登录: {Account}", request.Account);
-            var token = await loginService.Login(request.Account, request.Password, request.DeviceType);
-            return ApiResponse<TokenDto>.Success(token, "登录成功");
-        }
-        catch (AuthException e)
-        {
-            return Unauthorized(ApiResponse<TokenDto>.Fail(ErrorCode.Unauthorized, e.Message));
-        }
+        logger.LogInformation("用户尝试登录: {Account}", request.Account);
+        var token = await loginService.Login(request.Account, request.Password, request.DeviceType);
+        return ApiResponse<TokenDto>.Success(token, "登录成功");
     }
 
     /// <summary>
@@ -47,10 +40,8 @@ public class AuthController(ILoginService loginService, IUserService userService
     public async Task<ApiResponse> SendLoginCode([FromBody] SendCodeRequest request)
     {
         logger.LogInformation("用户请求登录验证码: {Account}", request.Account);
-        var result = await loginService.SendLoginCodeAsync(request.Account);
-        return result
-            ? ApiResponse.Success("验证码已发送")
-            : ApiResponse.Fail(500, "发送失败，请稍后重试");
+        await loginService.SendLoginCodeAsync(request.Account);
+        return ApiResponse.Success("验证码已发送");
     }
 
     /// <summary>
@@ -61,21 +52,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<TokenDto>>> LoginByCode([FromBody] LoginByCodeRequest request)
     {
-        try
-        {
-            logger.LogInformation("用户通过验证码尝试登录: {Account}", request.Account);
-            var token = await loginService.LoginByCodeAsync(request.Account, request.Code, request.DeviceType);
-            return ApiResponse<TokenDto>.Success(token, "登录成功");
-        }
-        catch (AuthException e)
-        {
-            return Unauthorized(ApiResponse<TokenDto>.Fail(ErrorCode.Unauthorized, e.Message));
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "验证码登录失败");
-            return StatusCode(500, ApiResponse<TokenDto>.Fail(500, "登录处理失败"));
-        }
+        logger.LogInformation("用户通过验证码尝试登录: {Account}", request.Account);
+        var token = await loginService.LoginByCodeAsync(request.Account, request.Code, request.DeviceType);
+        return ApiResponse<TokenDto>.Success(token, "登录成功");
     }
 
     /// <summary>
@@ -100,10 +79,8 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse> SendRegistrationCode([FromQuery] string regToken)
     {
-        var result = await loginService.SendRegistrationCodeAsync(regToken);
-        return result
-            ? ApiResponse.Success("验证码已发送")
-            : ApiResponse.Fail(500, "发送失败");
+        await loginService.SendRegistrationCodeAsync(regToken);
+        return ApiResponse.Success("验证码已发送");
     }
 
     /// <summary>
@@ -128,9 +105,7 @@ public class AuthController(ILoginService loginService, IUserService userService
     {
         logger.LogInformation("刷新令牌, 设备类型: {DeviceType}", request.DeviceType);
         var token = await loginService.Login(request.RefreshToken, request.DeviceType);
-        return string.IsNullOrEmpty(token.AccessToken)
-            ? ApiResponse<TokenDto>.Fail(401, "刷新令牌无效或已过期")
-            : ApiResponse<TokenDto>.Success(token, "刷新成功");
+        return ApiResponse<TokenDto>.Success(token, "刷新成功");
     }
 
     /// <summary>
@@ -142,17 +117,11 @@ public class AuthController(ILoginService loginService, IUserService userService
     [Authorize]
     public async Task<ApiResponse> Logout([FromQuery] string deviceType = "Web")
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse.Fail(401, "未授权");
-        }
-
+        var userId = this.GetRequiredUserId();
         logger.LogInformation("用户注销: {UserId}, 设备类型: {DeviceType}", userId, deviceType);
         var result = await loginService.Logout(userId, deviceType);
-        return result
-            ? ApiResponse.Success("注销成功")
-            : ApiResponse.Fail(500, "注销失败");
+        if (!result) throw new BusinessException(ErrorCode.OperationFailed, "注销失败");
+        return ApiResponse.Success("注销成功");
     }
 
     /// <summary>
@@ -163,17 +132,10 @@ public class AuthController(ILoginService loginService, IUserService userService
     [Authorize]
     public async Task<ApiResponse<UserDto>> GetUserInfo()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse<UserDto>.Fail(401, "未授权");
-        }
+        var userId = this.GetRequiredUserId();
 
         var user = await userService.GetByIdAsync(userId);
-        if (user == null)
-        {
-            return ApiResponse<UserDto>.Fail(404, "用户不存在");
-        }
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         return ApiResponse<UserDto>.Success(user, "获取用户信息成功");
     }
@@ -188,10 +150,8 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse> VerifyEmail([FromQuery] string token, string code)
     {
-        var result = await userService.VerifyEmailAsync(code);
-        return result
-            ? ApiResponse.Success("邮箱验证成功，账号已激活")
-            : ApiResponse.Fail(400, "验证码无效或已过期");
+        await userService.VerifyEmailAsync(code);
+        return ApiResponse.Success("邮箱验证成功，账号已激活");
     }
 
     /// <summary>
@@ -204,10 +164,8 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse> VerifyPhone([FromQuery] string token, string code)
     {
-        var result = await userService.VerifyPhoneCodeAsync(code);
-        return result
-            ? ApiResponse.Success("手机号验证成功，账号已激活")
-            : ApiResponse.Fail(400, "验证码无效或已过期");
+        await userService.VerifyPhoneCodeAsync(code);
+        return ApiResponse.Success("手机号验证成功，账号已激活");
     }
 
     /// <summary>
@@ -219,11 +177,8 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
-        var result = await userService.ForgotPasswordAsync(request.Account);
-        // 处于安全考虑，无论账号是否存在都返回相同消息 (或者简单点直接告诉用户)
-        return result
-            ? ApiResponse.Success("重置密码验证码已发送至您的邮箱或手机")
-            : ApiResponse.Fail(404, "该账号未注册");
+        await userService.ForgotPasswordAsync(request.Account);
+        return ApiResponse.Success("重置密码验证码已发送至您的邮箱或手机");
     }
 
     /// <summary>
@@ -235,10 +190,8 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse> ResetPassword([FromBody] ResetPasswordRequest request)
     {
-        var result = await userService.ResetPasswordAsync(request.Token, request.NewPassword);
-        return result
-            ? ApiResponse.Success("密码重置成功，请重新登录")
-            : ApiResponse.Fail(400, "验证码无效或已过期");
+        await userService.ResetPasswordAsync(request.Token, request.NewPassword);
+        return ApiResponse.Success("密码重置成功，请重新登录");
     }
 
     /// <summary>
@@ -251,8 +204,8 @@ public class AuthController(ILoginService loginService, IUserService userService
     public async Task<ApiResponse> ResendVerification([FromBody] ForgotPasswordRequest request)
     {
         var user = await userService.GetByAccountAsync(request.Account);
-        if (user == null) return ApiResponse.Fail(404, "用户不存在");
-        if (user.IsActive) return ApiResponse.Fail(400, "账号已激活");
+        if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
+        if (user.IsActive) throw new BusinessException(ErrorCode.InvalidStatusForOperation, "账号已激活");
 
         if (!string.IsNullOrEmpty(user.Email) && request.Account.Contains('@'))
         {
@@ -266,7 +219,7 @@ public class AuthController(ILoginService loginService, IUserService userService
             return ApiResponse.Success("激活短信已重新发送");
         }
 
-        return ApiResponse.Fail(400, "无法发送验证码");
+        throw new BusinessException(ErrorCode.OperationFailed, "无法发送验证码");
     }
 
     /// <summary>
@@ -277,13 +230,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     [Authorize]
     public async Task<ApiResponse> SendEmailCode()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
-
-        var result = await userService.SendVerificationEmailAsync(userId);
-        return result
-            ? ApiResponse.Success("验证码已发送至您的邮箱")
-            : ApiResponse.Fail(500, "发送失败，请稍后重试");
+        var userId = this.GetRequiredUserId();
+        await userService.SendVerificationEmailAsync(userId);
+        return ApiResponse.Success("验证码已发送至您的邮箱");
     }
 
     /// <summary>
@@ -294,13 +243,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     [Authorize]
     public async Task<ApiResponse> SendPhoneCode()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
-
-        var result = await userService.SendPhoneVerificationCodeAsync(userId);
-        return result
-            ? ApiResponse.Success("验证码已发送至您的手机")
-            : ApiResponse.Fail(500, "发送失败，请稍后重试");
+        var userId = this.GetRequiredUserId();
+        await userService.SendPhoneVerificationCodeAsync(userId);
+        return ApiResponse.Success("验证码已发送至您的手机");
     }
 
     /// <summary>
@@ -312,13 +257,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     [Authorize]
     public async Task<ApiResponse> VerifyEmailCode([FromBody] VerifyCodeRequest request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
-
-        var result = await userService.VerifyEmailAsync(request.Code);
-        return result
-            ? ApiResponse.Success("邮箱验证成功")
-            : ApiResponse.Fail(400, "验证码无效或已过期");
+        _ = this.GetRequiredUserId();
+        await userService.VerifyEmailAsync(request.Code);
+        return ApiResponse.Success("邮箱验证成功");
     }
 
     /// <summary>
@@ -338,7 +279,7 @@ public class AuthController(ILoginService loginService, IUserService userService
 
         if (scheme == null)
         {
-            return BadRequest(ApiResponse.Fail(400, $"不支持的第三方登录: {provider}"));
+            throw new BusinessException(ErrorCode.OAuthProviderNotSupported, $"不支持的第三方登录: {provider}", 400, $"provider={provider}");
         }
 
         var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Auth", new { returnUrl });

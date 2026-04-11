@@ -176,7 +176,7 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
         if (await context.Users.AnyAsync(x =>
                 account.Contains('@') ? x.Email == account : x.Phone == account || x.Name == user.Name))
         {
-            throw new AuthException(ErrorCode.ResourceAlreadyExists, "已有相关验证");
+            throw new BusinessException(ErrorCode.AccountAlreadyExists, "已有相关验证", 409, "账号或用户名已存在");
         }
 
         user.Id = user.GetHashKey();

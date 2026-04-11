@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -63,10 +64,7 @@ public class PostController(IPostService postService) : ControllerBase
     public async Task<ApiResponse<PostDto>> GetById(string id)
     {
         var post = await postService.GetByIdAsync(id);
-        if (post == null)
-        {
-            return ApiResponse<PostDto>.Fail(404, "帖子不存在");
-        }
+        if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
 
         await postService.IncrementWatchAsync(id);
         post.Watch += 1;
@@ -82,19 +80,9 @@ public class PostController(IPostService postService) : ControllerBase
     [Authorize]
     public async Task<ApiResponse<PostDto>> Create([FromBody] PostCreateDto request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse<PostDto>.Fail(401, "未授权");
-        }
-
+        var userId = this.GetRequiredUserId();
         request.UserId = userId; // 强制将作者设置为当前登录用户
         var post = await postService.CreateAsync(request);
-        if (post == null)
-        {
-            return ApiResponse<PostDto>.Fail(500, "创建失败，用户可能不存在");
-        }
-
         return ApiResponse<PostDto>.Success(post, "创建成功，正在审核");
     }
 
@@ -108,30 +96,18 @@ public class PostController(IPostService postService) : ControllerBase
     [Authorize]
     public async Task<ApiResponse<PostDto>> Update(string id, [FromBody] PostUpdateDto request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse<PostDto>.Fail(401, "未授权");
-        }
+        var userId = this.GetRequiredUserId();
 
         var existingPost = await postService.GetByIdIncludingPendingAsync(id);
-        if (existingPost == null)
-        {
-            return ApiResponse<PostDto>.Fail(404, "帖子不存在");
-        }
+        if (existingPost == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
 
         var isAdmin = User.IsInRole("Admin");
         if (existingPost.UserId != userId && !isAdmin)
         {
-            return ApiResponse<PostDto>.Fail(403, "无权修改他人的帖子");
+            throw new AuthException(ErrorCode.InsufficientPermission, "无权修改他人的帖子", 403);
         }
 
         var post = await postService.UpdateAsync(id, request);
-        if (post == null)
-        {
-            return ApiResponse<PostDto>.Fail(500, "更新失败");
-        }
-
         return ApiResponse<PostDto>.Success(post, "更新成功，正在重新审核");
     }
 
@@ -144,22 +120,15 @@ public class PostController(IPostService postService) : ControllerBase
     [Authorize]
     public async Task<ApiResponse> Delete(string id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse.Fail(401, "未授权");
-        }
+        var userId = this.GetRequiredUserId();
 
         var existingPost = await postService.GetByIdIncludingPendingAsync(id);
-        if (existingPost == null)
-        {
-            return ApiResponse.Fail(404, "帖子不存在");
-        }
+        if (existingPost == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
 
         var isAdmin = User.IsInRole("Admin");
         if (existingPost.UserId != userId && !isAdmin)
         {
-            return ApiResponse.Fail(403, "无权删除他人的帖子");
+            throw new AuthException(ErrorCode.PostDeleteDenied, "无权删除他人的帖子", 403);
         }
 
         await postService.DeleteAsync(id);
@@ -175,18 +144,7 @@ public class PostController(IPostService postService) : ControllerBase
     [Authorize]
     public async Task<ApiResponse> Like(string id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse.Fail(401, "未授权");
-        }
-
-        var existingPost = await postService.GetByIdAsync(id);
-        if (existingPost == null)
-        {
-            return ApiResponse.Fail(404, "帖子不存在");
-        }
-
+        var userId = this.GetRequiredUserId();
         await postService.SetLikesAsync(userId, id);
         return ApiResponse.Success("操作成功");
     }
@@ -200,18 +158,7 @@ public class PostController(IPostService postService) : ControllerBase
     [Authorize]
     public async Task<ApiResponse> Dislike(string id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-        {
-            return ApiResponse.Fail(401, "未授权");
-        }
-
-        var existingPost = await postService.GetByIdAsync(id);
-        if (existingPost == null)
-        {
-            return ApiResponse.Fail(404, "帖子不存在");
-        }
-
+        var userId = this.GetRequiredUserId();
         await postService.SetDislikesAsync(userId, id);
         return ApiResponse.Success("操作成功");
     }
@@ -257,11 +204,6 @@ public class PostController(IPostService postService) : ControllerBase
     public async Task<ApiResponse<PostDto>> ReviewPost(string id, [FromBody] UpdatePostReviewRequest request)
     {
         var post = await postService.UpdateReviewAsync(id, request.IsReview);
-        if (post == null)
-        {
-            return ApiResponse<PostDto>.Fail(404, "帖子不存在");
-        }
-
         return ApiResponse<PostDto>.Success(post, "审核成功");
     }
 }
