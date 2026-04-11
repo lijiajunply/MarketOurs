@@ -382,6 +382,8 @@ builder.Services.Configure<GzipCompressionProviderOptions>(options => { options.
 
 #endregion
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -515,6 +517,8 @@ app.MapControllers();
 app.MapScalarApiReference();
 
 // 暴露 Prometheus 指标端点
-app.MapMetrics();
+app.MapMetrics("/api/metrics");
+// 暴露健康检查端点
+app.MapHealthChecks("/api/health");
 
 app.Run();
