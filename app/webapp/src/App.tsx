@@ -8,6 +8,7 @@ import HomePage from "./pages/home"
 import AdminDashboard from "./pages/admin/dashboard"
 import AdminUsersPage from "./pages/admin/users"
 import AdminPostsPage from "./pages/admin/posts"
+import AdminCommentsPage from "./pages/admin/comments"
 import AdminLogsPage from "./pages/admin/logs"
 import AdminBlacklistPage from "./pages/admin/blacklist"
 import LoginPage from "./pages/login"
@@ -80,6 +81,7 @@ export function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="posts" element={<AdminPostsPage />} />
+            <Route path="comments" element={<AdminCommentsPage />} />
             <Route path="logs" element={<AdminLogsPage />} />
             <Route path="blacklist" element={<AdminBlacklistPage />} />
           </Route>

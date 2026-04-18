@@ -3,6 +3,7 @@ import type {
   AddIpRequest,
   AdminOverviewDto,
   BlacklistStats,
+  CommentDto,
   IpCheckResult,
   LogDistribution,
   LogEntry,
@@ -69,6 +70,9 @@ export const adminService = {
   updatePostReview: (id: string, data: { isReview: boolean }) =>
     apiClient.put<PostDto>(`/Post/${id}/review`, data),
 
+  updateCommentReview: (id: string, data: { isReview: boolean }) =>
+    apiClient.put<CommentDto>(`/Comment/${id}/review`, data),
+
   getUsers: (pageIndex: number = 1, pageSize: number = 10, keyword?: string) => {
     const params = new URLSearchParams({
       PageIndex: pageIndex.toString(),
@@ -116,4 +120,28 @@ export const adminService = {
 
   deletePost: (id: string) =>
     apiClient.delete<void>(`/Post/${id}`),
+
+  getComments: (pageIndex: number = 1, pageSize: number = 10, keyword?: string) => {
+    const params = new URLSearchParams({
+      PageIndex: pageIndex.toString(),
+      PageSize: pageSize.toString(),
+    });
+    if (keyword) {
+      params.append('Keyword', keyword);
+    }
+
+    return apiClient.get<PagedResult<CommentDto>>(`/Comment?${params.toString()}`);
+  },
+
+  searchComments: (pageIndex: number = 1, pageSize: number = 10, keyword: string) => {
+    const params = new URLSearchParams({
+      PageIndex: pageIndex.toString(),
+      PageSize: pageSize.toString(),
+      Keyword: keyword,
+    });
+    return apiClient.get<PagedResult<CommentDto>>(`/Comment/search?${params.toString()}`);
+  },
+
+  deleteComment: (id: string) =>
+    apiClient.delete<void>(`/Comment/${id}`),
 };

@@ -1,16 +1,18 @@
 using MarketOurs.Data;
 using MarketOurs.Data.DataModels;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace MarketOurs.DataAPI.Repos;
 
 public interface ICommentRepo
 {
-    public Task<List<CommentModel>> GetAllAsync(int pageIndex, int pageSize);
-    public Task<int> CountAsync();
-    public Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize);
-    public Task<int> SearchCountAsync(string keyword);
+    public Task<List<CommentModel>> GetAllAsync(int pageIndex, int pageSize, bool includeUnreviewed = false);
+    public Task<int> CountAsync(bool includeUnreviewed = false);
+    public Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize, bool includeUnreviewed = false);
+    public Task<int> SearchCountAsync(string keyword, bool includeUnreviewed = false);
     public Task<CommentModel?> GetByIdAsync(string id);
+    public Task<CommentModel?> GetReviewedByIdAsync(string id);
     public Task<List<CommentModel>?> GetByDateAsync(DateTimeOffset before, DateTimeOffset after);
     public Task<List<UserModel>?> GetLikeUsersAsync(string id);
     public Task<List<UserModel>?> GetLikeUsersAsync(string id, DateTime before, DateTime after);
@@ -24,6 +26,7 @@ public interface ICommentRepo
     public Task UpdateAsync(UserModel user);
 
     public Task UpdateAsync(CommentModel comment);
+    public Task SetReviewStatusAsync(string id, bool isReview);
 
     public Task SetLikesAsync(UserModel user, string id);
     public Task SetDislikesAsync(UserModel user, string id);
@@ -37,46 +40,69 @@ public interface ICommentRepo
 
 public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRepo
 {
-    public async Task<List<CommentModel>> GetAllAsync(int pageIndex, int pageSize)
+    public async Task<List<CommentModel>> GetAllAsync(int pageIndex, int pageSize, bool includeUnreviewed = false)
     {
         await using var context = await factory.CreateDbContextAsync();
 
-        return await context.Commits
+        IQueryable<CommentModel> query = context.Commits
             .Include(x => x.User)
+            .AsQueryable();
+
+        if (!includeUnreviewed)
+        {
+            query = query.Where(x => x.IsReview);
+        }
+
+        return await query
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
     }
 
-    public async Task<int> CountAsync()
+    public async Task<int> CountAsync(bool includeUnreviewed = false)
     {
         await using var context = await factory.CreateDbContextAsync();
-        return await context.Commits.CountAsync();
+        var query = context.Commits.AsQueryable();
+        if (!includeUnreviewed)
+        {
+            query = query.Where(x => x.IsReview);
+        }
+
+        return await query.CountAsync();
     }
 
-    public async Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize)
+    public async Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize, bool includeUnreviewed = false)
     {
         await using var context = await factory.CreateDbContextAsync();
-        
-        // "Cascade" search in this context means searching through all comments 
-        // regardless of their level in the hierarchy.
-        return await context.Commits
+
+        IQueryable<CommentModel> query = context.Commits
             .Include(x => x.User)
             .Include(x => x.Post)
-            .Where(x => x.Content.Contains(keyword))
+            .Where(x => x.Content.Contains(keyword));
+
+        if (!includeUnreviewed)
+        {
+            query = query.Where(x => x.IsReview);
+        }
+
+        return await query
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
     }
 
-    public async Task<int> SearchCountAsync(string keyword)
+    public async Task<int> SearchCountAsync(string keyword, bool includeUnreviewed = false)
     {
         await using var context = await factory.CreateDbContextAsync();
-        return await context.Commits
-            .Where(x => x.Content.Contains(keyword))
-            .CountAsync();
+        var query = context.Commits.Where(x => x.Content.Contains(keyword));
+        if (!includeUnreviewed)
+        {
+            query = query.Where(x => x.IsReview);
+        }
+
+        return await query.CountAsync();
     }
 
     public async Task<CommentModel?> GetByIdAsync(string id)
@@ -86,6 +112,16 @@ public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRep
         return await context.Commits
             .Include(x => x.User)
             .Where(x => x.Id == id)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<CommentModel?> GetReviewedByIdAsync(string id)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+
+        return await context.Commits
+            .Include(x => x.User)
+            .Where(x => x.Id == id && x.IsReview)
             .FirstOrDefaultAsync();
     }
 
@@ -181,6 +217,20 @@ public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRep
     {
         await using var context = await factory.CreateDbContextAsync();
         context.Commits.Update(comment);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task SetReviewStatusAsync(string id, bool isReview)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        var comment = await context.Commits.FirstOrDefaultAsync(c => c.Id == id);
+        if (comment == null)
+        {
+            return;
+        }
+
+        comment.IsReview = isReview;
+        comment.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
     }
 

@@ -40,6 +40,11 @@ public class CommentModel : DataModel
     public int Dislikes { get; set; }
 
     /// <summary>
+    /// 是否通过审核
+    /// </summary>
+    public bool IsReview { get; set; }
+
+    /// <summary>
     /// 子评论列表 (用于树形结构)
     /// </summary>
     public List<CommentModel> Comments { get; set; } = [];
@@ -112,5 +117,6 @@ public class CommentModel : DataModel
         Images = commitModel.Images;
         Likes = commitModel.Likes;
         Dislikes = commitModel.Dislikes;
+        IsReview = commitModel.IsReview;
     }
 }

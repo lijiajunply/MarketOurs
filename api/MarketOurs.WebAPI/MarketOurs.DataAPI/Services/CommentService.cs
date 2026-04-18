@@ -3,6 +3,7 @@ using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Repos;
+using MarketOurs.DataAPI.Services.Background;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -18,12 +19,12 @@ public interface ICommentService
     /// <summary>
     /// 获取所有评论 (分页)
     /// </summary>
-    Task<PagedResultDto<CommentDto>> GetAllAsync(PaginationParams @params);
+    Task<PagedResultDto<CommentDto>> GetAllAsync(PaginationParams @params, bool includeUnreviewed = false);
 
     /// <summary>
     /// 搜索评论 (基于关键词)
     /// </summary>
-    Task<PagedResultDto<CommentDto>> SearchAsync(PaginationParams @params);
+    Task<PagedResultDto<CommentDto>> SearchAsync(PaginationParams @params, bool includeUnreviewed = false);
 
     /// <summary>
     /// 根据 ID 获取评论详情
@@ -41,9 +42,19 @@ public interface ICommentService
     Task<CommentDto> UpdateAsync(string id, CommentUpdateDto updateDto);
 
     /// <summary>
+    /// 更新评论内容，并支持管理员跳过重新审核
+    /// </summary>
+    Task<CommentDto> UpdateAsync(string id, CommentUpdateDto updateDto, bool isAdmin);
+
+    /// <summary>
     /// 删除评论
     /// </summary>
     Task DeleteAsync(string id);
+
+    /// <summary>
+    /// 更新评论审核状态
+    /// </summary>
+    Task<CommentDto> UpdateReviewAsync(string id, bool isReview);
 
     /// <summary>
     /// 设置用户对评论的点赞状态
@@ -63,17 +74,18 @@ public class CommentService(
     ILikeManager likeManager,
     IMemoryCache memoryCache,
     IDistributedCache distributedCache,
-    Background.NotificationMessageQueue notificationQueue,
-    ILogger<CommentService> logger) : ICommentService
+    NotificationMessageQueue notificationQueue,
+    ILogger<CommentService> logger,
+    ReviewMessageQueue? reviewQueue = null) : ICommentService
 {
     private static readonly TimeSpan LocalCacheTtl = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan DistCacheTtl = TimeSpan.FromMinutes(10);
 
     /// <inheritdoc/>
-    public async Task<PagedResultDto<CommentDto>> GetAllAsync(PaginationParams @params)
+    public async Task<PagedResultDto<CommentDto>> GetAllAsync(PaginationParams @params, bool includeUnreviewed = false)
     {
-        var totalCount = await commentRepo.CountAsync();
-        var comments = await commentRepo.GetAllAsync(@params.PageIndex, @params.PageSize);
+        var totalCount = await commentRepo.CountAsync(includeUnreviewed);
+        var comments = await commentRepo.GetAllAsync(@params.PageIndex, @params.PageSize, includeUnreviewed);
         var dtos = comments.Select(MapToDto).ToList();
         foreach (var dto in dtos)
         {
@@ -83,13 +95,13 @@ public class CommentService(
         return PagedResultDto<CommentDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
-    public async Task<PagedResultDto<CommentDto>> SearchAsync(PaginationParams @params)
+    public async Task<PagedResultDto<CommentDto>> SearchAsync(PaginationParams @params, bool includeUnreviewed = false)
     {
         if (string.IsNullOrWhiteSpace(@params.Keyword))
             return PagedResultDto<CommentDto>.Success([], 0, @params.PageIndex, @params.PageSize);
 
-        var totalCount = await commentRepo.SearchCountAsync(@params.Keyword);
-        var comments = await commentRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize);
+        var totalCount = await commentRepo.SearchCountAsync(@params.Keyword, includeUnreviewed);
+        var comments = await commentRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize, includeUnreviewed);
         var dtos = comments.Select(MapToDto).ToList();
         foreach (var dto in dtos)
         {
@@ -182,10 +194,16 @@ public class CommentService(
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             Likes = 0,
-            Dislikes = 0
+            Dislikes = 0,
+            IsReview = false
         };
 
         await commentRepo.CreateAsync(comment);
+        if (reviewQueue != null)
+        {
+            await reviewQueue.EnqueueAsync(new ReviewMessage(comment.Id, ReviewType.Comment));
+        }
+
         // 清除该贴子的评论列表缓存（如果有）
         InvalidateCommentListCache(comment.PostId);
 
@@ -235,14 +253,25 @@ public class CommentService(
 
     public async Task<CommentDto> UpdateAsync(string id, CommentUpdateDto updateDto)
     {
+        return await UpdateAsync(id, updateDto, false);
+    }
+
+    public async Task<CommentDto> UpdateAsync(string id, CommentUpdateDto updateDto, bool isAdmin)
+    {
         var comment = await commentRepo.GetByIdAsync(id);
         if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
 
         comment.Content = updateDto.Content;
         comment.Images = updateDto.Images;
-        comment.UpdatedAt = DateTime.Now;
+        comment.UpdatedAt = DateTime.UtcNow;
+        comment.IsReview = isAdmin;
 
         await commentRepo.UpdateAsync(comment);
+        if (reviewQueue != null && !isAdmin)
+        {
+            await reviewQueue.EnqueueAsync(new ReviewMessage(comment.Id, ReviewType.Comment));
+        }
+
         InvalidateCache(id, comment.PostId);
         return MapToDto(comment);
     }
@@ -255,6 +284,19 @@ public class CommentService(
 
         await commentRepo.DeleteAsync(id);
         InvalidateCache(id, comment.PostId);
+    }
+
+    public async Task<CommentDto> UpdateReviewAsync(string id, bool isReview)
+    {
+        var comment = await commentRepo.GetByIdAsync(id);
+        if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
+
+        comment.IsReview = isReview;
+        comment.UpdatedAt = DateTime.UtcNow;
+
+        await commentRepo.UpdateAsync(comment);
+        InvalidateCache(id, comment.PostId);
+        return MapToDto(comment);
     }
 
     public async Task SetLikesAsync(string userId, string commentId)
@@ -296,6 +338,7 @@ public class CommentService(
             Images = comment.Images,
             Likes = comment.Likes,
             Dislikes = comment.Dislikes,
+            IsReview = comment.IsReview,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             UserId = comment.UserId,

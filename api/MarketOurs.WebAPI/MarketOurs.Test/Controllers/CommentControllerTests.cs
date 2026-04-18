@@ -29,7 +29,7 @@ public class CommentControllerTests : ControllerTestBase
         // Arrange
         var comments = new List<CommentDto> { new CommentDto { Id = "1", Content = "Comment 1" } };
         var pagedResult = PagedResultDto<CommentDto>.Success(comments, 1, 1, 10);
-        _mockCommentService.Setup(s => s.GetAllAsync(It.IsAny<PaginationParams>())).ReturnsAsync(pagedResult);
+        _mockCommentService.Setup(s => s.GetAllAsync(It.IsAny<PaginationParams>(), It.IsAny<bool>())).ReturnsAsync(pagedResult);
 
         // Act
         var result = await _controller.GetAll(new PaginationParams());
@@ -87,5 +87,30 @@ public class CommentControllerTests : ControllerTestBase
         Assert.That(ex!.ErrorCode, Is.EqualTo(ErrorCode.CommentDeleteDenied));
         Assert.That(ex.HttpStatusCode, Is.EqualTo(403));
         _mockCommentService.Verify(s => s.DeleteAsync("1"), Times.Never);
+    }
+
+    [Test]
+    public void GetById_WhenPendingAndNotAuthor_ShouldThrowNotFound()
+    {
+        var comment = new CommentDto { Id = "1", UserId = "other_user", IsReview = false };
+        _mockCommentService.Setup(s => s.GetByIdAsync("1")).ReturnsAsync(comment);
+
+        var ex = Assert.ThrowsAsync<ResourceAccessException>(async () => await _controller.GetById("1"));
+
+        Assert.That(ex!.ErrorCode, Is.EqualTo(ErrorCode.CommentNotFound));
+    }
+
+    [Test]
+    public async Task Review_WhenAdmin_ShouldUpdateReviewState()
+    {
+        SetupUser(_controller, "admin_1", "Admin");
+        _mockCommentService
+            .Setup(s => s.UpdateReviewAsync("1", true))
+            .ReturnsAsync(new CommentDto { Id = "1", IsReview = true });
+
+        var result = await _controller.Review("1", new UpdateCommentReviewRequest { IsReview = true });
+
+        Assert.That(result.Code, Is.EqualTo(200));
+        Assert.That(result.Data!.IsReview, Is.True);
     }
 }

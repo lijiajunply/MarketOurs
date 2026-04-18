@@ -24,7 +24,7 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     [AllowAnonymous]
     public async Task<ApiResponse<PagedResultDto<CommentDto>>> GetAll([FromQuery] PaginationParams @params)
     {
-        var comments = await commentService.GetAllAsync(@params);
+        var comments = await commentService.GetAllAsync(@params, User.IsInRole("Admin"));
         return ApiResponse<PagedResultDto<CommentDto>>.Success(comments, "获取评论列表成功");
     }
 
@@ -42,7 +42,7 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
             return ApiResponse<PagedResultDto<CommentDto>>.Success(PagedResultDto<CommentDto>.Success([], 0, @params.PageIndex, @params.PageSize), "关键词不能为空");
         }
 
-        var results = await commentService.SearchAsync(@params);
+        var results = await commentService.SearchAsync(@params, User.IsInRole("Admin"));
         return ApiResponse<PagedResultDto<CommentDto>>.Success(results, $"成功找到 {results.TotalCount} 条相关内容");
     }
 
@@ -57,6 +57,15 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     {
         var comment = await commentService.GetByIdAsync(id);
         if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
+
+        var userId = this.GetOptionalUserId();
+        var isAdmin = User.IsInRole("Admin");
+        var canAccess = comment.IsReview || isAdmin || (!string.IsNullOrWhiteSpace(userId) && comment.UserId == userId);
+        if (!canAccess)
+        {
+            throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
+        }
+
         return ApiResponse<CommentDto>.Success(comment, "获取评论成功");
     }
 
@@ -121,7 +130,7 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
             throw new AuthException(ErrorCode.InsufficientPermission, "无权修改他人的评论", 403);
         }
 
-        var updatedComment = await commentService.UpdateAsync(id, request);
+        var updatedComment = await commentService.UpdateAsync(id, request, isAdmin);
         logger.LogInformation("用户 {UserId} 更新了评论 {CommentId}", userId, id);
         return ApiResponse<CommentDto>.Success(updatedComment, "更新评论成功");
     }
@@ -180,5 +189,13 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
         
         logger.LogInformation("用户 {UserId} 踩了评论 {CommentId}", userId, id);
         return ApiResponse.Success("操作成功");
+    }
+
+    [HttpPut("{id}/review")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ApiResponse<CommentDto>> Review(string id, [FromBody] UpdateCommentReviewRequest request)
+    {
+        var comment = await commentService.UpdateReviewAsync(id, request.IsReview);
+        return ApiResponse<CommentDto>.Success(comment, "审核成功");
     }
 }

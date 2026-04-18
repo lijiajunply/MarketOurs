@@ -16,4 +16,9 @@ public static class ControllerExceptionExtensions
 
         return userId;
     }
+
+    public static string? GetOptionalUserId(this ControllerBase controller)
+    {
+        return controller.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    }
 }

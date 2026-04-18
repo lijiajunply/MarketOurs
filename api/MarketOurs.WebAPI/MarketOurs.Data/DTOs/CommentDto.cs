@@ -33,6 +33,11 @@ public class CommentDto
     public int Dislikes { get; set; }
 
     /// <summary>
+    /// 是否通过审核
+    /// </summary>
+    public bool IsReview { get; set; }
+
+    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTime CreatedAt { get; set; }
@@ -122,4 +127,9 @@ public class CommentUpdateDto
     /// 图片列表
     /// </summary>
     public List<string> Images { get; set; } = [];
+}
+
+public class UpdateCommentReviewRequest
+{
+    public bool IsReview { get; set; }
 }

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router"
 import { cn } from "../../lib/utils"
-import { LayoutDashboard, Users, FileText, Settings, Home, LogOut, Menu, Sun, Moon, ScrollText, ShieldBan } from "lucide-react"
+import { LayoutDashboard, Users, FileText, Settings, Home, LogOut, Menu, Sun, Moon, ScrollText, ShieldBan, MessageSquare } from "lucide-react"
 import { useState } from "react"
 import { useTheme } from "../theme-provider"
 import { useDispatch, useSelector } from "react-redux"
@@ -24,6 +24,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { name: t("admin.sidebar.dashboard"), href: "/admin", icon: LayoutDashboard },
     { name: t("admin.sidebar.users"), href: "/admin/users", icon: Users },
     { name: t("admin.sidebar.posts"), href: "/admin/posts", icon: FileText },
+    { name: t("admin.sidebar.comments"), href: "/admin/comments", icon: MessageSquare },
     { name: t("admin.sidebar.logs"), href: "/admin/logs", icon: ScrollText },
     { name: t("admin.sidebar.blacklist"), href: "/admin/blacklist", icon: ShieldBan },
     { name: t("admin.sidebar.settings"), href: "/admin/settings", icon: Settings },

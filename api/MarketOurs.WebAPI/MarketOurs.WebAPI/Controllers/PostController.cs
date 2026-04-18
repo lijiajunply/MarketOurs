@@ -171,9 +171,12 @@ public class PostController(IPostService postService) : ControllerBase
     /// <param name="type">排序类型: Hot (热门), New (最新，默认)</param>
     /// <returns>评论树列表</returns>
     [HttpGet("{id}/comments/{type?}")]
+    [AllowAnonymous]
     public async Task<ApiResponse<List<CommentDto>>> GetComments(string id, string? type)
     {
-        return ApiResponse<List<CommentDto>>.Success(await postService.GetCommentsAsync(id, type ?? ""));
+        var userId = this.GetOptionalUserId();
+        var isAdmin = User.IsInRole("Admin");
+        return ApiResponse<List<CommentDto>>.Success(await postService.GetCommentsAsync(id, type ?? "", userId, isAdmin));
     }
 
     /// <summary>

@@ -102,7 +102,7 @@ public interface IPostService
     /// <param name="id">帖子ID</param>
     /// <param name="type">排序类型 (Hot/New)</param>
     /// <returns>评论树列表</returns>
-    Task<List<CommentDto>> GetCommentsAsync(string id, string type);
+    Task<List<CommentDto>> GetCommentsAsync(string id, string type, string? requesterUserId = null, bool isAdmin = false);
 
     /// <summary>
     /// 全文搜索帖子 (基于关键词)
@@ -128,7 +128,7 @@ public class PostService(
     IMemoryCache memoryCache,
     IEnumerable<IConnectionMultiplexer> redisEnumerable,
     ILogger<PostService> logger,
-    PostReviewMessageQueue? postReviewQueue = null) : IPostService
+    ReviewMessageQueue? reviewQueue = null) : IPostService
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
     private static readonly SemaphoreSlim CacheLock = new(1, 1);
@@ -384,9 +384,9 @@ public class PostService(
 
         await postRepo.CreateAsync(post);
         InvalidateGlobalCaches();
-        if (postReviewQueue != null)
+        if (reviewQueue != null)
         {
-            await postReviewQueue.EnqueueAsync(new PostReviewMessage(post.Id, ReviewType.Post));
+            await reviewQueue.EnqueueAsync(new ReviewMessage(post.Id, ReviewType.Post));
         }
 
         return MapToDto(post);
@@ -405,9 +405,9 @@ public class PostService(
 
         await postRepo.UpdateAsync(post);
         InvalidateCache(id);
-        if (postReviewQueue != null && !isAdmin)
+        if (reviewQueue != null && !isAdmin)
         {
-            await postReviewQueue.EnqueueAsync(new PostReviewMessage(post.Id, ReviewType.Post));
+            await reviewQueue.EnqueueAsync(new ReviewMessage(post.Id, ReviewType.Post));
         }
 
         return MapToDto(post);
@@ -440,11 +440,12 @@ public class PostService(
     }
 
     /// <inheritdoc/>
-    public async Task<List<CommentDto>> GetCommentsAsync(string id, string type)
+    public async Task<List<CommentDto>> GetCommentsAsync(string id, string type, string? requesterUserId = null, bool isAdmin = false)
     {
         // 尝试从本地缓存读取评论列表
         var cacheKey = CacheKeys.PostComments(id);
-        if (memoryCache.TryGetValue<List<CommentDto>>(cacheKey, out var cachedComments) && cachedComments != null)
+        if (!isAdmin && string.IsNullOrWhiteSpace(requesterUserId)
+            && memoryCache.TryGetValue<List<CommentDto>>(cacheKey, out var cachedComments) && cachedComments != null)
         {
             return cachedComments;
         }
@@ -452,7 +453,10 @@ public class PostService(
         var comments = await postRepo.GetCommentsAsync(id, type);
         if (comments == null || comments.Count == 0) return [];
 
-        var allDtos = comments.Select(CommentService.MapToDto).ToList();
+        var allDtos = comments
+            .Select(CommentService.MapToDto)
+            .Where(dto => dto.IsReview || isAdmin || (!string.IsNullOrWhiteSpace(requesterUserId) && dto.UserId == requesterUserId))
+            .ToList();
 
         // 填充动态数据（Likes/Dislikes）
         foreach (var dto in allDtos)
@@ -498,11 +502,15 @@ public class PostService(
 
         SortComments(rootComments);
 
-        memoryCache.Set(cacheKey, rootComments, new MemoryCacheEntryOptions
+        if (!isAdmin && string.IsNullOrWhiteSpace(requesterUserId))
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2),
-            Size = 1
-        });
+            memoryCache.Set(cacheKey, rootComments, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2),
+                Size = 1
+            });
+        }
+
         return rootComments;
     }
 

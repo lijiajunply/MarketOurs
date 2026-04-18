@@ -136,7 +136,7 @@ export interface PostUpdateDto {
   title: string;
   content: string;
   images?: string[];
-  isReview: boolean;
+  isReview?: boolean;
 }
 
 /**
@@ -148,6 +148,7 @@ export interface CommentDto {
   images: string[];
   likes: number;
   dislikes: number;
+  isReview: boolean;
   createdAt: string;
   updatedAt: string;
   userId: string;
