@@ -90,14 +90,34 @@ class _HomeHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '首页',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: '个人页',
+                onPressed: () => context.push(AppRoutePaths.profile),
+                icon: Icon(
+                  Icons.person_outline_rounded,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+            ],
+          ),
           Text(
-            '首页',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: Colors.black,
+            'MarketOurs',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Colors.grey.shade500,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -196,7 +216,9 @@ class _PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final imageUrl = post.images?.isNotEmpty == true ? post.images!.first : null;
+    final imageUrl = post.images?.isNotEmpty == true
+        ? post.images!.first
+        : null;
 
     return Container(
       decoration: BoxDecoration(
@@ -225,15 +247,14 @@ class _PostCard extends StatelessWidget {
                     child: Image.network(
                       imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder:
-                          (context, error, stackTrace) => Container(
-                            color: Colors.grey.shade100,
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey.shade100,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
                     ),
                   ),
                 Padding(
