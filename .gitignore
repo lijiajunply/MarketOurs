@@ -76,3 +76,5 @@ TestResults/
 .env
 
 /keys
+
+.DS_Store

@@ -35,7 +35,8 @@ public class PostController(IPostService postService) : ControllerBase
     /// <returns>分页后的帖子列表</returns>
     [HttpGet("user/{userId}")]
     [AllowAnonymous]
-    public async Task<ApiResponse<PagedResultDto<PostDto>>> GetByUserId(string userId, [FromQuery] PaginationParams @params)
+    public async Task<ApiResponse<PagedResultDto<PostDto>>> GetByUserId(string userId,
+        [FromQuery] PaginationParams @params)
     {
         var posts = await postService.GetByUserIdAsync(userId, @params);
         return ApiResponse<PagedResultDto<PostDto>>.Success(posts, "获取成功");
@@ -107,7 +108,7 @@ public class PostController(IPostService postService) : ControllerBase
             throw new AuthException(ErrorCode.InsufficientPermission, "无权修改他人的帖子", 403);
         }
 
-        var post = await postService.UpdateAsync(id, request);
+        var post = await postService.UpdateAsync(id, request, isAdmin);
         return ApiResponse<PostDto>.Success(post, "更新成功，正在重新审核");
     }
 
@@ -186,7 +187,8 @@ public class PostController(IPostService postService) : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(@params.Keyword))
         {
-            return ApiResponse<PagedResultDto<PostDto>>.Success(PagedResultDto<PostDto>.Success([], 0, @params.PageIndex, @params.PageSize), "关键词不能为空");
+            return ApiResponse<PagedResultDto<PostDto>>.Success(
+                PagedResultDto<PostDto>.Success([], 0, @params.PageIndex, @params.PageSize), "关键词不能为空");
         }
 
         var results = await postService.SearchAsync(@params);

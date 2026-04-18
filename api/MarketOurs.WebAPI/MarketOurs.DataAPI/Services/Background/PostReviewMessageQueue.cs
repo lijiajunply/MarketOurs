@@ -2,7 +2,13 @@ using System.Threading.Channels;
 
 namespace MarketOurs.DataAPI.Services.Background;
 
-public record PostReviewMessage(string PostId);
+public record PostReviewMessage(string PostId, ReviewType Type);
+
+public enum ReviewType
+{
+    Post,
+    Comment
+}
 
 public class PostReviewMessageQueue
 {

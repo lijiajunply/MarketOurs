@@ -27,25 +27,50 @@ public class PostReviewBackgroundService(
             {
                 using var scope = scopeFactory.CreateScope();
                 var postRepo = scope.ServiceProvider.GetRequiredService<IPostRepo>();
-                var aiService = scope.ServiceProvider.GetRequiredService<IAIService>();
+                var commentRepo = scope.ServiceProvider.GetRequiredService<ICommentRepo>();
+                var reviewService = scope.ServiceProvider.GetRequiredService<IReviewService>();
 
-                var post = await postRepo.GetByIdAsync(message.PostId);
-                if (post == null)
+                string messageStr;
+                string userId;
+                string targetId;
+
+                if (message.Type == ReviewType.Post)
                 {
-                    logger.LogWarning("Post {PostId} not found when processing review queue", message.PostId);
-                    continue;
+                    var post = await postRepo.GetByIdAsync(message.PostId);
+                    if (post == null)
+                    {
+                        logger.LogWarning("Post {PostId} not found when processing review queue", message.PostId);
+                        continue;
+                    }
+
+                    messageStr = $"title: {post.Title}, content: {post.Content}";
+                    userId = post.UserId;
+                    targetId = post.Id;
+                }
+                else
+                {
+                    var comment = await commentRepo.GetByIdAsync(message.PostId);
+                    if (comment == null)
+                    {
+                        logger.LogWarning("comment {PostId} not found when processing review queue", message.PostId);
+                        continue;
+                    }
+
+                    messageStr = $"content: {comment.Content}";
+                    userId = comment.UserId;
+                    targetId = comment.Id;
                 }
 
-                var reviewResult = await aiService.Review(PostService.MapToDto(post));
+                var reviewResult = await reviewService.Review(messageStr);
                 var isApproved = string.IsNullOrWhiteSpace(reviewResult);
 
                 await postRepo.SetReviewStatusAsync(message.PostId, isApproved);
                 notificationQueue.Enqueue(new NotificationMessage()
                 {
-                    UserId = post.UserId,
+                    UserId = userId,
                     Type = NotificationType.Review,
                     Content = isApproved ? "审核通过" : reviewResult,
-                    TargetId = post.Id,
+                    TargetId = targetId,
                     Title = "审核信息"
                 });
                 InvalidatePostCaches(message.PostId);

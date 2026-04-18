@@ -66,8 +66,9 @@ public interface IPostService
     /// </summary>
     /// <param name="id">帖子ID</param>
     /// <param name="updateDto">更新参数</param>
+    /// <param name="isAdmin">是否为管理员</param>
     /// <returns>更新后的帖子DTO</returns>
-    Task<PostDto> UpdateAsync(string id, PostUpdateDto updateDto);
+    Task<PostDto> UpdateAsync(string id, PostUpdateDto updateDto, bool isAdmin = false);
 
     /// <summary>
     /// 删除帖子
@@ -385,13 +386,13 @@ public class PostService(
         InvalidateGlobalCaches();
         if (postReviewQueue != null)
         {
-            await postReviewQueue.EnqueueAsync(new PostReviewMessage(post.Id));
+            await postReviewQueue.EnqueueAsync(new PostReviewMessage(post.Id, ReviewType.Post));
         }
 
         return MapToDto(post);
     }
 
-    public async Task<PostDto> UpdateAsync(string id, PostUpdateDto updateDto)
+    public async Task<PostDto> UpdateAsync(string id, PostUpdateDto updateDto, bool isAdmin = false)
     {
         var post = await postRepo.GetByIdAsync(id);
         if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
@@ -400,13 +401,13 @@ public class PostService(
         post.Content = updateDto.Content;
         post.Images = updateDto.Images;
         post.UpdatedAt = DateTime.UtcNow;
-        post.IsReview = false;
+        post.IsReview = isAdmin;
 
         await postRepo.UpdateAsync(post);
         InvalidateCache(id);
-        if (postReviewQueue != null)
+        if (postReviewQueue != null && !isAdmin)
         {
-            await postReviewQueue.EnqueueAsync(new PostReviewMessage(post.Id));
+            await postReviewQueue.EnqueueAsync(new PostReviewMessage(post.Id, ReviewType.Post));
         }
 
         return MapToDto(post);

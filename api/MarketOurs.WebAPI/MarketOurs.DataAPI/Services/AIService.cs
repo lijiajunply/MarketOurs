@@ -1,8 +1,6 @@
-using Azure.AI.ContentSafety;
 using MarketOurs.Data.DTOs;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using MarketOurs.DataAPI.Configs;
 
 namespace MarketOurs.DataAPI.Services;
 
@@ -26,16 +24,14 @@ public interface IAIService
     /// <summary>
     /// 内容审查
     /// </summary>
-    /// <param name="postDto"></param>
+    /// <param name="message">内容</param>
     /// <returns></returns>
-    Task<string> Review(PostDto postDto);
+    Task<string> Review(string message);
 }
 
 public class AIService(
     Kernel kernel,
-    IChatCompletionService chatCompletionService,
-    ISensitiveWordService sensitiveWordService,
-    IServiceProvider serviceProvider)
+    IChatCompletionService chatCompletionService)
     : IAIService
 {
     /// <inheritdoc/>
@@ -56,41 +52,23 @@ public class AIService(
         return result.Content ?? string.Empty;
     }
 
-    public async Task<string> Review(PostDto postDto)
+    public async Task<string> Review(string message)
     {
-        var filter = await sensitiveWordService.GetFilterAsync();
-        
-        if (serviceProvider.GetService(typeof(ContentSafetyClient)) is not ContentSafetyClient contentSafetyClient)
+        var chatHistory = new ChatHistory();
+        chatHistory.AddSystemMessage("你是一个专业的内容审查助手。请审查用户输入的内容是否包含违规、敏感、色情、暴力、辱骂等不良信息。" +
+                                     "如果内容合规，请仅回复“Pass”。如果不合规，请回复违规的具体原因，不要包含任何多余的解释性文字。");
+        chatHistory.AddUserMessage(message);
+
+        var result = await chatCompletionService.GetChatMessageContentAsync(
+            chatHistory,
+            kernel: kernel);
+
+        var content = result.Content?.Trim() ?? string.Empty;
+        if (content.Equals("Pass", StringComparison.OrdinalIgnoreCase))
         {
-            return "";
+            return string.Empty;
         }
 
-        var textToReview = $"{postDto.Title}\n{postDto.Content}";
-
-        if (string.IsNullOrWhiteSpace(textToReview))
-        {
-            return "";
-        }
-        
-        if (filter.HasSensitiveWord(textToReview))
-        {
-            return "出现敏感词";
-        }
-
-        var request = new AnalyzeTextOptions(textToReview);
-
-        try
-        {
-            Azure.Response<AnalyzeTextResult> response = await contentSafetyClient.AnalyzeTextAsync(request);
-
-            return response.Value.CategoriesAnalysis != null &&
-                   response.Value.CategoriesAnalysis.Any(category => category.Severity > 0)
-                ? "出现敏感词"
-                : "";
-        }
-        catch (Azure.RequestFailedException)
-        {
-            return "出现敏感词";
-        }
+        return content;
     }
 }

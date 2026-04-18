@@ -11,7 +11,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.AI.ContentSafety" Version="1.0.0" />
         <PackageReference Include="Fluid.Core" Version="2.31.0" />
         <PackageReference Include="MailKit" Version="4.15.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
