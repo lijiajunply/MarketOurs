@@ -6,18 +6,9 @@ import 'api_service.dart';
 class CommentService {
   final _api = ApiService().dio;
 
-  Future<ApiResponse<PagedResult<CommentDto>>> getComments({
-    int pageIndex = 1,
-    int pageSize = 10,
-    String? keyword,
-  }) async {
-    final response = await _api.get('/Comment', queryParameters: {
-      'PageIndex': pageIndex,
-      'PageSize': pageSize,
-      if (keyword != null) 'Keyword': keyword,
-    });
+  ApiResponse<PagedResult<CommentDto>> _parsePagedComments(dynamic data) {
     return ApiResponse<PagedResult<CommentDto>>.fromJson(
-      response.data,
+      data as Map<String, dynamic>,
       (json) => PagedResult<CommentDto>.fromJson(
         json as Map<String, dynamic>,
         (item) => CommentDto.fromJson(item as Map<String, dynamic>),
@@ -25,7 +16,41 @@ class CommentService {
     );
   }
 
-  Future<ApiResponse<CommentDto>> createComment(CommentCreateDto request) async {
+  Future<ApiResponse<PagedResult<CommentDto>>> getComments({
+    int pageIndex = 1,
+    int pageSize = 10,
+    String? keyword,
+  }) async {
+    final response = await _api.get(
+      '/Comment',
+      queryParameters: {
+        'PageIndex': pageIndex,
+        'PageSize': pageSize,
+        'Keyword': keyword,
+      }..removeWhere((_, value) => value == null),
+    );
+    return _parsePagedComments(response.data);
+  }
+
+  Future<ApiResponse<PagedResult<CommentDto>>> searchComments({
+    int pageIndex = 1,
+    int pageSize = 10,
+    String? keyword,
+  }) async {
+    final response = await _api.get(
+      '/Comment/search',
+      queryParameters: {
+        'PageIndex': pageIndex,
+        'PageSize': pageSize,
+        'Keyword': keyword,
+      }..removeWhere((_, value) => value == null),
+    );
+    return _parsePagedComments(response.data);
+  }
+
+  Future<ApiResponse<CommentDto>> createComment(
+    CommentCreateDto request,
+  ) async {
     final response = await _api.post('/Comment', data: request.toJson());
     return ApiResponse<CommentDto>.fromJson(
       response.data,
@@ -41,7 +66,10 @@ class CommentService {
     );
   }
 
-  Future<ApiResponse<CommentDto>> updateComment(String id, CommentUpdateDto request) async {
+  Future<ApiResponse<CommentDto>> updateComment(
+    String id,
+    CommentUpdateDto request,
+  ) async {
     final response = await _api.put('/Comment/$id', data: request.toJson());
     return ApiResponse<CommentDto>.fromJson(
       response.data,
@@ -54,8 +82,14 @@ class CommentService {
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 
-  Future<ApiResponse<CommentDto>> replyToComment(String id, CommentCreateDto request) async {
-    final response = await _api.post('/Comment/$id/reply', data: request.toJson());
+  Future<ApiResponse<CommentDto>> replyToComment(
+    String id,
+    CommentCreateDto request,
+  ) async {
+    final response = await _api.post(
+      '/Comment/$id/reply',
+      data: request.toJson(),
+    );
     return ApiResponse<CommentDto>.fromJson(
       response.data,
       (json) => CommentDto.fromJson(json as Map<String, dynamic>),

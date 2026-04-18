@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'user.dart';
 
 part 'post.g.dart';
 
@@ -11,9 +12,11 @@ class PostDto {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? userId;
+  final UserSimpleDto? author;
   final int? likes;
   final int? dislikes;
   final int? watch;
+  final bool? isReview;
 
   PostDto({
     required this.id,
@@ -23,12 +26,15 @@ class PostDto {
     this.createdAt,
     this.updatedAt,
     this.userId,
+    this.author,
     this.likes,
     this.dislikes,
     this.watch,
+    this.isReview,
   });
 
-  factory PostDto.fromJson(Map<String, dynamic> json) => _$PostDtoFromJson(json);
+  factory PostDto.fromJson(Map<String, dynamic> json) =>
+      _$PostDtoFromJson(json);
   Map<String, dynamic> toJson() => _$PostDtoToJson(this);
 }
 
@@ -46,7 +52,8 @@ class PostCreateDto {
     required this.userId,
   });
 
-  factory PostCreateDto.fromJson(Map<String, dynamic> json) => _$PostCreateDtoFromJson(json);
+  factory PostCreateDto.fromJson(Map<String, dynamic> json) =>
+      _$PostCreateDtoFromJson(json);
   Map<String, dynamic> toJson() => _$PostCreateDtoToJson(this);
 }
 
@@ -55,13 +62,16 @@ class PostUpdateDto {
   final String title;
   final String content;
   final List<String>? images;
+  final bool? isReview;
 
   PostUpdateDto({
     required this.title,
     required this.content,
     this.images,
+    this.isReview,
   });
 
-  factory PostUpdateDto.fromJson(Map<String, dynamic> json) => _$PostUpdateDtoFromJson(json);
+  factory PostUpdateDto.fromJson(Map<String, dynamic> json) =>
+      _$PostUpdateDtoFromJson(json);
   Map<String, dynamic> toJson() => _$PostUpdateDtoToJson(this);
 }

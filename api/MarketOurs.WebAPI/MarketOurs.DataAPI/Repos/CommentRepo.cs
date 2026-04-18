@@ -1,7 +1,6 @@
 using MarketOurs.Data;
 using MarketOurs.Data.DataModels;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace MarketOurs.DataAPI.Repos;
 
@@ -9,7 +8,10 @@ public interface ICommentRepo
 {
     public Task<List<CommentModel>> GetAllAsync(int pageIndex, int pageSize, bool includeUnreviewed = false);
     public Task<int> CountAsync(bool includeUnreviewed = false);
-    public Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize, bool includeUnreviewed = false);
+
+    public Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize,
+        bool includeUnreviewed = false);
+
     public Task<int> SearchCountAsync(string keyword, bool includeUnreviewed = false);
     public Task<CommentModel?> GetByIdAsync(string id);
     public Task<CommentModel?> GetReviewedByIdAsync(string id);
@@ -44,7 +46,7 @@ public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRep
     {
         await using var context = await factory.CreateDbContextAsync();
 
-        IQueryable<CommentModel> query = context.Commits
+        var query = context.Commits
             .Include(x => x.User)
             .AsQueryable();
 
@@ -72,7 +74,8 @@ public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRep
         return await query.CountAsync();
     }
 
-    public async Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize, bool includeUnreviewed = false)
+    public async Task<List<CommentModel>> SearchAsync(string keyword, int pageIndex, int pageSize,
+        bool includeUnreviewed = false)
     {
         await using var context = await factory.CreateDbContextAsync();
 

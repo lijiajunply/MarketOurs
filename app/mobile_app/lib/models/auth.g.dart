@@ -68,3 +68,37 @@ VerifyCodeRequest _$VerifyCodeRequestFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$VerifyCodeRequestToJson(VerifyCodeRequest instance) =>
     <String, dynamic>{'code': instance.code};
+
+VerifyRegistrationRequest _$VerifyRegistrationRequestFromJson(
+  Map<String, dynamic> json,
+) => VerifyRegistrationRequest(
+  registrationToken: json['registrationToken'] as String,
+  code: json['code'] as String,
+);
+
+Map<String, dynamic> _$VerifyRegistrationRequestToJson(
+  VerifyRegistrationRequest instance,
+) => <String, dynamic>{
+  'registrationToken': instance.registrationToken,
+  'code': instance.code,
+};
+
+SendCodeRequest _$SendCodeRequestFromJson(Map<String, dynamic> json) =>
+    SendCodeRequest(account: json['account'] as String);
+
+Map<String, dynamic> _$SendCodeRequestToJson(SendCodeRequest instance) =>
+    <String, dynamic>{'account': instance.account};
+
+LoginByCodeRequest _$LoginByCodeRequestFromJson(Map<String, dynamic> json) =>
+    LoginByCodeRequest(
+      account: json['account'] as String,
+      code: json['code'] as String,
+      deviceType: json['deviceType'] as String?,
+    );
+
+Map<String, dynamic> _$LoginByCodeRequestToJson(LoginByCodeRequest instance) =>
+    <String, dynamic>{
+      'account': instance.account,
+      'code': instance.code,
+      'deviceType': instance.deviceType,
+    };

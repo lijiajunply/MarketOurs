@@ -35,7 +35,8 @@ class NotificationDto {
     required this.createdAt,
   });
 
-  factory NotificationDto.fromJson(Map<String, dynamic> json) => _$NotificationDtoFromJson(json);
+  factory NotificationDto.fromJson(Map<String, dynamic> json) =>
+      _$NotificationDtoFromJson(json);
   Map<String, dynamic> toJson() => _$NotificationDtoToJson(this);
 }
 
@@ -51,6 +52,7 @@ class PushSettingsDto {
     required this.enableCommentReplyPush,
   });
 
-  factory PushSettingsDto.fromJson(Map<String, dynamic> json) => _$PushSettingsDtoFromJson(json);
+  factory PushSettingsDto.fromJson(Map<String, dynamic> json) =>
+      _$PushSettingsDtoFromJson(json);
   Map<String, dynamic> toJson() => _$PushSettingsDtoToJson(this);
 }

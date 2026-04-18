@@ -9,7 +9,9 @@ class TokenDto {
 
   TokenDto({this.accessToken, this.refreshToken});
 
-  factory TokenDto.fromJson(Map<String, dynamic> json) => _$TokenDtoFromJson(json);
+  factory TokenDto.fromJson(Map<String, dynamic> json) =>
+      _$TokenDtoFromJson(json);
+
   Map<String, dynamic> toJson() => _$TokenDtoToJson(this);
 }
 
@@ -25,7 +27,9 @@ class LoginRequest {
     this.deviceType,
   });
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) => _$LoginRequestFromJson(json);
+  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
+      _$LoginRequestFromJson(json);
+
   Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
 }
 
@@ -34,12 +38,11 @@ class RefreshRequest {
   final String refreshToken;
   final String? deviceType;
 
-  RefreshRequest({
-    required this.refreshToken,
-    this.deviceType,
-  });
+  RefreshRequest({required this.refreshToken, this.deviceType});
 
-  factory RefreshRequest.fromJson(Map<String, dynamic> json) => _$RefreshRequestFromJson(json);
+  factory RefreshRequest.fromJson(Map<String, dynamic> json) =>
+      _$RefreshRequestFromJson(json);
+
   Map<String, dynamic> toJson() => _$RefreshRequestToJson(this);
 }
 
@@ -49,7 +52,9 @@ class ForgotPasswordRequest {
 
   ForgotPasswordRequest({required this.account});
 
-  factory ForgotPasswordRequest.fromJson(Map<String, dynamic> json) => _$ForgotPasswordRequestFromJson(json);
+  factory ForgotPasswordRequest.fromJson(Map<String, dynamic> json) =>
+      _$ForgotPasswordRequestFromJson(json);
+
   Map<String, dynamic> toJson() => _$ForgotPasswordRequestToJson(this);
 }
 
@@ -60,7 +65,9 @@ class ResetPasswordRequest {
 
   ResetPasswordRequest({required this.token, required this.newPassword});
 
-  factory ResetPasswordRequest.fromJson(Map<String, dynamic> json) => _$ResetPasswordRequestFromJson(json);
+  factory ResetPasswordRequest.fromJson(Map<String, dynamic> json) =>
+      _$ResetPasswordRequestFromJson(json);
+
   Map<String, dynamic> toJson() => _$ResetPasswordRequestToJson(this);
 }
 
@@ -70,8 +77,26 @@ class VerifyCodeRequest {
 
   VerifyCodeRequest({required this.code});
 
-  factory VerifyCodeRequest.fromJson(Map<String, dynamic> json) => _$VerifyCodeRequestFromJson(json);
+  factory VerifyCodeRequest.fromJson(Map<String, dynamic> json) =>
+      _$VerifyCodeRequestFromJson(json);
+
   Map<String, dynamic> toJson() => _$VerifyCodeRequestToJson(this);
+}
+
+@JsonSerializable()
+class VerifyRegistrationRequest {
+  final String registrationToken;
+  final String code;
+
+  VerifyRegistrationRequest({
+    required this.registrationToken,
+    required this.code,
+  });
+
+  factory VerifyRegistrationRequest.fromJson(Map<String, dynamic> json) =>
+      _$VerifyRegistrationRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VerifyRegistrationRequestToJson(this);
 }
 
 @JsonSerializable()
@@ -80,7 +105,9 @@ class SendCodeRequest {
 
   SendCodeRequest({required this.account});
 
-  factory SendCodeRequest.fromJson(Map<String, dynamic> json) => _$SendCodeRequestFromJson(json);
+  factory SendCodeRequest.fromJson(Map<String, dynamic> json) =>
+      _$SendCodeRequestFromJson(json);
+
   Map<String, dynamic> toJson() => _$SendCodeRequestToJson(this);
 }
 
@@ -89,13 +116,14 @@ class LoginByCodeRequest {
   final String account;
   final String code;
   final String? deviceType;
-
   LoginByCodeRequest({
     required this.account,
     required this.code,
     this.deviceType,
   });
 
-  factory LoginByCodeRequest.fromJson(Map<String, dynamic> json) => _$LoginByCodeRequestFromJson(json);
+  factory LoginByCodeRequest.fromJson(Map<String, dynamic> json) =>
+      _$LoginByCodeRequestFromJson(json);
+
   Map<String, dynamic> toJson() => _$LoginByCodeRequestToJson(this);
 }

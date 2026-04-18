@@ -1,4 +1,3 @@
-using MarketOurs.Data.DTOs;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 

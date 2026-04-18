@@ -82,7 +82,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               await widget.service.markAllAsRead();
               _loadNotifications();
             },
-          )
+          ),
         ],
       ),
       body: RefreshIndicator(
@@ -90,54 +90,65 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: _isLoading && _notifications.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : _notifications.isEmpty
-                ? const Center(child: Text('暂无通知'))
-                : ListView.builder(
-                    itemCount: _notifications.length,
-                    itemBuilder: (context, index) {
-                      final n = _notifications[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getIconColor(n.type).withOpacity(0.1),
-                          child: Icon(_getIcon(n.type), color: _getIconColor(n.type)),
+            ? const Center(child: Text('暂无通知'))
+            : ListView.builder(
+                itemCount: _notifications.length,
+                itemBuilder: (context, index) {
+                  final n = _notifications[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: _getIconColor(
+                        n.type,
+                      ).withValues(alpha: 0.1),
+                      child: Icon(
+                        _getIcon(n.type),
+                        color: _getIconColor(n.type),
+                      ),
+                    ),
+                    title: Text(
+                      n.title,
+                      style: TextStyle(
+                        fontWeight: n.isRead
+                            ? FontWeight.normal
+                            : FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          n.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        title: Text(
-                          n.title,
-                          style: TextStyle(
-                            fontWeight: n.isRead ? FontWeight.normal : FontWeight.bold,
-                          ),
+                        const SizedBox(height: 4),
+                        Text(
+                          n.createdAt.toString().split('.')[0],
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(n.content, maxLines: 2, overflow: TextOverflow.ellipsis),
-                            const SizedBox(height: 4),
-                            Text(
-                              n.createdAt.toString().split('.')[0],
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                        onTap: () async {
-                          if (!n.isRead) {
-                            await widget.service.markAsRead(n.id);
-                            setState(() {
-                              _notifications[index] = NotificationDto(
-                                id: n.id,
-                                userId: n.userId,
-                                title: n.title,
-                                content: n.content,
-                                type: n.type,
-                                targetId: n.targetId,
-                                isRead: true,
-                                createdAt: n.createdAt,
-                              );
-                            });
-                          }
-                          // Navigate to post detail if targetId exists
-                        },
-                      );
+                      ],
+                    ),
+                    onTap: () async {
+                      if (!n.isRead) {
+                        await widget.service.markAsRead(n.id);
+                        setState(() {
+                          _notifications[index] = NotificationDto(
+                            id: n.id,
+                            userId: n.userId,
+                            title: n.title,
+                            content: n.content,
+                            type: n.type,
+                            targetId: n.targetId,
+                            isRead: true,
+                            createdAt: n.createdAt,
+                          );
+                        });
+                      }
+                      // Navigate to post detail if targetId exists
                     },
-                  ),
+                  );
+                },
+              ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'user.dart';
 
 part 'comment.g.dart';
 
@@ -12,9 +13,11 @@ class CommentDto {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? userId;
+  final UserSimpleDto? author;
   final String? postId;
   final String? parentCommentId;
   final List<CommentDto>? repliedComments;
+  final bool? isReview;
 
   CommentDto({
     required this.id,
@@ -25,12 +28,15 @@ class CommentDto {
     this.createdAt,
     this.updatedAt,
     this.userId,
+    this.author,
     this.postId,
     this.parentCommentId,
     this.repliedComments,
+    this.isReview,
   });
 
-  factory CommentDto.fromJson(Map<String, dynamic> json) => _$CommentDtoFromJson(json);
+  factory CommentDto.fromJson(Map<String, dynamic> json) =>
+      _$CommentDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CommentDtoToJson(this);
 }
 
@@ -50,7 +56,8 @@ class CommentCreateDto {
     this.parentCommentId,
   });
 
-  factory CommentCreateDto.fromJson(Map<String, dynamic> json) => _$CommentCreateDtoFromJson(json);
+  factory CommentCreateDto.fromJson(Map<String, dynamic> json) =>
+      _$CommentCreateDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CommentCreateDtoToJson(this);
 }
 
@@ -59,11 +66,9 @@ class CommentUpdateDto {
   final String content;
   final List<String>? images;
 
-  CommentUpdateDto({
-    required this.content,
-    this.images,
-  });
+  CommentUpdateDto({required this.content, this.images});
 
-  factory CommentUpdateDto.fromJson(Map<String, dynamic> json) => _$CommentUpdateDtoFromJson(json);
+  factory CommentUpdateDto.fromJson(Map<String, dynamic> json) =>
+      _$CommentUpdateDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CommentUpdateDtoToJson(this);
 }

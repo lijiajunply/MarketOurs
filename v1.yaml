@@ -1,0 +1,3947 @@
+openapi: 3.1.1
+info:
+  title: MarketOurs.WebAPI | v1
+  version: 1.0.0
+servers:
+  - url: http://localhost:5053/
+paths:
+  /Admin/overview:
+    get:
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfAdminOverviewDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfAdminOverviewDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfAdminOverviewDto"
+  /Admin/users/{id}/status:
+    put:
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserStatusRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserStatusRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserStatusRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+  /Auth/login:
+    post:
+      tags:
+        - Auth
+      summary: 标准账号密码登录
+      requestBody:
+        description: 包含账号、密码和设备类型的登录请求
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: 包含双 Token 的成功结果
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+  /Auth/send-login-code:
+    post:
+      tags:
+        - Auth
+      summary: 发送登录验证码 (免密码登录)
+      requestBody:
+        description: 包含账号的请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendCodeRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/SendCodeRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/SendCodeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/login-by-code:
+    post:
+      tags:
+        - Auth
+      summary: 使用验证码登录 (免密码登录)
+      requestBody:
+        description: 包含账号、验证码和设备类型的请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginByCodeRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/LoginByCodeRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/LoginByCodeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+  /Auth/register:
+    post:
+      tags:
+        - Auth
+      summary: 用户注册：第一步，提交信息获取注册令牌
+      requestBody:
+        description: 用户注册请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UserCreateDto"
+        required: true
+      responses:
+        "200":
+          description: 注册令牌
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+  /Auth/send-registration-code:
+    post:
+      tags:
+        - Auth
+      summary: 用户注册：第二步，发送验证码
+      parameters:
+        - name: regToken
+          in: query
+          description: 注册令牌
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/verify-registration:
+    post:
+      tags:
+        - Auth
+      summary: 用户注册：第三步，验证并完成注册
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyRegistrationRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/VerifyRegistrationRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/VerifyRegistrationRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+  /Auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: 使用刷新令牌获取新的访问令牌
+      requestBody:
+        description: 包含刷新令牌的请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+        required: true
+      responses:
+        "200":
+          description: 新签发的令牌对
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfTokenDto"
+  /Auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: 注销当前会话 (需要登录)
+      parameters:
+        - name: deviceType
+          in: query
+          description: 设备类型 (Web/Mobile)
+          schema:
+            type: string
+            default: Web
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/info:
+    get:
+      tags:
+        - Auth
+      summary: 获取当前已登录用户的详细信息
+      responses:
+        "200":
+          description: 当前用户信息
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+  /Auth/verify-email:
+    get:
+      tags:
+        - Auth
+      summary: 验证邮箱激活令牌
+      parameters:
+        - name: token
+          in: query
+          description: 注册时需要的验证内容
+          schema:
+            type: string
+        - name: code
+          in: query
+          description: 邮件中的验证令牌
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 验证结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/verify-phone:
+    post:
+      tags:
+        - Auth
+      summary: 验证手机激活码
+      parameters:
+        - name: token
+          in: query
+          description: 注册时需要的验证内容
+          schema:
+            type: string
+        - name: code
+          in: query
+          description: 邮件中的验证令牌
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 验证结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: 忘记密码：根据账号发送重置验证码
+      requestBody:
+        description: 包含账号的请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: 重置密码：根据重置令牌设置新密码
+      requestBody:
+        description: 包含令牌和新密码的请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/resend-verification:
+    post:
+      tags:
+        - Auth
+      summary: 重新向未激活账户发送验证邮件或短信
+      requestBody:
+        description: 包含账号的请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/send-email-code:
+    post:
+      tags:
+        - Auth
+      summary: 向当前登录用户的邮箱发送验证码
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/send-phone-code:
+    post:
+      tags:
+        - Auth
+      summary: 向当前登录用户的手机号发送验证码
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/verify-email-code:
+    post:
+      tags:
+        - Auth
+      summary: 校验当前登录用户的邮箱验证码
+      requestBody:
+        description: 包含验证码的请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyCodeRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/VerifyCodeRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/VerifyCodeRequest"
+        required: true
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Auth/external-login:
+    get:
+      tags:
+        - Auth
+      summary: 第三方登录/绑定统一入口
+      parameters:
+        - name: provider
+          in: query
+          description: 登录提供方 (如 GitHub, Google, Weixin)
+          schema:
+            type: string
+        - name: returnUrl
+          in: query
+          description: 登录成功后的回跳地址
+          schema:
+            type: string
+            default: /
+        - name: purpose
+          in: query
+          description: "用途: login 或 bind"
+          schema:
+            type: string
+            default: login
+      responses:
+        "200":
+          description: 跳转至第三方平台的 Challenge 响应
+  /Auth/external-login-callback:
+    get:
+      tags:
+        - Auth
+      summary: 第三方登录成功后的内部回调处理
+      parameters:
+        - name: returnUrl
+          in: query
+          description: 最终回跳地址
+          schema:
+            type: string
+            default: /
+        - name: remoteError
+          in: query
+          description: 远程错误信息 (如有)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 重定向至前端页面，并带上 AccessToken
+  /clean:
+    get:
+      tags:
+        - Cache
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+  /Comment:
+    get:
+      tags:
+        - Comment
+      summary: 获取所有评论 (分页)
+      parameters:
+        - name: PageIndex
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: PageSize
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: Keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 分页后的评论列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfCommentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfCommentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfCommentDto"
+    post:
+      tags:
+        - Comment
+      summary: 创建新评论 (主评论，不带 ParentId)
+      requestBody:
+        description: 评论创建请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentCreateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CommentCreateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CommentCreateDto"
+        required: true
+      responses:
+        "200":
+          description: 创建成功的评论数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+  /Comment/search:
+    get:
+      tags:
+        - Comment
+      summary: 全文检索评论内容 (分页)
+      parameters:
+        - name: PageIndex
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: PageSize
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: Keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 相关评论分页列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfCommentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfCommentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfCommentDto"
+  /Comment/{id}:
+    get:
+      tags:
+        - Comment
+      summary: 根据 ID 获取单个评论详情
+      parameters:
+        - name: id
+          in: path
+          description: 评论唯一标识
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 评论详细数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+    put:
+      tags:
+        - Comment
+      summary: 更新评论内容 (仅限作者或管理员)
+      parameters:
+        - name: id
+          in: path
+          description: 评论 ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 评论更新请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentUpdateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CommentUpdateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CommentUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: 更新后的评论数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+    delete:
+      tags:
+        - Comment
+      summary: 删除评论 (仅限作者或管理员)
+      parameters:
+        - name: id
+          in: path
+          description: 评论 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Comment/{id}/reply:
+    post:
+      tags:
+        - Comment
+      summary: 回复现有评论
+      parameters:
+        - name: id
+          in: path
+          description: 被回复的父评论 ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 评论创建请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentCreateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/CommentCreateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/CommentCreateDto"
+        required: true
+      responses:
+        "200":
+          description: 创建成功的回复评论数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+  /Comment/{id}/like:
+    post:
+      tags:
+        - Comment
+      summary: 点赞评论 (支持切换状态)
+      parameters:
+        - name: id
+          in: path
+          description: 评论 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Comment/{id}/dislike:
+    post:
+      tags:
+        - Comment
+      summary: 点踩评论 (支持切换状态)
+      parameters:
+        - name: id
+          in: path
+          description: 评论 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Comment/{id}/review:
+    put:
+      tags:
+        - Comment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCommentReviewRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCommentReviewRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UpdateCommentReviewRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfCommentDto"
+  /File/upload/image:
+    post:
+      tags:
+        - File
+      summary: 上传单张图片 (限制为 jpg, png, gif, webp)
+      requestBody:
+        description: 上传的文件流
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  $ref: "#/components/schemas/IFormFile"
+        required: true
+      responses:
+        "200":
+          description: 上传成功后的文件访问 URL
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+  /File/upload/images:
+    post:
+      tags:
+        - File
+      summary: 批量上传图片
+      requestBody:
+        description: 上传的文件列表
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/IFormFile"
+        required: true
+      responses:
+        "200":
+          description: 成功上传的文件访问 URL 列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfstring"
+  /IpBlacklist/stats:
+    get:
+      tags:
+        - IpBlacklist
+      summary: 获取黑名单统计信息
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfBlacklistStats"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfBlacklistStats"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfBlacklistStats"
+  /IpBlacklist/add:
+    post:
+      tags:
+        - IpBlacklist
+      summary: 添加IP到黑名单
+      requestBody:
+        description: 添加请求
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddIpRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/AddIpRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/AddIpRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+  /IpBlacklist/remove:
+    post:
+      tags:
+        - IpBlacklist
+      summary: 从黑名单中移除IP
+      requestBody:
+        description: 移除请求
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoveIpRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/RemoveIpRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/RemoveIpRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+  /IpBlacklist/refresh:
+    post:
+      tags:
+        - IpBlacklist
+      summary: 刷新黑名单缓存
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfstring"
+  /IpBlacklist/check/{ip}:
+    get:
+      tags:
+        - IpBlacklist
+      summary: 检查IP是否在黑名单中
+      parameters:
+        - name: ip
+          in: path
+          description: IP地址
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfIpCheckResult"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfIpCheckResult"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfIpCheckResult"
+  /Logs:
+    get:
+      tags:
+        - Logs
+      summary: 获取最近的日志条目，支持分页和多条件搜索
+      description: |-
+        此API提供了三种搜索模式，可以单独使用或组合使用：
+        1. 名称/内容搜索：通过关键词在日志消息和属性中进行模糊匹配
+        2. 日志级别过滤：精确匹配指定的日志级别
+        3. 时间范围过滤：支持"today"（当天）或指定天数（如"7"表示最近7天）
+
+        所有搜索条件之间使用AND逻辑进行组合。
+      parameters:
+        - name: pageIndex
+          in: query
+          description: 页码，从1开始，默认为1
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 1
+        - name: pageSize
+          in: query
+          description: 每页记录数，默认为10，最大不超过100
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 10
+        - name: searchTerm
+          in: query
+          description: 搜索关键词，用于在日志消息和属性中搜索（最多100个字符）
+          schema:
+            type: string
+        - name: levelFilter
+          in: query
+          description: 日志级别过滤，如"Information"、"Warning"、"Error"等
+          schema:
+            type: string
+        - name: timeRange
+          in: query
+          description: 时间范围过滤："today"表示当天，或正整数表示最近几天
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 包含分页信息和日志条目的JSON响应
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPaginatedResponseOfLogEntry"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPaginatedResponseOfLogEntry"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPaginatedResponseOfLogEntry"
+  /Logs/statistics:
+    get:
+      tags:
+        - Logs
+      summary: 获取日志统计信息，包括总日志数量和各日志级别数量
+      responses:
+        "200":
+          description: 日志统计结果
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfLogStatistics"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfLogStatistics"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfLogStatistics"
+  /Logs/cleanup:
+    post:
+      tags:
+        - Logs
+      summary: 手动清理旧日志
+      parameters:
+        - name: days
+          in: query
+          description: 要保留的日志天数，默认为7天
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 7
+      responses:
+        "200":
+          description: 清理结果
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfObject"
+  /Logs/distribution:
+    get:
+      tags:
+        - Logs
+      summary: 获取日志分布数据，用于图表展示
+      parameters:
+        - name: timeRange
+          in: query
+          description: 时间范围过滤："today"表示当天，或正整数表示最近几天
+          schema:
+            type: string
+            default: today
+      responses:
+        "200":
+          description: 按时间分布的日志数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfLogDistribution"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfLogDistribution"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfLogDistribution"
+  /Notification:
+    get:
+      tags:
+        - Notification
+      summary: 获取当前登录用户的通知列表 (支持分页)
+      parameters:
+        - name: PageIndex
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: PageSize
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: Keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 分页后的通知列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfNotificationDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfNotificationDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfNotificationDto"
+  /Notification/unread-count:
+    get:
+      tags:
+        - Notification
+      summary: 获取当前登录用户的未读通知总数
+      responses:
+        "200":
+          description: 未读通知数量
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfint"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfint"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfint"
+  /Notification/{id}/read:
+    post:
+      tags:
+        - Notification
+      summary: 将指定的通知标记为已读
+      parameters:
+        - name: id
+          in: path
+          description: 通知唯一标识
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Notification/read-all:
+    post:
+      tags:
+        - Notification
+      summary: 将当前用户的所有通知一键标记为已读
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Notification/settings:
+    get:
+      tags:
+        - Notification
+      summary: 获取当前用户的个性化推送设置 (如邮件通知、热门推送等)
+      responses:
+        "200":
+          description: 推送设置详情
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPushSettingsDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPushSettingsDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPushSettingsDto"
+    put:
+      tags:
+        - Notification
+      summary: 更新当前用户的个性化推送设置
+      requestBody:
+        description: 推送设置请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSettingsDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/PushSettingsDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/PushSettingsDto"
+        required: true
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Post:
+    get:
+      tags:
+        - Post
+      summary: 获取所有帖子 (分页)
+      parameters:
+        - name: PageIndex
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: PageSize
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: Keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 分页后的帖子列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+    post:
+      tags:
+        - Post
+      summary: 创建新帖子 (需要登录)
+      requestBody:
+        description: 帖子创建请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostCreateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/PostCreateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/PostCreateDto"
+        required: true
+      responses:
+        "200":
+          description: 创建成功的帖子数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+  /Post/user/{userId}:
+    get:
+      tags:
+        - Post
+      summary: 获取指定用户发布的帖子 (分页)
+      parameters:
+        - name: userId
+          in: path
+          description: 用户ID
+          required: true
+          schema:
+            type: string
+        - name: PageIndex
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: PageSize
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: Keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 分页后的帖子列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+  /Post/hot:
+    get:
+      tags:
+        - Post
+      summary: 获取热门帖子列表
+      parameters:
+        - name: count
+          in: query
+          description: 获取数量，默认为 10
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+            default: 10
+      responses:
+        "200":
+          description: 热门帖子列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfPostDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfPostDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfPostDto"
+  /Post/{id}:
+    get:
+      tags:
+        - Post
+      summary: 根据 ID 获取帖子详情，并自动增加浏览量
+      parameters:
+        - name: id
+          in: path
+          description: 帖子唯一标识
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 帖子详细数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+    put:
+      tags:
+        - Post
+      summary: 更新帖子内容 (仅限作者或管理员)
+      parameters:
+        - name: id
+          in: path
+          description: 帖子 ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 帖子更新请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostUpdateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/PostUpdateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/PostUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: 更新后的帖子数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+    delete:
+      tags:
+        - Post
+      summary: 删除帖子 (仅限作者或管理员)
+      parameters:
+        - name: id
+          in: path
+          description: 帖子 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Post/{id}/like:
+    post:
+      tags:
+        - Post
+      summary: 点赞帖子 (支持切换状态)
+      parameters:
+        - name: id
+          in: path
+          description: 帖子 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Post/{id}/dislike:
+    post:
+      tags:
+        - Post
+      summary: 点踩帖子 (支持切换状态)
+      parameters:
+        - name: id
+          in: path
+          description: 帖子 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /Post/{id}/comments/{type}:
+    get:
+      tags:
+        - Post
+      summary: 获取贴子的评论列表 (构造成树形结构)
+      parameters:
+        - name: id
+          in: path
+          description: 帖子 ID
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: path
+          description: "排序类型: Hot (热门), New (最新，默认)"
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 评论树列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfCommentDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfCommentDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfListOfCommentDto"
+  /Post/search:
+    get:
+      tags:
+        - Post
+      summary: 全文检索帖子内容 (支持分页)
+      parameters:
+        - name: PageIndex
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: PageSize
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: Keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 相关帖子分页列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfPostDto"
+  /Post/{id}/review:
+    put:
+      tags:
+        - Post
+      summary: 审核帖子 (仅限管理员)
+      parameters:
+        - name: id
+          in: path
+          description: 帖子 ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 审核请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostReviewRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostReviewRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostReviewRequest"
+        required: true
+      responses:
+        "200":
+          description: 操作后的帖子数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPostDto"
+  /User:
+    get:
+      tags:
+        - User
+      summary: 获取所有注册用户 (仅限管理员，支持分页)
+      parameters:
+        - name: PageIndex
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: PageSize
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: Keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 分页后的用户列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfUserDto"
+    post:
+      tags:
+        - User
+      summary: 手动创建一个新用户 (仅限管理员)
+      requestBody:
+        description: 用户创建请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UserCreateDto"
+        required: true
+      responses:
+        "200":
+          description: 创建成功的用户数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+  /User/search:
+    get:
+      tags:
+        - User
+      summary: 根据关键词检索用户 (仅限管理员，支持分页)
+      parameters:
+        - name: PageIndex
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: PageSize
+          in: query
+          schema:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+        - name: Keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 匹配的用户分页列表
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPagedResultDtoOfUserDto"
+  /User/{id}:
+    get:
+      tags:
+        - User
+      summary: 根据用户 ID 获取详情 (仅限管理员)
+      parameters:
+        - name: id
+          in: path
+          description: 用户唯一标识
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 用户详细数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+    put:
+      tags:
+        - User
+      summary: 更新指定用户的信息 (仅限管理员)
+      parameters:
+        - name: id
+          in: path
+          description: 目标用户 ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 用户信息更新请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: 更新后的用户数据
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+    delete:
+      tags:
+        - User
+      summary: 删除指定用户 (仅限管理员，且不能删除自己)
+      parameters:
+        - name: id
+          in: path
+          description: 目标用户 ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /User/public/{id}:
+    get:
+      tags:
+        - User
+      summary: 获取公开用户主页资料
+      parameters:
+        - name: id
+          in: path
+          description: 用户唯一标识
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 公开用户资料
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPublicUserProfileDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPublicUserProfileDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfPublicUserProfileDto"
+  /User/profile:
+    get:
+      tags:
+        - User
+      summary: 获取当前登录用户的个人资料
+      responses:
+        "200":
+          description: 当前用户信息
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+    put:
+      tags:
+        - User
+      summary: 更新当前登录用户的个人资料 (如头像、简介、昵称)
+      requestBody:
+        description: 用户信息更新请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateDto"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateDto"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: 更新后的用户信息
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseOfUserDto"
+  /User/password:
+    put:
+      tags:
+        - User
+      summary: 修改当前登录用户的密码
+      requestBody:
+        description: 包含旧密码和新密码的请求对象
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /User/push-token:
+    post:
+      tags:
+        - User
+      summary: 更新当前登录用户的移动端推送 Token (用于移动端消息推送)
+      requestBody:
+        description: FCM 或其他平台的推送 Token
+        content:
+          application/json:
+            schema:
+              type: string
+          text/json:
+            schema:
+              type: string
+          application/*+json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: 操作结果描述
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+            text/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+components:
+  schemas:
+    AddIpRequest:
+      type: object
+      properties:
+        ip:
+          type: string
+          description: IP地址或CIDR范围（如：192.168.1.100 或 192.168.1.0/24）
+        reason:
+          type:
+            - "null"
+            - string
+          description: 添加原因
+      description: 添加IP请求
+    AdminOverviewDto:
+      type: object
+      properties:
+        totalUsers:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        activeUsers:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalPosts:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        postsCreatedInLast7Days:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalLogs:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        errorLogs:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        blacklistHits:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        cacheHits:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        postTrend:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminTrendPointDto"
+        recentActivities:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminRecentActivityDto"
+    AdminRecentActivityDto:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    AdminTrendPointDto:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        posts:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        users:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          description: 响应数据
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 无数据的API响应模型
+    ApiResponseOfAdminOverviewDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/AdminOverviewDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfBlacklistStats:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/BlacklistStats"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfCommentDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/CommentDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfint:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 响应数据
+          format: int32
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfIpCheckResult:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/IpCheckResult"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfListOfCommentDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/CommentDto"
+          description: 响应数据
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfListOfLogDistribution:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/LogDistribution"
+          description: 响应数据
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfListOfPostDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            $ref: "#/components/schemas/PostDto"
+          description: 响应数据
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfListOfstring:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          type:
+            - "null"
+            - array
+          items:
+            type: string
+          description: 响应数据
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfLogStatistics:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/LogStatistics"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfObject:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          description: 响应数据
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfPagedResultDtoOfCommentDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/PagedResultDtoOfCommentDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfPagedResultDtoOfNotificationDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/PagedResultDtoOfNotificationDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfPagedResultDtoOfPostDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/PagedResultDtoOfPostDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfPagedResultDtoOfUserDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/PagedResultDtoOfUserDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfPaginatedResponseOfLogEntry:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/PaginatedResponseOfLogEntry"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfPostDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/PostDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfPublicUserProfileDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/PublicUserProfileDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfPushSettingsDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/PushSettingsDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfstring:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          type:
+            - "null"
+            - string
+          description: 响应数据
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfTokenDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/TokenDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    ApiResponseOfUserDto:
+      type: object
+      properties:
+        code:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 请求状态码（200表示成功，其他表示失败）
+          format: int32
+        errorCode:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 业务错误码（0表示成功，其他表示具体错误类型）
+          format: int32
+        message:
+          type: string
+          description: 响应消息
+        detail:
+          type:
+            - "null"
+            - string
+          description: 详细描述
+        data:
+          oneOf:
+            - type: "null"
+            - description: 响应数据
+              $ref: "#/components/schemas/UserDto"
+        requestId:
+          type:
+            - "null"
+            - string
+          description: 请求ID，用于追踪请求
+        timestamp:
+          type:
+            - "null"
+            - string
+          description: 响应时间戳（UTC时间）
+      description: 统一API响应模型
+    BlacklistStats:
+      type: object
+      properties:
+        totalIps:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalCidrRanges:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        cacheHits:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        cacheMisses:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        blacklistHits:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int64
+        lastRefreshTime:
+          type: string
+          format: date-time
+      description: 黑名单统计信息
+    ChangePasswordRequest:
+      required:
+        - oldPassword
+        - newPassword
+      type: object
+      properties:
+        oldPassword:
+          type: string
+        newPassword:
+          maxLength: 128
+          minLength: 6
+          type: string
+    CommentCreateDto:
+      required:
+        - content
+        - userId
+        - postId
+      type: object
+      properties:
+        content:
+          maxLength: 512
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        userId:
+          maxLength: 64
+          type: string
+        postId:
+          maxLength: 64
+          type: string
+        parentCommentId:
+          maxLength: 64
+          type:
+            - "null"
+            - string
+    CommentDto:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        likes:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        dislikes:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        isReview:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        userId:
+          type: string
+        author:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/UserSimpleDto"
+        postId:
+          type: string
+        parentCommentId:
+          type:
+            - "null"
+            - string
+        repliedComments:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommentDto"
+    CommentUpdateDto:
+      required:
+        - content
+      type: object
+      properties:
+        content:
+          maxLength: 512
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+    ForgotPasswordRequest:
+      required:
+        - account
+      type: object
+      properties:
+        account:
+          maxLength: 128
+          type: string
+          description: 账号 (邮箱或手机号)
+      description: 忘记密码请求对象
+    IFormFile:
+      type: string
+      format: binary
+    IpCheckResult:
+      type: object
+      properties:
+        ip:
+          type: string
+        isBlacklisted:
+          type: boolean
+        checkTime:
+          type: string
+          format: date-time
+      description: IP检查结果
+    LogDistribution:
+      type: object
+      properties:
+        timePoint:
+          type: string
+          description: 时间点，格式为"HH:00"或"YYYY-MM-DD"
+        totalCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 该时间点的日志总数
+          format: int32
+        errorCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 该时间点的错误日志数量
+          format: int32
+        infoCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 该时间点的信息日志数量
+          format: int32
+        warningCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 该时间点的警告日志数量
+          format: int32
+      description: 日志分布数据模型，用于表示按时间分布的日志数量
+    LogEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          description: 日志时间戳
+          format: date-time
+        level:
+          type: string
+          description: 日志级别（如 Information, Warning, Error等）
+        exception:
+          type:
+            - "null"
+            - string
+          description: 异常信息（如果有的话）
+        properties:
+          type:
+            - "null"
+            - object
+          description: 日志属性字典
+        message:
+          type:
+            - "null"
+            - string
+          description: 日志消息内容
+      description: 日志条目模型，用于表示单条日志记录
+    LoginByCodeRequest:
+      required:
+        - account
+        - code
+      type: object
+      properties:
+        account:
+          type: string
+          description: 账号 (邮箱或手机号)
+        code:
+          type: string
+          description: 验证码
+        deviceType:
+          type: string
+          description: 设备类型 (Web/Mobile)
+      description: 验证码登录请求
+    LoginRequest:
+      required:
+        - account
+        - password
+      type: object
+      properties:
+        account:
+          maxLength: 128
+          type: string
+          description: 账号 (邮箱或手机号)
+        password:
+          maxLength: 128
+          type: string
+          description: 密码
+        deviceType:
+          type: string
+          description: 设备类型 (如 Web, Mobile)
+      description: 登录请求对象
+    LogStatistics:
+      type: object
+      properties:
+        totalCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 总日志数量
+          format: int32
+        levelCounts:
+          type: object
+          additionalProperties:
+            pattern: ^-?(?:0|[1-9]\d*)$
+            type:
+              - integer
+              - string
+            format: int32
+          description: 各日志级别的数量统计
+      description: 日志统计结果模型
+    NotificationDto:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          $ref: "#/components/schemas/NotificationType"
+        targetId:
+          type:
+            - "null"
+            - string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    NotificationType:
+      type: integer
+    PagedResultDtoOfCommentDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommentDto"
+        totalCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageIndex:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageSize:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalPages:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+    PagedResultDtoOfNotificationDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationDto"
+        totalCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageIndex:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageSize:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalPages:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+    PagedResultDtoOfPostDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PostDto"
+        totalCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageIndex:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageSize:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalPages:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+    PagedResultDtoOfUserDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserDto"
+        totalCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageIndex:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        pageSize:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        totalPages:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        hasPreviousPage:
+          type: boolean
+        hasNextPage:
+          type: boolean
+    PaginatedResponseOfLogEntry:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogEntry"
+          description: 数据列表
+        totalCount:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 总记录数
+          format: int32
+        pageIndex:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 当前页码
+          format: int32
+        pageSize:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 每页记录数
+          format: int32
+        totalPages:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          description: 总页数
+          format: int32
+      description: 分页响应模型，包含分页信息和数据
+    PostCreateDto:
+      required:
+        - title
+        - content
+        - userId
+      type: object
+      properties:
+        title:
+          maxLength: 128
+          type: string
+        content:
+          maxLength: 1024
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        userId:
+          maxLength: 64
+          type: string
+    PostDto:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        userId:
+          type: string
+        author:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/UserSimpleDto"
+        likes:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        dislikes:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        watch:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        isReview:
+          type: boolean
+    PostUpdateDto:
+      required:
+        - title
+        - content
+      type: object
+      properties:
+        title:
+          maxLength: 128
+          type: string
+        content:
+          maxLength: 1024
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        isReview:
+          type: boolean
+    PublicUserProfileDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        avatar:
+          type: string
+        info:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    PushSettingsDto:
+      type: object
+      properties:
+        enableEmailNotifications:
+          type: boolean
+        enableHotListPush:
+          type: boolean
+        enableCommentReplyPush:
+          type: boolean
+    RefreshRequest:
+      required:
+        - refreshToken
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: 刷新令牌 (RefreshToken)
+        deviceType:
+          type: string
+          description: 设备类型
+      description: 刷新令牌请求对象
+    RemoveIpRequest:
+      type: object
+      properties:
+        ip:
+          type: string
+          description: IP地址或CIDR范围
+        reason:
+          type:
+            - "null"
+            - string
+          description: 移除原因
+      description: 移除IP请求
+    ResetPasswordRequest:
+      required:
+        - token
+        - newPassword
+      type: object
+      properties:
+        token:
+          type: string
+          description: 验证码或重置令牌
+        newPassword:
+          maxLength: 128
+          minLength: 6
+          type: string
+          description: 新密码
+      description: 重置密码请求对象
+    SendCodeRequest:
+      required:
+        - account
+      type: object
+      properties:
+        account:
+          type: string
+          description: 账号 (邮箱或手机号)
+      description: 发送验证码请求
+    TokenDto:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+    UpdateCommentReviewRequest:
+      type: object
+      properties:
+        isReview:
+          type: boolean
+    UpdatePostReviewRequest:
+      type: object
+      properties:
+        isReview:
+          type: boolean
+    UpdateUserStatusRequest:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+    UserCreateDto:
+      required:
+        - account
+        - password
+        - name
+      type: object
+      properties:
+        account:
+          maxLength: 128
+          type: string
+        password:
+          maxLength: 128
+          minLength: 6
+          type: string
+        name:
+          maxLength: 128
+          type: string
+        avatar:
+          maxLength: 128
+          type: string
+        role:
+          maxLength: 128
+          type: string
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        avatar:
+          type: string
+        info:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+        isEmailVerified:
+          type: boolean
+        isPhoneVerified:
+          type: boolean
+        pushSettings:
+          type:
+            - "null"
+            - string
+        githubId:
+          type:
+            - "null"
+            - string
+        googleId:
+          type:
+            - "null"
+            - string
+        weixinId:
+          type:
+            - "null"
+            - string
+        oursId:
+          type:
+            - "null"
+            - string
+    UserSimpleDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        avatar:
+          type: string
+    UserUpdateDto:
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          type: string
+        email:
+          maxLength: 128
+          type:
+            - "null"
+            - string
+        phone:
+          maxLength: 32
+          type:
+            - "null"
+            - string
+        avatar:
+          maxLength: 128
+          type: string
+        info:
+          maxLength: 1024
+          type: string
+        githubId:
+          type:
+            - "null"
+            - string
+        googleId:
+          type:
+            - "null"
+            - string
+        weixinId:
+          type:
+            - "null"
+            - string
+        oursId:
+          type:
+            - "null"
+            - string
+    VerifyCodeRequest:
+      required:
+        - code
+      type: object
+      properties:
+        code:
+          type: string
+          description: 验证码
+      description: 验证码校验请求对象
+    VerifyRegistrationRequest:
+      required:
+        - registrationToken
+        - code
+      type: object
+      properties:
+        registrationToken:
+          type: string
+          description: 注册令牌 (从注册接口获取)
+        code:
+          type: string
+          description: 验证码
+      description: 注册验证请求对象
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Json Web Token
+tags:
+  - name: Admin
+  - name: Auth
+  - name: Cache
+  - name: Comment
+  - name: File
+  - name: IpBlacklist
+  - name: Logs
+  - name: Notification
+  - name: Post
+  - name: User

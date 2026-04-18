@@ -18,9 +18,13 @@ PostDto _$PostDtoFromJson(Map<String, dynamic> json) => PostDto(
       ? null
       : DateTime.parse(json['updatedAt'] as String),
   userId: json['userId'] as String?,
+  author: json['author'] == null
+      ? null
+      : UserSimpleDto.fromJson(json['author'] as Map<String, dynamic>),
   likes: (json['likes'] as num?)?.toInt(),
   dislikes: (json['dislikes'] as num?)?.toInt(),
   watch: (json['watch'] as num?)?.toInt(),
+  isReview: json['isReview'] as bool?,
 );
 
 Map<String, dynamic> _$PostDtoToJson(PostDto instance) => <String, dynamic>{
@@ -31,9 +35,11 @@ Map<String, dynamic> _$PostDtoToJson(PostDto instance) => <String, dynamic>{
   'createdAt': instance.createdAt?.toIso8601String(),
   'updatedAt': instance.updatedAt?.toIso8601String(),
   'userId': instance.userId,
+  'author': instance.author,
   'likes': instance.likes,
   'dislikes': instance.dislikes,
   'watch': instance.watch,
+  'isReview': instance.isReview,
 };
 
 PostCreateDto _$PostCreateDtoFromJson(Map<String, dynamic> json) =>
@@ -61,6 +67,7 @@ PostUpdateDto _$PostUpdateDtoFromJson(Map<String, dynamic> json) =>
       images: (json['images'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      isReview: json['isReview'] as bool?,
     );
 
 Map<String, dynamic> _$PostUpdateDtoToJson(PostUpdateDto instance) =>
@@ -68,4 +75,5 @@ Map<String, dynamic> _$PostUpdateDtoToJson(PostUpdateDto instance) =>
       'title': instance.title,
       'content': instance.content,
       'images': instance.images,
+      'isReview': instance.isReview,
     };

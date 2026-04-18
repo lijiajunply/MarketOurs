@@ -3,22 +3,29 @@
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 // import 'package:firebase_messaging/firebase_messaging.dart';
+import '../models/api_response.dart';
 import 'api_service.dart';
 
 class PushNotificationService {
-  final ApiService _apiService;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final _api = ApiService().dio;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
-  PushNotificationService(this._apiService);
+  PushNotificationService();
 
   Future<void> initialize() async {
     // 1. Initialize Local Notifications
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings();
-    const initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
-    
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
     await _localNotifications.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: (details) {
         // Handle notification click
       },
@@ -27,7 +34,7 @@ class PushNotificationService {
     // 2. Request Permissions (FCM)
     // FirebaseMessaging messaging = FirebaseMessaging.instance;
     // NotificationSettings settings = await messaging.requestPermission();
-    
+
     // 3. Get FCM Token and Register with Backend
     // String? token = await messaging.getToken();
     // if (token != null) {
@@ -42,8 +49,13 @@ class PushNotificationService {
 
   Future<bool> registerToken(String token) async {
     try {
-      final response = await _apiService.post('/User/push-token', data: '"$token"'); // Send as raw string JSON
-      return response.statusCode == 200;
+      final response = await _api.post('/User/push-token', data: token);
+      final apiRes = ApiResponse<Object?>.fromJson(
+        response.data as Map<String, dynamic>,
+        (json) => json,
+      );
+      return apiRes.code == 200 &&
+          (apiRes.errorCode == null || apiRes.errorCode == 0);
     } catch (e) {
       return false;
     }
@@ -58,13 +70,16 @@ class PushNotificationService {
       priority: Priority.high,
     );
     const iosDetails = DarwinNotificationDetails();
-    const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
 
     _localNotifications.show(
-      0,
-      message.notification?.title ?? 'New Notification',
-      message.notification?.body ?? '',
-      details,
+      id: 0,
+      title: message.notification?.title ?? 'New Notification',
+      body: message.notification?.body ?? '',
+      notificationDetails: details,
     );
   }
 }

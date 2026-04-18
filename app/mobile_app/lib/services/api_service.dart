@@ -8,27 +8,31 @@ class ApiService {
   factory ApiService() => _instance;
 
   ApiService._internal() {
-    dio = Dio(BaseOptions(
-      baseUrl: 'http://localhost:5053',
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
-    ));
+    dio = Dio(
+      BaseOptions(
+        baseUrl: 'http://localhost:5053',
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
 
-    dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        final prefs = await SharedPreferences.getInstance();
-        final token = prefs.getString('access_token');
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        return handler.next(options);
-      },
-      onError: (e, handler) async {
-        if (e.response?.statusCode == 401) {
-          // Handle token refresh logic here
-        }
-        return handler.next(e);
-      },
-    ));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final prefs = await SharedPreferences.getInstance();
+          final token = prefs.getString('access_token');
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
+        onError: (e, handler) async {
+          if (e.response?.statusCode == 401) {
+            // Token refresh is intentionally left out of scope for this pass.
+          }
+          return handler.next(e);
+        },
+      ),
+    );
   }
 }

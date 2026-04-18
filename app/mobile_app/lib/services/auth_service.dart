@@ -15,20 +15,47 @@ class AuthService {
   }
 
   Future<ApiResponse> sendLoginCode(SendCodeRequest request) async {
-    final response = await _api.post('/Auth/send-login-code', data: request.toJson());
+    final response = await _api.post(
+      '/Auth/send-login-code',
+      data: request.toJson(),
+    );
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 
   Future<ApiResponse<TokenDto>> loginByCode(LoginByCodeRequest request) async {
-    final response = await _api.post('/Auth/login-by-code', data: request.toJson());
+    final response = await _api.post(
+      '/Auth/login-by-code',
+      data: request.toJson(),
+    );
     return ApiResponse<TokenDto>.fromJson(
       response.data,
       (json) => TokenDto.fromJson(json as Map<String, dynamic>),
     );
   }
 
-  Future<ApiResponse<UserDto>> register(UserCreateDto request) async {
+  Future<ApiResponse<String>> register(UserCreateDto request) async {
     final response = await _api.post('/Auth/register', data: request.toJson());
+    return ApiResponse<String>.fromJson(
+      response.data,
+      (json) => json as String,
+    );
+  }
+
+  Future<ApiResponse> sendRegistrationCode(String regToken) async {
+    final response = await _api.post(
+      '/Auth/send-registration-code',
+      queryParameters: {'regToken': regToken},
+    );
+    return ApiResponse.fromJson(response.data, (json) => json);
+  }
+
+  Future<ApiResponse<UserDto>> verifyRegistration(
+    VerifyRegistrationRequest request,
+  ) async {
+    final response = await _api.post(
+      '/Auth/verify-registration',
+      data: request.toJson(),
+    );
     return ApiResponse<UserDto>.fromJson(
       response.data,
       (json) => UserDto.fromJson(json as Map<String, dynamic>),
@@ -44,7 +71,10 @@ class AuthService {
   }
 
   Future<ApiResponse> logout({String deviceType = 'Web'}) async {
-    final response = await _api.post('/Auth/logout', queryParameters: {'deviceType': deviceType});
+    final response = await _api.post(
+      '/Auth/logout',
+      queryParameters: {'deviceType': deviceType},
+    );
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 
@@ -56,18 +86,65 @@ class AuthService {
     );
   }
 
-  Future<ApiResponse> verifyEmail(String token) async {
-    final response = await _api.get('/Auth/verify-email', queryParameters: {'token': token});
+  Future<ApiResponse> verifyEmail({String? token, String? code}) async {
+    final response = await _api.get(
+      '/Auth/verify-email',
+      queryParameters: {'token': token, 'code': code}
+        ..removeWhere((_, value) => value == null),
+    );
+    return ApiResponse.fromJson(response.data, (json) => json);
+  }
+
+  Future<ApiResponse> verifyPhone({
+    required String token,
+    required String code,
+  }) async {
+    final response = await _api.post(
+      '/Auth/verify-phone',
+      queryParameters: {'token': token, 'code': code},
+    );
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 
   Future<ApiResponse> forgotPassword(ForgotPasswordRequest request) async {
-    final response = await _api.post('/Auth/forgot-password', data: request.toJson());
+    final response = await _api.post(
+      '/Auth/forgot-password',
+      data: request.toJson(),
+    );
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 
   Future<ApiResponse> resetPassword(ResetPasswordRequest request) async {
-    final response = await _api.post('/Auth/reset-password', data: request.toJson());
+    final response = await _api.post(
+      '/Auth/reset-password',
+      data: request.toJson(),
+    );
+    return ApiResponse.fromJson(response.data, (json) => json);
+  }
+
+  Future<ApiResponse> resendVerification(ForgotPasswordRequest request) async {
+    final response = await _api.post(
+      '/Auth/resend-verification',
+      data: request.toJson(),
+    );
+    return ApiResponse.fromJson(response.data, (json) => json);
+  }
+
+  Future<ApiResponse> sendEmailCode() async {
+    final response = await _api.post('/Auth/send-email-code');
+    return ApiResponse.fromJson(response.data, (json) => json);
+  }
+
+  Future<ApiResponse> sendPhoneCode() async {
+    final response = await _api.post('/Auth/send-phone-code');
+    return ApiResponse.fromJson(response.data, (json) => json);
+  }
+
+  Future<ApiResponse> verifyEmailCode(VerifyCodeRequest request) async {
+    final response = await _api.post(
+      '/Auth/verify-email-code',
+      data: request.toJson(),
+    );
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 }

@@ -14,7 +14,7 @@ class PushSettingsScreen extends StatefulWidget {
 class _PushSettingsScreenState extends State<PushSettingsScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
-  
+
   bool _emailEnabled = true;
   bool _hotListEnabled = true;
   bool _commentReplyEnabled = true;
@@ -48,20 +48,18 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
       ),
     );
     setState(() => _isSaving = false);
-    
+
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(success ? '保存成功' : '保存失败')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(success ? '保存成功' : '保存失败')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('推送设置'),
-      ),
+      appBar: AppBar(title: const Text('推送设置')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -79,7 +77,8 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
                   title: '评论回复推送',
                   subtitle: '当有人回复您的贴子或评论时推送',
                   value: _commentReplyEnabled,
-                  onChanged: (val) => setState(() => _commentReplyEnabled = val),
+                  onChanged: (val) =>
+                      setState(() => _commentReplyEnabled = val),
                   icon: Icons.reply_all,
                 ),
                 const Divider(),
@@ -94,12 +93,18 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
                 ElevatedButton.icon(
                   onPressed: _isSaving ? null : _saveSettings,
                   icon: _isSaving
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Icon(Icons.save),
                   label: const Text('保存设置'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ],

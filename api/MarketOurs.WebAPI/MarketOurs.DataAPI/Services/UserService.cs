@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MarketOurs.Data;
 using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
@@ -464,42 +463,6 @@ public class UserService(
         user.Password = newPassword.StringToHash();
         await userRepo.UpdateAsync(user);
         return true;
-    }
-
-    /// <inheritdoc/>
-    public async Task<bool> SendVerificationCodeAsync(string account, string code)
-    {
-        var isEmail = account.Contains('@');
-
-        if (isEmail)
-        {
-            var subject = "欢迎加入 MarketOurs - 验证您的注册信息";
-            return await emailService.SendEmailWithTemplateAsync(account, subject, VerificationEmailTemplate,
-                new { token = code });
-        }
-
-        try
-        {
-            // 发送短信验证码
-            var response = await smsService.RequestAsync("sms.message.send", new UniSmsModel()
-            {
-                To = account,
-                Signature = smsConfig.Signature,
-                TemplateId = "pub_verif_ttl3",
-                TemplateData = new Dictionary<string, object>()
-                {
-                    ["code"] = code,
-                    ["ttl"] = 15
-                }
-            });
-
-            return response is UniResponse { Code: "0" };
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "发送通用验证码异常: {Account}", account);
-            return false;
-        }
     }
 
     /// <inheritdoc/>

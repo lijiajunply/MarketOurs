@@ -25,8 +25,7 @@ class PagedResult<T> {
   factory PagedResult.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
-  ) =>
-      _$PagedResultFromJson(json, fromJsonT);
+  ) => _$PagedResultFromJson(json, fromJsonT);
 
   Map<String, dynamic> toJson(Object? Function(T value) toJsonT) =>
       _$PagedResultToJson(this, toJsonT);
