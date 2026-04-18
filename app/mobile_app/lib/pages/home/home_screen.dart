@@ -46,40 +46,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final feedAsync = ref.watch(homeFeedProvider);
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF7F2EB), Color(0xFFFDE8D9)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: feedAsync.when(
-            data: (state) => RefreshIndicator(
-              onRefresh: ref.read(homeFeedProvider.notifier).refresh,
-              child: CustomScrollView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  const SliverToBoxAdapter(child: _HomeHeader()),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    sliver: SliverToBoxAdapter(
-                      child: _WaterfallSection(
-                        posts: state.posts,
-                        isLoadingMore: state.isLoadingMore,
-                      ),
+      body: SafeArea(
+        child: feedAsync.when(
+          data: (state) => RefreshIndicator(
+            onRefresh: ref.read(homeFeedProvider.notifier).refresh,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                const SliverToBoxAdapter(child: _HomeHeader()),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  sliver: SliverToBoxAdapter(
+                    child: _WaterfallSection(
+                      posts: state.posts,
+                      isLoadingMore: state.isLoadingMore,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            loading: () => const _FeedLoadingView(),
-            error: (error, _) => _FeedErrorView(
-              message: '$error',
-              onRetry: () => ref.read(homeFeedProvider.notifier).refresh(),
-            ),
+          ),
+          loading: () => const _FeedLoadingView(),
+          error: (error, _) => _FeedErrorView(
+            message: '$error',
+            onRetry: () => ref.read(homeFeedProvider.notifier).refresh(),
           ),
         ),
       ),
@@ -103,7 +94,7 @@ class _HomeHeader extends StatelessWidget {
             '首页',
             style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF2B2118),
+              color: Colors.black,
             ),
           ),
           const SizedBox(height: 20),
@@ -205,85 +196,106 @@ class _PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final imageUrl = post.images?.isNotEmpty == true
-        ? post.images!.first
-        : null;
+    final imageUrl = post.images?.isNotEmpty == true ? post.images!.first : null;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(buildPostDetailLocation(post.id)),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (imageUrl != null) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: AspectRatio(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push(buildPostDetailLocation(post.id)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (imageUrl != null)
+                  AspectRatio(
                     aspectRatio: _imageAspectRatio(post.id),
                     child: Image.network(
                       imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: const Color(0xFFF3E4D8),
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.image_not_supported_outlined),
-                      ),
+                      errorBuilder:
+                          (context, error, stackTrace) => Container(
+                            color: Colors.grey.shade100,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
                     ),
                   ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (post.title?.trim().isNotEmpty ?? false)
+                            ? post.title!.trim()
+                            : '未命名帖子',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 17,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        (post.content?.trim().isNotEmpty ?? false)
+                            ? post.content!.trim()
+                            : '这个帖子还没有填写描述。',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey.shade600,
+                          height: 1.4,
+                          fontSize: 14,
+                        ),
+                        maxLines: imageUrl == null ? 6 : 4,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _StatChip(
+                            icon: Icons.favorite_border_rounded,
+                            label: '${post.likes ?? 0}',
+                          ),
+                          _StatChip(
+                            icon: Icons.remove_red_eye_outlined,
+                            label: '${post.watch ?? 0}',
+                          ),
+                          _StatChip(
+                            icon: Icons.person_outline_rounded,
+                            label: post.author?.name ?? '匿名',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _formatCreatedAt(post.createdAt),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: Colors.grey.shade400,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
               ],
-              Text(
-                (post.title?.trim().isNotEmpty ?? false)
-                    ? post.title!.trim()
-                    : '未命名帖子',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF2B2118),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                (post.content?.trim().isNotEmpty ?? false)
-                    ? post.content!.trim()
-                    : '这个帖子还没有填写描述。',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF6F5B4D),
-                  height: 1.5,
-                ),
-                maxLines: imageUrl == null ? 7 : 5,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _StatChip(
-                    icon: Icons.favorite_border_rounded,
-                    label: '${post.likes ?? 0}',
-                  ),
-                  _StatChip(
-                    icon: Icons.remove_red_eye_outlined,
-                    label: '${post.watch ?? 0}',
-                  ),
-                  _StatChip(
-                    icon: Icons.person_outline_rounded,
-                    label: post.author?.name ?? '匿名',
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                _formatCreatedAt(post.createdAt),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: const Color(0xFF9A8778),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -292,7 +304,7 @@ class _PostCard extends StatelessWidget {
 
   double _imageAspectRatio(String seed) {
     final value = seed.codeUnits.fold<int>(0, (sum, item) => sum + item);
-    final variants = [1 / 1.2, 1 / 1.35, 1 / 1.55, 1 / 1.1];
+    final variants = [1 / 1.1, 1 / 1.25, 1 / 1.4, 1 / 1];
     return variants[value % variants.length];
   }
 
@@ -331,19 +343,19 @@ class _StatChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F2EB),
-        borderRadius: BorderRadius.circular(999),
+        color: const Color(0xFFF2F2F7),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF7B6859)),
-          const SizedBox(width: 6),
+          Icon(icon, size: 14, color: Colors.grey.shade600),
+          const SizedBox(width: 4),
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: const Color(0xFF5B493B),
-              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -375,10 +387,10 @@ class _FeedErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.cloud_off_rounded,
               size: 42,
-              color: Color(0xFF7B6859),
+              color: Colors.grey.shade400,
             ),
             const SizedBox(height: 12),
             Text(
@@ -393,10 +405,19 @@ class _FeedErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF6F5B4D)),
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('重新加载')),
+            FilledButton(
+              onPressed: onRetry,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF007AFF),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('重新加载'),
+            ),
           ],
         ),
       ),
@@ -413,12 +434,13 @@ class _EmptyFeedView extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(28),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         children: [
-          const Icon(Icons.inbox_outlined, size: 40, color: Color(0xFF9A8778)),
+          Icon(Icons.inbox_outlined, size: 40, color: Colors.grey.shade300),
           const SizedBox(height: 12),
           Text(
             '还没有帖子',
@@ -432,7 +454,7 @@ class _EmptyFeedView extends StatelessWidget {
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF6F5B4D)),
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
           ),
         ],
       ),

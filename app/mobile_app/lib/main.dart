@@ -20,16 +20,41 @@ class MarketOursApp extends StatelessWidget {
       routerConfig: _router,
       theme: ThemeData(
         useMaterial3: true,
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.transparent,
+        scaffoldBackgroundColor: Colors.white,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF007AFF),
+          surface: Colors.white,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
           elevation: 0,
+          scrolledUnderElevation: 0,
           centerTitle: false,
+          iconTheme: IconThemeData(color: Colors.black),
+          titleTextStyle: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         cardTheme: CardThemeData(
           color: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        textTheme: const TextTheme(
+          headlineMedium: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w700,
+          ),
+          titleMedium: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w600,
+          ),
+          bodyMedium: TextStyle(
+            color: Color(0xFF3C3C43), // iOS Secondary Label Color
           ),
         ),
       ),

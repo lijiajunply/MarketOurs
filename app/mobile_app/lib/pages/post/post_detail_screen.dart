@@ -14,22 +14,13 @@ class PostDetailScreen extends ConsumerWidget {
     final postAsync = ref.watch(postDetailProvider(postId));
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF7F2EB), Color(0xFFFDE8D9)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: postAsync.when(
-            data: (post) => _PostDetailView(post: post),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => _PostDetailErrorView(
-              message: '$error',
-              onRetry: () => ref.invalidate(postDetailProvider(postId)),
-            ),
+      body: SafeArea(
+        child: postAsync.when(
+          data: (post) => _PostDetailView(post: post),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => _PostDetailErrorView(
+            message: '$error',
+            onRetry: () => ref.invalidate(postDetailProvider(postId)),
           ),
         ),
       ),
@@ -50,8 +41,8 @@ class _PostDetailView extends StatelessWidget {
       slivers: [
         SliverAppBar(
           pinned: true,
-          backgroundColor: Colors.transparent,
-          foregroundColor: const Color(0xFF2B2118),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
           title: const Text('帖子详情'),
         ),
         SliverPadding(
@@ -60,19 +51,19 @@ class _PostDetailView extends StatelessWidget {
             children: [
               if (post.images?.isNotEmpty ?? false) ...[
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(16),
                   child: AspectRatio(
-                    aspectRatio: 1.08,
+                    aspectRatio: 1.0,
                     child: Image.network(
                       post.images!.first,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Container(
-                        color: const Color(0xFFF3E4D8),
+                        color: Colors.grey.shade100,
                         alignment: Alignment.center,
-                        child: const Icon(
+                        child: Icon(
                           Icons.image_not_supported_outlined,
                           size: 36,
-                          color: Color(0xFF7B6859),
+                          color: Colors.grey.shade400,
                         ),
                       ),
                     ),
@@ -82,10 +73,6 @@ class _PostDetailView extends StatelessWidget {
               ],
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(28),
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -94,8 +81,8 @@ class _PostDetailView extends StatelessWidget {
                           ? post.title!.trim()
                           : '未命名帖子',
                       style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF2B2118),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -125,7 +112,7 @@ class _PostDetailView extends StatelessWidget {
                     Text(
                       _formatCreatedAt(post.createdAt),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF9A8778),
+                        color: Colors.grey.shade400,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -134,8 +121,8 @@ class _PostDetailView extends StatelessWidget {
                           ? post.content!.trim()
                           : '这个帖子还没有填写描述。',
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        height: 1.7,
-                        color: const Color(0xFF443329),
+                        height: 1.6,
+                        color: Colors.black87,
                       ),
                     ),
                   ],
@@ -168,19 +155,19 @@ class _DetailChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F2EB),
-        borderRadius: BorderRadius.circular(999),
+        color: const Color(0xFFF2F2F7),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF7B6859)),
+          Icon(icon, size: 14, color: Colors.grey.shade600),
           const SizedBox(width: 6),
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: const Color(0xFF5B493B),
-              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -203,11 +190,7 @@ class _PostDetailErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.article_outlined,
-              size: 42,
-              color: Color(0xFF7B6859),
-            ),
+            Icon(Icons.article_outlined, size: 42, color: Colors.grey.shade300),
             const SizedBox(height: 12),
             Text(
               '详情加载失败',
@@ -221,10 +204,19 @@ class _PostDetailErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF6F5B4D)),
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('重新加载')),
+            FilledButton(
+              onPressed: onRetry,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF007AFF),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('重新加载'),
+            ),
           ],
         ),
       ),
