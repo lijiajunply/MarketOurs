@@ -14,22 +14,14 @@ class MarketOursApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFFDB6B2C),
-      brightness: Brightness.light,
-    );
-
     return MaterialApp.router(
       title: 'MarketOurs',
       debugShowCheckedModeBanner: false,
       routerConfig: _router,
       theme: ThemeData(
-        colorScheme: colorScheme,
-        scaffoldBackgroundColor: const Color(0xFFF7F2EB),
         useMaterial3: true,
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.transparent,
-          foregroundColor: colorScheme.onSurface,
           elevation: 0,
           centerTitle: false,
         ),

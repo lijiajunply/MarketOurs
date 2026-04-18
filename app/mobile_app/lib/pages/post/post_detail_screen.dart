@@ -52,9 +52,7 @@ class _PostDetailView extends StatelessWidget {
           pinned: true,
           backgroundColor: Colors.transparent,
           foregroundColor: const Color(0xFF2B2118),
-          title: Text(
-            post.title?.trim().isNotEmpty == true ? post.title!.trim() : '帖子详情',
-          ),
+          title: const Text('帖子详情'),
         ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),

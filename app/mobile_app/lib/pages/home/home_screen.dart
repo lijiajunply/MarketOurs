@@ -106,61 +106,7 @@ class _HomeHeader extends StatelessWidget {
               color: const Color(0xFF2B2118),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '看看校园里刚刚出现了什么好物，双列瀑布流会把最新帖子都铺开给你。',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: const Color(0xFF6F5B4D),
-              height: 1.45,
-            ),
-          ),
           const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2F241C),
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'MarketOurs',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '我们的集市，不属于任何人。',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFFF0D7C4),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDB6B2C),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: const Icon(
-                    Icons.storefront_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
