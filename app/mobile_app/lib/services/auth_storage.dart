@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,9 +33,15 @@ class SecureAuthStorage implements AuthStorage {
 
   @override
   Future<AuthSession?> readSession() async {
-    final accessToken = await _secureStorage.read(key: _accessTokenKey);
-    final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
     final prefs = await SharedPreferences.getInstance();
+    final accessToken = await _readValue(
+      secureKey: _accessTokenKey,
+      prefs: prefs,
+    );
+    final refreshToken = await _readValue(
+      secureKey: _refreshTokenKey,
+      prefs: prefs,
+    );
     final userJson = prefs.getString(_userKey);
 
     if ((accessToken?.isEmpty ?? true) &&
@@ -60,23 +68,33 @@ class SecureAuthStorage implements AuthStorage {
   }
 
   @override
-  Future<String?> readAccessToken() {
-    return _secureStorage.read(key: _accessTokenKey);
+  Future<String?> readAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return _readValue(secureKey: _accessTokenKey, prefs: prefs);
   }
 
   @override
   Future<void> saveTokens(TokenDto token) async {
+    final prefs = await SharedPreferences.getInstance();
     final writes = <Future<void>>[];
 
     if (token.accessToken != null) {
       writes.add(
-        _secureStorage.write(key: _accessTokenKey, value: token.accessToken),
+        _writeValue(
+          secureKey: _accessTokenKey,
+          value: token.accessToken,
+          prefs: prefs,
+        ),
       );
     }
 
     if (token.refreshToken != null) {
       writes.add(
-        _secureStorage.write(key: _refreshTokenKey, value: token.refreshToken),
+        _writeValue(
+          secureKey: _refreshTokenKey,
+          value: token.refreshToken,
+          prefs: prefs,
+        ),
       );
     }
 
@@ -93,9 +111,59 @@ class SecureAuthStorage implements AuthStorage {
   Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await Future.wait([
-      _secureStorage.delete(key: _accessTokenKey),
-      _secureStorage.delete(key: _refreshTokenKey),
+      _deleteValue(secureKey: _accessTokenKey, prefs: prefs),
+      _deleteValue(secureKey: _refreshTokenKey, prefs: prefs),
       prefs.remove(_userKey),
     ]);
+  }
+
+  Future<String?> _readValue({
+    required String secureKey,
+    required SharedPreferences prefs,
+  }) async {
+    try {
+      return await _secureStorage.read(key: secureKey);
+    } on PlatformException catch (error) {
+      _logFallback('read', secureKey, error);
+      return prefs.getString(secureKey);
+    }
+  }
+
+  Future<void> _writeValue({
+    required String secureKey,
+    required String? value,
+    required SharedPreferences prefs,
+  }) async {
+    if (value == null) {
+      return;
+    }
+
+    try {
+      await _secureStorage.write(key: secureKey, value: value);
+      await prefs.remove(secureKey);
+    } on PlatformException catch (error) {
+      _logFallback('write', secureKey, error);
+      await prefs.setString(secureKey, value);
+    }
+  }
+
+  Future<void> _deleteValue({
+    required String secureKey,
+    required SharedPreferences prefs,
+  }) async {
+    try {
+      await _secureStorage.delete(key: secureKey);
+    } on PlatformException catch (error) {
+      _logFallback('delete', secureKey, error);
+    } finally {
+      await prefs.remove(secureKey);
+    }
+  }
+
+  void _logFallback(String action, String key, PlatformException error) {
+    debugPrint(
+      'Secure storage $action failed for "$key", falling back to SharedPreferences: '
+      '${error.code} ${error.message}',
+    );
   }
 }

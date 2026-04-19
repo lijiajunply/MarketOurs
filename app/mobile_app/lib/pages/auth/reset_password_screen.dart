@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
 import 'auth_scaffold.dart';
+import 'password_form_field.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({super.key, this.initialToken});
@@ -100,10 +101,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            PasswordFormField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: '新密码'),
-              obscureText: true,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return '请输入新密码';
@@ -115,10 +115,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            PasswordFormField(
               controller: _confirmPasswordController,
               decoration: const InputDecoration(labelText: '确认新密码'),
-              obscureText: true,
               validator: (value) {
                 if (value != _passwordController.text) {
                   return '两次输入的密码不一致';

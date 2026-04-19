@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 
@@ -75,7 +77,7 @@ class AuthController extends AsyncNotifier<AuthState> {
     final session = await _storage.readSession();
     if (session == null || !session.hasToken) {
       if (session != null) {
-        await _storage.clear();
+        await _clearStoredSessionSafely();
       }
       return AuthState.unauthenticated();
     }
@@ -86,7 +88,7 @@ class AuthController extends AsyncNotifier<AuthState> {
       await _storage.saveUser(user);
       return AuthState.authenticated(restoredSession);
     } catch (_) {
-      await _storage.clear();
+      await _clearStoredSessionSafely();
       return AuthState.unauthenticated();
     }
   }
@@ -98,12 +100,14 @@ class AuthController extends AsyncNotifier<AuthState> {
     final current = state.asData?.value ?? AuthState.unauthenticated();
     state = AsyncData(current.copyWith(isSubmitting: true, clearError: true));
 
+    final deviceType = Platform.isLinux || Platform.isMacOS || Platform.isWindows ? 'Desktop' : 'Mobile';
+
     try {
       final response = await _authService.login(
         LoginRequest(
           account: account,
           password: password,
-          deviceType: 'Mobile',
+          deviceType: deviceType,
         ),
       );
 
@@ -127,7 +131,7 @@ class AuthController extends AsyncNotifier<AuthState> {
       );
       return true;
     } catch (error) {
-      await _storage.clear();
+      await _clearStoredSessionSafely();
       state = AsyncData(
         AuthState.unauthenticated(errorMessage: _normalizeError(error)),
       );
@@ -211,12 +215,14 @@ class AuthController extends AsyncNotifier<AuthState> {
     state = AsyncData(current.copyWith(isSubmitting: true, clearError: true));
 
     try {
-      await _authService.logout(deviceType: 'Mobile');
+
+    final deviceType = Platform.isLinux || Platform.isMacOS || Platform.isWindows ? 'Desktop' : 'Mobile';
+      await _authService.logout(deviceType: deviceType);
     } catch (_) {
       // Clearing local session takes priority over logout request failures.
     }
 
-    await _storage.clear();
+    await _clearStoredSessionSafely();
     state = AsyncData(AuthState.unauthenticated());
   }
 
@@ -258,8 +264,16 @@ class AuthController extends AsyncNotifier<AuthState> {
   }
 
   Future<void> _handleUnauthorized() async {
-    await _storage.clear();
+    await _clearStoredSessionSafely();
     state = AsyncData(AuthState.unauthenticated());
+  }
+
+  Future<void> _clearStoredSessionSafely() async {
+    try {
+      await _storage.clear();
+    } catch (_) {
+      // Local cleanup should not block auth state transitions.
+    }
   }
 
   String _normalizeError(Object error) {

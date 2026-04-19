@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
 import 'auth_scaffold.dart';
+import 'password_form_field.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -90,13 +91,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            PasswordFormField(
               controller: _passwordController,
               decoration: const InputDecoration(
                 labelText: '密码',
                 hintText: '请输入密码',
               ),
-              obscureText: true,
               onFieldSubmitted: (_) => isSubmitting ? null : _submit(),
               validator: (value) {
                 if (value == null || value.isEmpty) {

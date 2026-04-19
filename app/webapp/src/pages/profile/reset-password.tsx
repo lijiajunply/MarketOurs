@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { userService } from "../../services/userService";
 import { Lock, Loader2, ArrowRight, ShieldCheck, AlertCircle, CheckCircle2 } from "lucide-react";
+import { PasswordField } from "../../components/auth/PasswordField";
 
 export default function ResetPasswordPage() {
   const { t } = useTranslation();
@@ -81,36 +82,30 @@ export default function ResetPasswordPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-semibold ml-1">{t("profile.old_password")}</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                  <input
-                    type="password"
-                    placeholder={t("profile.old_password_placeholder")}
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    required
-                  />
-                </div>
+                <PasswordField
+                  icon={<Lock size={18} />}
+                  placeholder={t("profile.old_password_placeholder")}
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  className="w-full pl-12 pr-12 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold ml-1">{t("auth.new_password")}</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                  <input
-                    type="password"
-                    placeholder={t("auth.new_password_placeholder")}
-                    value={newPassword}
-                    onChange={(e) => handleNewPasswordChange(e.target.value)}
-                    className={`w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border outline-none transition-all ${
-                      isPasswordDirty && !isPasswordValid 
-                        ? 'border-destructive focus:ring-destructive/20' 
-                        : 'border-border/50 focus:border-primary focus:ring-primary/20'
-                    }`}
-                    required
-                  />
-                </div>
+                <PasswordField
+                  icon={<Lock size={18} />}
+                  placeholder={t("auth.new_password_placeholder")}
+                  value={newPassword}
+                  onChange={(e) => handleNewPasswordChange(e.target.value)}
+                  className={`w-full pl-12 pr-12 py-3 rounded-2xl bg-muted/50 border outline-none transition-all ${
+                    isPasswordDirty && !isPasswordValid 
+                      ? 'border-destructive focus:ring-destructive/20' 
+                      : 'border-border/50 focus:border-primary focus:ring-primary/20'
+                  }`}
+                  required
+                />
                 {isPasswordDirty && !isPasswordValid && (
                   <p className="text-xs text-destructive ml-1">{t("auth.invalid_password")}</p>
                 )}
@@ -121,21 +116,18 @@ export default function ResetPasswordPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold ml-1">{t("profile.confirm_password")}</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                  <input
-                    type="password"
-                    placeholder={t("profile.confirm_password")}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border outline-none transition-all ${
-                      confirmPassword && newPassword !== confirmPassword
-                        ? 'border-destructive focus:ring-destructive/20' 
-                        : 'border-border/50 focus:border-primary focus:ring-primary/20'
-                    }`}
-                    required
-                  />
-                </div>
+                <PasswordField
+                  icon={<Lock size={18} />}
+                  placeholder={t("profile.confirm_password")}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`w-full pl-12 pr-12 py-3 rounded-2xl bg-muted/50 border outline-none transition-all ${
+                    confirmPassword && newPassword !== confirmPassword
+                      ? 'border-destructive focus:ring-destructive/20' 
+                      : 'border-border/50 focus:border-primary focus:ring-primary/20'
+                  }`}
+                  required
+                />
               </div>
             </div>
 

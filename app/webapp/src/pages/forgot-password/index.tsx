@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { authService } from "../../services/authService";
 import { Mail, Lock, Loader2, ArrowRight, Key, CheckCircle2, AlertCircle } from "lucide-react";
+import { PasswordField } from "../../components/auth/PasswordField";
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
@@ -150,21 +151,18 @@ export default function ForgotPasswordPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold ml-1">{t("auth.new_password")}</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                      <input
-                        type="password"
-                        placeholder={t("auth.password_placeholder")}
-                        value={newPassword}
-                        onChange={(e) => handlePasswordChange(e.target.value)}
-                        className={`w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border outline-none transition-all ${
-                          isPasswordDirty && !isPasswordValid 
-                            ? 'border-destructive focus:ring-destructive/20' 
-                            : 'border-border/50 focus:border-primary focus:ring-primary/20'
-                        }`}
-                        required
-                      />
-                    </div>
+                    <PasswordField
+                      icon={<Lock size={18} />}
+                      placeholder={t("auth.password_placeholder")}
+                      value={newPassword}
+                      onChange={(e) => handlePasswordChange(e.target.value)}
+                      className={`w-full pl-12 pr-12 py-3 rounded-2xl bg-muted/50 border outline-none transition-all ${
+                        isPasswordDirty && !isPasswordValid 
+                          ? 'border-destructive focus:ring-destructive/20' 
+                          : 'border-border/50 focus:border-primary focus:ring-primary/20'
+                      }`}
+                      required
+                    />
                     {isPasswordDirty && !isPasswordValid && (
                       <p className="text-xs text-destructive ml-1">{t("auth.invalid_password")}</p>
                     )}

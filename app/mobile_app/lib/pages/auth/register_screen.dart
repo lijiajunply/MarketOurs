@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
 import 'auth_scaffold.dart';
+import 'password_form_field.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -117,13 +118,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            PasswordFormField(
               controller: _passwordController,
               decoration: const InputDecoration(
                 labelText: '密码',
                 hintText: '至少 6 位',
               ),
-              obscureText: true,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return '请输入密码';
@@ -135,10 +135,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            PasswordFormField(
               controller: _confirmPasswordController,
               decoration: const InputDecoration(labelText: '确认密码'),
-              obscureText: true,
               validator: (value) {
                 if (value != _passwordController.text) {
                   return '两次输入的密码不一致';

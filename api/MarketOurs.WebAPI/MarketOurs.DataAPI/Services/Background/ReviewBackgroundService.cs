@@ -36,7 +36,10 @@ public class ReviewBackgroundService(
                 string notificationTargetId;
                 string relatedPostId;
 
-                if (message.Type == ReviewType.Post)
+                var isPost = message.Type == ReviewType.Post;
+                string name;
+
+                if (isPost)
                 {
                     var post = await postRepo.GetByIdAsync(message.TargetId);
                     if (post == null)
@@ -50,6 +53,8 @@ public class ReviewBackgroundService(
                     targetId = post.Id;
                     notificationTargetId = post.Id;
                     relatedPostId = post.Id;
+                    
+                    name = post.Title;
                 }
                 else
                 {
@@ -65,6 +70,8 @@ public class ReviewBackgroundService(
                     targetId = comment.Id;
                     notificationTargetId = comment.PostId;
                     relatedPostId = comment.PostId;
+                    
+                    name = comment.Content;
                 }
 
                 var reviewResult = await reviewService.Review(messageStr);
@@ -81,11 +88,13 @@ public class ReviewBackgroundService(
                     InvalidateCommentCaches(targetId, relatedPostId);
                 }
 
+                var a = isPost ? "贴子" : "评论";
+                
                 notificationQueue.Enqueue(new NotificationMessage()
                 {
                     UserId = userId,
                     Type = NotificationType.Review,
-                    Content = isApproved ? "审核通过" : reviewResult,
+                    Content = isApproved ? $"您的{a}: {name} 已通过" : reviewResult,
                     TargetId = notificationTargetId,
                     Title = "审核信息"
                 });

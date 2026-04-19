@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { authService } from "../../services/authService";
 import { setCredentials } from "../../stores/authSlice";
 import { Mail, Lock, Loader2, ArrowRight, ShieldCheck, GraduationCap } from "lucide-react";
+import { PasswordField } from "../../components/auth/PasswordField";
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -180,17 +181,14 @@ export default function LoginPage() {
                     {t("auth.forgot_password")}
                   </Link>
                 </div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                  <input
-                    type="password"
-                    placeholder={t("auth.password_placeholder")}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                    required
-                  />
-                </div>
+                <PasswordField
+                  icon={<Lock size={18} />}
+                  placeholder={t("auth.password_placeholder")}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-12 py-3 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  required
+                />
               </div>
             ) : (
               <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
