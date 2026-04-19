@@ -23,13 +23,16 @@ abstract class AuthStorage {
 
 class SecureAuthStorage implements AuthStorage {
   SecureAuthStorage({FlutterSecureStorage? secureStorage})
-    : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+    : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+      _secureStorageEnabled = !_shouldBypassSecureStorageForCurrentPlatform();
 
   static const _accessTokenKey = 'auth.access_token';
   static const _refreshTokenKey = 'auth.refresh_token';
   static const _userKey = 'auth.user';
 
   final FlutterSecureStorage _secureStorage;
+  bool _secureStorageEnabled;
+  bool _loggedSecureStorageDisabled = false;
 
   @override
   Future<AuthSession?> readSession() async {
@@ -121,10 +124,14 @@ class SecureAuthStorage implements AuthStorage {
     required String secureKey,
     required SharedPreferences prefs,
   }) async {
+    if (!_secureStorageEnabled) {
+      return prefs.getString(secureKey);
+    }
+
     try {
       return await _secureStorage.read(key: secureKey);
     } on PlatformException catch (error) {
-      _logFallback('read', secureKey, error);
+      _handleSecureStorageError('read', secureKey, error);
       return prefs.getString(secureKey);
     }
   }
@@ -138,11 +145,16 @@ class SecureAuthStorage implements AuthStorage {
       return;
     }
 
+    if (!_secureStorageEnabled) {
+      await prefs.setString(secureKey, value);
+      return;
+    }
+
     try {
       await _secureStorage.write(key: secureKey, value: value);
       await prefs.remove(secureKey);
     } on PlatformException catch (error) {
-      _logFallback('write', secureKey, error);
+      _handleSecureStorageError('write', secureKey, error);
       await prefs.setString(secureKey, value);
     }
   }
@@ -151,13 +163,53 @@ class SecureAuthStorage implements AuthStorage {
     required String secureKey,
     required SharedPreferences prefs,
   }) async {
+    if (!_secureStorageEnabled) {
+      await prefs.remove(secureKey);
+      return;
+    }
+
     try {
       await _secureStorage.delete(key: secureKey);
     } on PlatformException catch (error) {
-      _logFallback('delete', secureKey, error);
+      _handleSecureStorageError('delete', secureKey, error);
     } finally {
       await prefs.remove(secureKey);
     }
+  }
+
+  void _handleSecureStorageError(
+    String action,
+    String key,
+    PlatformException error,
+  ) {
+    if (_shouldDisableSecureStorage(error)) {
+      _secureStorageEnabled = false;
+      if (_loggedSecureStorageDisabled) {
+        return;
+      }
+
+      _loggedSecureStorageDisabled = true;
+      debugPrint(
+        'Secure storage is unavailable for this app configuration; '
+        'using SharedPreferences for auth tokens for the rest of this session. '
+        'Original failure during $action for "$key": ${error.code} ${error.message}',
+      );
+      return;
+    }
+
+    _logFallback(action, key, error);
+  }
+
+  bool _shouldDisableSecureStorage(PlatformException error) {
+    final code = error.code.toLowerCase();
+    final message = (error.message ?? '').toLowerCase();
+    return code.contains('-34018') ||
+        message.contains('required entitlement') ||
+        message.contains("isn't present");
+  }
+
+  static bool _shouldBypassSecureStorageForCurrentPlatform() {
+    return !kReleaseMode && defaultTargetPlatform == TargetPlatform.macOS;
   }
 
   void _logFallback(String action, String key, PlatformException error) {
