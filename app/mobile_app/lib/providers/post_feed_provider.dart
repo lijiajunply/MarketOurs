@@ -8,6 +8,9 @@ final postServiceProvider = Provider<PostService>((ref) => PostService());
 final homeFeedProvider = AsyncNotifierProvider<HomeFeedNotifier, HomeFeedState>(
   HomeFeedNotifier.new,
 );
+final hotFeedProvider = AsyncNotifierProvider<HotFeedNotifier, HotFeedState>(
+  HotFeedNotifier.new,
+);
 
 class HomeFeedState {
   const HomeFeedState({
@@ -33,6 +36,26 @@ class HomeFeedState {
       pageIndex: pageIndex ?? this.pageIndex,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
+}
+
+class HotFeedState {
+  const HotFeedState({
+    required this.posts,
+    required this.isRefreshing,
+  });
+
+  final List<PostDto> posts;
+  final bool isRefreshing;
+
+  HotFeedState copyWith({
+    List<PostDto>? posts,
+    bool? isRefreshing,
+  }) {
+    return HotFeedState(
+      posts: posts ?? this.posts,
+      isRefreshing: isRefreshing ?? this.isRefreshing,
     );
   }
 }
@@ -89,6 +112,33 @@ class HomeFeedNotifier extends AsyncNotifier<HomeFeedState> {
       pageIndex: page.pageIndex,
       hasNextPage: page.hasNextPage,
       isLoadingMore: false,
+    );
+  }
+}
+
+class HotFeedNotifier extends AsyncNotifier<HotFeedState> {
+  static const int _count = 10;
+
+  @override
+  Future<HotFeedState> build() => _fetch();
+
+  Future<void> refresh() async {
+    final currentState = state.asData?.value;
+    if (currentState != null) {
+      state = AsyncData(currentState.copyWith(isRefreshing: true));
+    } else {
+      state = const AsyncLoading();
+    }
+
+    state = await AsyncValue.guard(_fetch);
+  }
+
+  Future<HotFeedState> _fetch() async {
+    final service = ref.read(postServiceProvider);
+    final response = await service.getHotPosts(count: _count);
+    return HotFeedState(
+      posts: response.data ?? const [],
+      isRefreshing: false,
     );
   }
 }

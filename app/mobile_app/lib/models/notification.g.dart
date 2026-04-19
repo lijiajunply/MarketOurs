@@ -12,7 +12,11 @@ NotificationDto _$NotificationDtoFromJson(Map<String, dynamic> json) =>
       userId: json['userId'] as String,
       title: json['title'] as String,
       content: json['content'] as String,
-      type: $enumDecode(_$NotificationTypeEnumMap, json['type']),
+      type: $enumDecode(
+        _$NotificationTypeEnumMap,
+        json['type'],
+        unknownValue: NotificationType.unknown,
+      ),
       targetId: json['targetId'] as String?,
       isRead: json['isRead'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -35,6 +39,8 @@ const _$NotificationTypeEnumMap = {
   NotificationType.postReply: 1,
   NotificationType.hotList: 2,
   NotificationType.system: 3,
+  NotificationType.review: 4,
+  NotificationType.unknown: -1,
 };
 
 PushSettingsDto _$PushSettingsDtoFromJson(Map<String, dynamic> json) =>

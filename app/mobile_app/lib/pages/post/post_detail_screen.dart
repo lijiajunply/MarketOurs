@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/components/user_card.dart';
 
 import '../../models/post.dart';
 import '../../providers/post_detail_provider.dart';
@@ -43,10 +44,10 @@ class _PostDetailView extends StatelessWidget {
           pinned: true,
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
-          title: const Text('帖子详情'),
+          title: Text(post.title?.trim().isNotEmpty == true ? post.title!.trim() : '未命名帖子'),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          padding: const EdgeInsets.fromLTRB(4, 8, 4, 32),
           sliver: SliverList.list(
             children: [
               if (post.images?.isNotEmpty ?? false) ...[
@@ -72,17 +73,60 @@ class _PostDetailView extends StatelessWidget {
                 const SizedBox(height: 20),
               ],
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    UserCard(user: post.author!),
+                    const SizedBox(height: 20),
                     Text(
-                      post.title?.trim().isNotEmpty == true
-                          ? post.title!.trim()
-                          : '未命名帖子',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                      post.content?.trim().isNotEmpty == true
+                          ? post.content!.trim()
+                          : '这个帖子还没有填写描述。',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        height: 1.6,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    if (post.images?.isNotEmpty ?? false) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 300,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          // 移除默认的 padding 以对齐左右边缘
+                          padding: EdgeInsets.zero,
+                          itemCount: post.images!.length,
+                          separatorBuilder: (context, index) => const SizedBox(width: 12),
+                          itemBuilder: (context, index) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: AspectRatio(
+                                aspectRatio: 1.0, // 保持图片为正方形比例
+                                child: Image.network(
+                                  post.images![index],
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Container(
+                                    color: Colors.grey.shade100,
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      Icons.image_not_supported_outlined,
+                                      size: 36,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    Text(
+                      _formatCreatedAt(post.createdAt),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.grey.shade400,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -90,10 +134,6 @@ class _PostDetailView extends StatelessWidget {
                       spacing: 10,
                       runSpacing: 10,
                       children: [
-                        _DetailChip(
-                          icon: Icons.person_outline_rounded,
-                          label: post.author?.name ?? '匿名用户',
-                        ),
                         _DetailChip(
                           icon: Icons.favorite_border_rounded,
                           label: '${post.likes ?? 0} 点赞',
@@ -107,23 +147,6 @@ class _PostDetailView extends StatelessWidget {
                           label: '${post.watch ?? 0} 浏览',
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      _formatCreatedAt(post.createdAt),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      post.content?.trim().isNotEmpty == true
-                          ? post.content!.trim()
-                          : '这个帖子还没有填写描述。',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        height: 1.6,
-                        color: Colors.black87,
-                      ),
                     ),
                   ],
                 ),

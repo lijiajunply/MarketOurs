@@ -1,36 +1,12 @@
 import { Heart, Share2, MoreHorizontal, Search, Loader2, Eye } from "lucide-react"
 import { useNavigate } from "react-router"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useEffectEvent } from "react"
 import { useTranslation } from "react-i18next"
-import type { i18n } from "i18next"
 import { useSelector } from "react-redux"
 import { type RootState } from "../../stores"
 import { postService } from "../../services/postService"
 import type { PostDto } from "../../types"
-import { formatDistanceToNow } from "date-fns"
-import { zhCN, enUS } from "date-fns/locale"
-
-// Format date helper
-const formatDate = (dateString: string, i18nInstance: i18n, updatedAtString?: string, t?: any) => {
-  try {
-    const date = new Date(dateString);
-    const display = formatDistanceToNow(date, { 
-      addSuffix: true, 
-      locale: i18nInstance.language === 'zh' ? zhCN : enUS 
-    });
-    
-    if (updatedAtString && t) {
-      const updatedDate = new Date(updatedAtString);
-      if (updatedDate.getTime() - date.getTime() > 5000) {
-        return `${display} (${t('post.edited')})`;
-      }
-    }
-    
-    return display;
-  } catch {
-    return dateString;
-  }
-}
+import { formatPostRelativeDate, getPostAuthorName, getPostExcerpt } from "../../lib/postDisplay"
 
 export function PostCard({ post, onDelete }: { post: PostDto; onDelete?: (id: string) => void }) {
   const navigate = useNavigate();
@@ -39,7 +15,7 @@ export function PostCard({ post, onDelete }: { post: PostDto; onDelete?: (id: st
   
   const isMe = user && post.userId.toLowerCase() === user.id.toLowerCase();
   const isAdmin = user && user.role === 'Admin';
-  const authorName = post.author?.name || `${t('common.user')} ${post.userId.slice(0, 4)}`;
+  const authorName = getPostAuthorName(post, t("common.user"));
   const displayName = isMe ? `${authorName} (${t('common.me', { defaultValue: '我' })})` : authorName;
   const authorAvatar = post.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.userId}`;
 
@@ -74,7 +50,7 @@ export function PostCard({ post, onDelete }: { post: PostDto; onDelete?: (id: st
           <img src={authorAvatar} alt={authorName} className="w-10 h-10 rounded-full bg-muted" />
           <div className="flex-1">
           <p className="text-sm font-semibold">{displayName}</p>
-          <p className="text-xs text-muted-foreground">{formatDate(post.createdAt, i18n, post.updatedAt, t)}</p>
+          <p className="text-xs text-muted-foreground">{formatPostRelativeDate(post.createdAt, i18n, post.updatedAt, t("post.edited"))}</p>
           </div>
         </button>
         {(isMe || isAdmin) && (
@@ -100,7 +76,7 @@ export function PostCard({ post, onDelete }: { post: PostDto; onDelete?: (id: st
           {post.title}
         </h2>
         <p className="text-muted-foreground leading-relaxed line-clamp-3 whitespace-pre-wrap">
-          {post.content.substring(0, 150)}{post.content.length > 150 ? '...' : ''}
+          {getPostExcerpt(post.content)}
         </p>
         {post.images && post.images.length > 0 && (
           <div className="mt-4 flex gap-2 overflow-hidden h-32 rounded-xl">
@@ -147,7 +123,7 @@ export default function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const observerTarget = useRef(null);
 
-  const fetchPosts = async (pageNum: number, searchKw: string, append = true) => {
+  const fetchPosts = useEffectEvent(async (pageNum: number, searchKw: string, append = true) => {
     if (loading) return;
     setLoading(true);
     try {
@@ -164,7 +140,7 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   useEffect(() => {
     fetchPosts(1, keyword, false);

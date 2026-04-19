@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_app/components/user_card.dart';
 
 import '../../models/post.dart';
 import '../../providers/post_feed_provider.dart';
@@ -57,11 +58,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SliverToBoxAdapter(child: _HomeHeader()),
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  sliver: SliverToBoxAdapter(
-                    child: _WaterfallSection(
-                      posts: state.posts,
-                      isLoadingMore: state.isLoadingMore,
-                    ),
+                  sliver: _WaterfallSection(
+                    posts: state.posts,
+                    isLoadingMore: state.isLoadingMore,
                   ),
                 ),
               ],
@@ -90,31 +89,10 @@ class _HomeHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '首页',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: '个人页',
-                onPressed: () => context.push(AppRoutePaths.profile),
-                icon: Icon(
-                  Icons.person_outline_rounded,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-            ],
-          ),
           Text(
-            'MarketOurs',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade500,
+            '首页',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 16),
@@ -133,79 +111,25 @@ class _WaterfallSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (posts.isEmpty) {
-      return const _EmptyFeedView();
+      return const SliverToBoxAdapter(child: _EmptyFeedView());
     }
 
-    final columns = _splitPosts(posts);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            children: [
-              for (final post in columns.left)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _PostCard(post: post),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            children: [
-              for (final post in columns.right)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _PostCard(post: post),
-                ),
-              if (isLoadingMore)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-            ],
-          ),
-        ),
-      ],
+    return SliverList.builder(
+      itemCount: posts.length + (isLoadingMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == posts.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: _PostCard(post: posts[index]),
+        );
+      },
     );
   }
-
-  _PostColumns _splitPosts(List<PostDto> posts) {
-    final left = <PostDto>[];
-    final right = <PostDto>[];
-    var leftWeight = 0;
-    var rightWeight = 0;
-
-    for (final post in posts) {
-      final weight = _estimateWeight(post);
-      if (leftWeight <= rightWeight) {
-        left.add(post);
-        leftWeight += weight;
-      } else {
-        right.add(post);
-        rightWeight += weight;
-      }
-    }
-
-    return _PostColumns(left: left, right: right);
-  }
-
-  int _estimateWeight(PostDto post) {
-    final titleWeight = ((post.title ?? '').length / 10).ceil();
-    final contentWeight = ((post.content ?? '').length / 45).ceil();
-    final imageWeight = (post.images?.isNotEmpty ?? false) ? 5 : 0;
-    return 4 + titleWeight + contentWeight + imageWeight;
-  }
-}
-
-class _PostColumns {
-  const _PostColumns({required this.left, required this.right});
-
-  final List<PostDto> left;
-  final List<PostDto> right;
 }
 
 class _PostCard extends StatelessWidget {
@@ -262,6 +186,10 @@ class _PostCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (post.author != null) ...[
+                        UserCard(user: post.author!),
+                        const SizedBox(height: 6),
+                      ],
                       Text(
                         (post.title?.trim().isNotEmpty ?? false)
                             ? post.title!.trim()
@@ -271,19 +199,6 @@ class _PostCard extends StatelessWidget {
                           fontSize: 17,
                           color: Colors.black,
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        (post.content?.trim().isNotEmpty ?? false)
-                            ? post.content!.trim()
-                            : '这个帖子还没有填写描述。',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey.shade600,
-                          height: 1.4,
-                          fontSize: 14,
-                        ),
-                        maxLines: imageUrl == null ? 6 : 4,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 16),
                       Wrap(
@@ -297,10 +212,6 @@ class _PostCard extends StatelessWidget {
                           _StatChip(
                             icon: Icons.remove_red_eye_outlined,
                             label: '${post.watch ?? 0}',
-                          ),
-                          _StatChip(
-                            icon: Icons.person_outline_rounded,
-                            label: post.author?.name ?? '匿名',
                           ),
                         ],
                       ),

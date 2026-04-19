@@ -13,6 +13,7 @@
   },
   "nav": {
     "home": "Home",
+    "hot": "Trending",
     "admin": "Admin",
     "login": "Login",
     "register": "Register",
@@ -157,6 +158,22 @@
     "hotlist_push_desc": "Receive daily trending posts at 8:00 AM",
     "save_settings": "Save Settings",
     "saving": "Saving..."
+  },
+  "hot": {
+    "badge": "Campus Trending",
+    "title": "What Everyone Is Watching",
+    "subtitle": "A live ranking of the most talked-about posts on campus right now. Jump into the stories pulling the most attention, reactions, and reads.",
+    "heat_label": "High Heat",
+    "rank_label": "Rank #{{rank}}",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "retry": "Try Again",
+    "fetch_error": "We couldn't load the hot list right now.",
+    "error_title": "This ranking needs a second try",
+    "empty_title": "No posts have heated up yet",
+    "empty_desc": "Once more conversations start rolling, the hottest posts will show up here.",
+    "cover_fallback": "Momentum is building",
+    "cover_hint": "Open the post to see what campus is talking about"
   },
   "admin": {
     "common": {

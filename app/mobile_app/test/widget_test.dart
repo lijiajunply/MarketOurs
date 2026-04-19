@@ -22,6 +22,7 @@ void main() {
           authStorageProvider.overrideWithValue(_TestAuthStorage()),
           authServiceProvider.overrideWithValue(_FakeAuthService()),
           homeFeedProvider.overrideWith(() => _FakeHomeFeedNotifier()),
+          hotFeedProvider.overrideWith(() => _FakeHotFeedNotifier()),
         ],
         child: const MarketOursApp(),
       ),
@@ -46,6 +47,7 @@ void main() {
             _FakeAuthService(user: _demoUser),
           ),
           homeFeedProvider.overrideWith(() => _FakeHomeFeedNotifier()),
+          hotFeedProvider.overrideWith(() => _FakeHotFeedNotifier()),
         ],
         child: const MarketOursApp(),
       ),
@@ -55,6 +57,7 @@ void main() {
 
     expect(find.text('首页'), findsOneWidget);
     expect(find.text('MarketOurs'), findsOneWidget);
+    expect(find.text('热榜'), findsOneWidget);
   });
 
   testWidgets('clears invalid restored token and returns to login', (
@@ -72,6 +75,7 @@ void main() {
             _FakeAuthService(getInfoError: Exception('token expired')),
           ),
           homeFeedProvider.overrideWith(() => _FakeHomeFeedNotifier()),
+          hotFeedProvider.overrideWith(() => _FakeHotFeedNotifier()),
         ],
         child: const MarketOursApp(),
       ),
@@ -208,6 +212,16 @@ class _FakeHomeFeedNotifier extends HomeFeedNotifier {
       pageIndex: 1,
       hasNextPage: false,
       isLoadingMore: false,
+    );
+  }
+}
+
+class _FakeHotFeedNotifier extends HotFeedNotifier {
+  @override
+  Future<HotFeedState> build() async {
+    return const HotFeedState(
+      posts: [],
+      isRefreshing: false,
     );
   }
 }

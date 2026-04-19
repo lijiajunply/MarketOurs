@@ -52,6 +52,11 @@ class MainShell extends StatelessWidget {
               label: '首页',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.local_fire_department_outlined),
+              activeIcon: Icon(Icons.local_fire_department_rounded),
+              label: '热榜',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.notifications_none_rounded),
               activeIcon: Icon(Icons.notifications_rounded),
               label: '通知',

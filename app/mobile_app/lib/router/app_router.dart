@@ -8,6 +8,7 @@ import '../pages/auth/register_screen.dart';
 import '../pages/auth/register_verify_screen.dart';
 import '../pages/auth/reset_password_screen.dart';
 import '../pages/home/home_screen.dart';
+import '../pages/hot/hot_screen.dart';
 import '../pages/post/post_detail_screen.dart';
 import '../pages/profile/profile_screen.dart';
 import '../pages/notification/notification_screen.dart';
@@ -24,6 +25,7 @@ abstract final class AppRoutePaths {
   static const resetPassword = '/reset-password';
   static const home = '/';
   static const notifications = '/notifications';
+  static const hot = '/hot';
   static const profile = '/profile';
   static const postDetail = '/posts/:postId';
 }
@@ -37,6 +39,7 @@ abstract final class AppRouteNames {
   static const resetPassword = 'reset-password';
   static const home = 'home';
   static const notifications = 'notifications';
+  static const hot = 'hot';
   static const profile = 'profile';
   static const postDetail = 'post-detail';
 }
@@ -137,6 +140,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutePaths.home,
                 name: AppRouteNames.home,
                 builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutePaths.hot,
+                name: AppRouteNames.hot,
+                builder: (context, state) => const HotScreen(),
               ),
             ],
           ),

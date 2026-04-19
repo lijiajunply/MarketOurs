@@ -11,6 +11,10 @@ enum NotificationType {
   hotList,
   @JsonValue(3)
   system,
+  @JsonValue(4)
+  review,
+  @JsonValue(-1)
+  unknown,
 }
 
 @JsonSerializable()
@@ -19,6 +23,7 @@ class NotificationDto {
   final String userId;
   final String title;
   final String content;
+  @JsonKey(unknownEnumValue: NotificationType.unknown)
   final NotificationType type;
   final String? targetId;
   final bool isRead;

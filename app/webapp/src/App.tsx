@@ -5,6 +5,7 @@ import { AdminLayout } from "./components/layout/AdminLayout"
 import { AdminGuard } from "./components/auth/AdminGuard"
 
 import HomePage from "./pages/home"
+import HotPage from "./pages/hot"
 import AdminDashboard from "./pages/admin/dashboard"
 import AdminUsersPage from "./pages/admin/users"
 import AdminPostsPage from "./pages/admin/posts"
@@ -55,6 +56,7 @@ export function App() {
           {/* Public Routes with MainLayout */}
           <Route element={<MainLayout><Outlet /></MainLayout>}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/hot" element={<HotPage />} />
             <Route path="/post/:id" element={<PostDetailPage />} />
             <Route path="/post/create" element={<CreatePostPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />

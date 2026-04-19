@@ -13,6 +13,7 @@
   },
   "nav": {
     "home": "首页",
+    "hot": "热榜",
     "admin": "管理后台",
     "login": "登录",
     "register": "注册",
@@ -157,6 +158,22 @@
     "hotlist_push_desc": "每天早晨 8 点接收校园内最热门的贴子精选",
     "save_settings": "保存设置",
     "saving": "保存中..."
+  },
+  "hot": {
+    "badge": "校园热榜",
+    "title": "正在升温的话题",
+    "subtitle": "这里收集了此刻校园里讨论度最高的帖子。看看哪些内容正在被围观、点赞，或者快速找到你不想错过的话题。",
+    "heat_label": "高热度",
+    "rank_label": "第 {{rank}} 名",
+    "refresh": "刷新榜单",
+    "refreshing": "刷新中...",
+    "retry": "重新加载",
+    "fetch_error": "热榜加载失败，请稍后再试。",
+    "error_title": "这份榜单暂时没有刷出来",
+    "empty_title": "热榜暂时空空的",
+    "empty_desc": "等同学们发出更多内容后，这里会出现最受关注的话题。",
+    "cover_fallback": "热度正在聚拢",
+    "cover_hint": "点进看看大家正在关注什么"
   },
   "admin": {
     "common": {

@@ -43,6 +43,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Icons.whatshot;
       case NotificationType.system:
         return Icons.notifications;
+      case NotificationType.review:
+        return Icons.fact_check;
+      case NotificationType.unknown:
+        return Icons.notifications;
     }
   }
 
@@ -55,6 +59,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case NotificationType.hotList:
         return Colors.orange;
       case NotificationType.system:
+        return Colors.grey;
+      case NotificationType.review:
+        return Colors.purple;
+      case NotificationType.unknown:
         return Colors.grey;
     }
   }
