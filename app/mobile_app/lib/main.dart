@@ -15,7 +15,7 @@ class MarketOursApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'MarketOurs',
+      title: '光汇',
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       theme: ThemeData(

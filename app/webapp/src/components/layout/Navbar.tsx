@@ -38,9 +38,9 @@ export function Navbar() {
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                <span className="text-white font-bold text-lg">M</span>
+                <span className="text-white font-bold text-lg">L</span>
               </div>
-              <span className="hidden font-semibold sm:inline-block text-lg tracking-tight">MarketOurs</span>
+              <span className="hidden font-semibold sm:inline-block text-lg tracking-tight">光汇</span>
             </Link>
 
             <nav className="hidden md:flex items-center space-x-1">

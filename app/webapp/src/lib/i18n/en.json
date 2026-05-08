@@ -24,9 +24,9 @@
   },
   "auth": {
     "welcome_back": "Welcome back",
-    "signin_to_account": "Sign in to your MarketOurs account",
+    "signin_to_account": "Sign in to your Lumalis account",
     "create_account": "Create Account",
-    "join_community": "Join the MarketOurs community today",
+    "join_community": "Join the Lumalis community today",
     "account": "Account",
     "email" : "Email",
     "phone" : "Phone",

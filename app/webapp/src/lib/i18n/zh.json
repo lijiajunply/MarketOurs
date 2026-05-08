@@ -24,9 +24,9 @@
   },
   "auth": {
     "welcome_back": "欢迎回来",
-    "signin_to_account": "登录您的 MarketOurs 账号",
+    "signin_to_account": "登录您的 光汇 账号",
     "create_account": "创建账号",
-    "join_community": "立即加入 MarketOurs 社区",
+    "join_community": "立即加入 光汇 社区",
     "account": "账号",
     "email" : "邮箱",
     "phone" : "手机号",

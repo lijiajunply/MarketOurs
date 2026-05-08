@@ -65,7 +65,7 @@ class PushNotificationService {
     // Extract info from FCM message
     const androidDetails = AndroidNotificationDetails(
       'marketours_channel',
-      'MarketOurs Notifications',
+      '光汇 通知',
       importance: Importance.max,
       priority: Priority.high,
     );

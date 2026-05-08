@@ -108,7 +108,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '看看这位同学最近在 MarketOurs 分享了什么。',
+                      '看看这位同学最近在 光汇 分享了什么。',
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                     const SizedBox(height: 16),

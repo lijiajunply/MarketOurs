@@ -14,7 +14,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <footer className="border-t border-border/40 py-12 mt-auto">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} MarketOurs. Designed with a minimalist touch.
+            &copy; {new Date().getFullYear()} 光汇. Designed with a minimalist touch.
           </p>
         </div>
       </footer>
