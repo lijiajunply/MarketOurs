@@ -15,7 +15,7 @@ import 'package:mobile_app/services/auth_storage.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('shows login screen when no local token exists', (tester) async {
+  testWidgets('shows public home when no local token exists', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -30,8 +30,9 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(FilledButton, '登录'), findsOneWidget);
-    expect(find.text('没有账号？去注册'), findsOneWidget);
+    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.text('首页'), findsWidgets);
+    expect(find.text('热榜'), findsWidgets);
   });
 
   testWidgets('shows home when token restore succeeds', (tester) async {
@@ -55,9 +56,9 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('首页'), findsOneWidget);
-    expect(find.text('MarketOurs'), findsOneWidget);
-    expect(find.text('热榜'), findsOneWidget);
+    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.text('首页'), findsWidgets);
+    expect(find.text('热榜'), findsWidgets);
   });
 
   testWidgets('clears invalid restored token and returns to login', (
@@ -83,7 +84,8 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.widgetWithText(FilledButton, '登录'), findsOneWidget);
+    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.text('首页'), findsWidgets);
     expect(storage.session, isNull);
   });
 
@@ -219,10 +221,7 @@ class _FakeHomeFeedNotifier extends HomeFeedNotifier {
 class _FakeHotFeedNotifier extends HotFeedNotifier {
   @override
   Future<HotFeedState> build() async {
-    return const HotFeedState(
-      posts: [],
-      isRefreshing: false,
-    );
+    return const HotFeedState(posts: [], isRefreshing: false);
   }
 }
 

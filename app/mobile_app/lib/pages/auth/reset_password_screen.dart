@@ -8,9 +8,10 @@ import 'auth_scaffold.dart';
 import 'password_form_field.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
-  const ResetPasswordScreen({super.key, this.initialToken});
+  const ResetPasswordScreen({super.key, this.initialToken, this.account});
 
   final String? initialToken;
+  final String? account;
 
   @override
   ConsumerState<ResetPasswordScreen> createState() =>
@@ -76,7 +77,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
     return AuthScaffold(
       title: '重置密码',
-      subtitle: '如果你是从邮件或短信拿到重置 token，可以直接填在这里完成密码更新。',
+      subtitle: widget.account == null
+          ? '输入收到的验证码和新密码，完成密码重置。'
+          : '我们已经向 ${widget.account} 发送验证码，请填写验证码并设置新密码。',
       footer: Center(
         child: TextButton(
           onPressed: isSubmitting
@@ -92,10 +95,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           children: [
             TextFormField(
               controller: _tokenController,
-              decoration: const InputDecoration(labelText: '重置 Token'),
+              decoration: const InputDecoration(labelText: '验证码 / Token'),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return '请输入重置 Token';
+                  return '请输入验证码或 Token';
                 }
                 return null;
               },

@@ -187,7 +187,14 @@ class _PostCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (post.author != null) ...[
-                        UserCard(user: post.author!),
+                        UserCard(
+                          user: post.author!,
+                          onTap: post.author?.id == null
+                              ? null
+                              : () => context.push(
+                                  buildPublicProfileLocation(post.author!.id!),
+                                ),
+                        ),
                         const SizedBox(height: 6),
                       ],
                       Text(

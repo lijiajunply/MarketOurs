@@ -89,8 +89,11 @@ class _HotHeader extends StatelessWidget {
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.local_fire_department_rounded,
-                    size: 18, color: Color(0xFFFF7A00)),
+                Icon(
+                  Icons.local_fire_department_rounded,
+                  size: 18,
+                  color: Color(0xFFFF7A00),
+                ),
                 SizedBox(width: 8),
                 Text(
                   '校园热榜',
@@ -124,17 +127,16 @@ class _HotHeader extends StatelessWidget {
 }
 
 class _HotPostCard extends StatelessWidget {
-  const _HotPostCard({
-    required this.post,
-    required this.rank,
-  });
+  const _HotPostCard({required this.post, required this.rank});
 
   final PostDto post;
   final int rank;
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = post.images?.isNotEmpty == true ? post.images!.first : null;
+    final imageUrl = post.images?.isNotEmpty == true
+        ? post.images!.first
+        : null;
     final isTopThree = rank <= 3;
 
     return Container(
@@ -142,9 +144,7 @@ class _HotPostCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isTopThree
-              ? const Color(0xFFFFD8BF)
-              : const Color(0xFFE8E8ED),
+          color: isTopThree ? const Color(0xFFFFD8BF) : const Color(0xFFE8E8ED),
         ),
         boxShadow: [
           BoxShadow(
@@ -195,9 +195,7 @@ class _HotPostCard extends StatelessWidget {
                               children: [
                                 Text(
                                   '第 $rank 名',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelLarge
+                                  style: Theme.of(context).textTheme.labelLarge
                                       ?.copyWith(
                                         color: const Color(0xFFFF7A00),
                                         fontWeight: FontWeight.w700,
@@ -208,9 +206,7 @@ class _HotPostCard extends StatelessWidget {
                                   (post.title?.trim().isNotEmpty ?? false)
                                       ? post.title!.trim()
                                       : '未命名帖子',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
+                                  style: Theme.of(context).textTheme.titleLarge
                                       ?.copyWith(
                                         fontWeight: FontWeight.w800,
                                         height: 1.25,
@@ -223,15 +219,22 @@ class _HotPostCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       if (post.author != null) ...[
-                        UserCard(user: post.author!),
+                        UserCard(
+                          user: post.author!,
+                          onTap: post.author?.id == null
+                              ? null
+                              : () => context.push(
+                                  buildPublicProfileLocation(post.author!.id!),
+                                ),
+                        ),
                         const SizedBox(height: 12),
                       ],
                       Text(
                         _excerpt(post.content),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade700,
-                              height: 1.5,
-                            ),
+                          color: Colors.grey.shade700,
+                          height: 1.5,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Wrap(
@@ -257,9 +260,8 @@ class _HotPostCard extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         _formatCreatedAt(post.createdAt),
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: Colors.grey.shade500,
-                            ),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(color: Colors.grey.shade500),
                       ),
                     ],
                   ),
@@ -365,9 +367,9 @@ class _StatChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Colors.grey.shade800,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: Colors.grey.shade800,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -385,10 +387,7 @@ class _HotLoadingView extends StatelessWidget {
 }
 
 class _HotErrorView extends StatelessWidget {
-  const _HotErrorView({
-    required this.message,
-    required this.onRetry,
-  });
+  const _HotErrorView({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
@@ -409,24 +408,20 @@ class _HotErrorView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               '热榜加载失败',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: onRetry,
-              child: const Text('重新加载'),
-            ),
+            FilledButton(onPressed: onRetry, child: const Text('重新加载')),
           ],
         ),
       ),
@@ -457,18 +452,17 @@ class _HotEmptyView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             '热榜还在等内容升温',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w700),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           Text(
             '等同学们发出更多帖子后，这里会出现最受关注的话题。',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
           ),
         ],
       ),

@@ -107,3 +107,41 @@ Map<String, dynamic> _$UserUpdateDtoToJson(UserUpdateDto instance) =>
       'weixinId': instance.weixinId,
       'oursId': instance.oursId,
     };
+
+PublicUserProfileDto _$PublicUserProfileDtoFromJson(
+  Map<String, dynamic> json,
+) => PublicUserProfileDto(
+  id: json['id'] as String,
+  name: json['name'] as String?,
+  role: json['role'] as String?,
+  avatar: json['avatar'] as String?,
+  info: json['info'] as String?,
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+);
+
+Map<String, dynamic> _$PublicUserProfileDtoToJson(
+  PublicUserProfileDto instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'role': instance.role,
+  'avatar': instance.avatar,
+  'info': instance.info,
+  'createdAt': instance.createdAt?.toIso8601String(),
+};
+
+ChangePasswordRequest _$ChangePasswordRequestFromJson(
+  Map<String, dynamic> json,
+) => ChangePasswordRequest(
+  oldPassword: json['oldPassword'] as String,
+  newPassword: json['newPassword'] as String,
+);
+
+Map<String, dynamic> _$ChangePasswordRequestToJson(
+  ChangePasswordRequest instance,
+) => <String, dynamic>{
+  'oldPassword': instance.oldPassword,
+  'newPassword': instance.newPassword,
+};

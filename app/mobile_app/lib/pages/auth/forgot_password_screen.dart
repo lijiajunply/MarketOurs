@@ -39,8 +39,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         return;
       }
 
-      messenger.showSnackBar(const SnackBar(content: Text('重置信息已发送，请查看邮箱或短信')));
-      context.go(AppRoutePaths.resetPassword);
+      messenger.showSnackBar(const SnackBar(content: Text('验证码已发送，请继续重置密码')));
+      context.goNamed(
+        AppRouteNames.resetPassword,
+        queryParameters: {'account': _accountController.text.trim()},
+      );
     } catch (_) {
       final errorMessage = ref
           .read(authControllerProvider)
@@ -60,7 +63,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
     return AuthScaffold(
       title: '找回密码',
-      subtitle: '输入注册时使用的账号，我们会发送重置说明。收到 token 后可在下一页完成重置。',
+      subtitle: '输入注册时使用的账号，我们会发送重置验证码。',
       footer: Center(
         child: TextButton(
           onPressed: isSubmitting
@@ -90,7 +93,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: isSubmitting ? null : _submit,
-              child: Text(isSubmitting ? '提交中...' : '发送重置说明'),
+              child: Text(isSubmitting ? '提交中...' : '发送验证码'),
             ),
           ],
         ),

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class MainShell extends StatelessWidget {
-  const MainShell({
-    super.key,
-    required this.navigationShell,
-  });
+import '../providers/auth_provider.dart';
+import '../router/app_router.dart';
+
+class MainShell extends ConsumerWidget {
+  const MainShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
@@ -17,16 +18,28 @@ class MainShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider).asData?.value;
+    final isAuthenticated = authState?.status == AuthStatus.authenticated;
+
     return Scaffold(
       body: navigationShell,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (isAuthenticated) {
+            context.push(AppRoutePaths.createPost);
+            return;
+          }
+          context.go(AppRoutePaths.login);
+        },
+        backgroundColor: const Color(0xFF007AFF),
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add_rounded, size: 28),
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(
-              color: Colors.grey.shade200,
-              width: 0.5,
-            ),
+            top: BorderSide(color: Colors.grey.shade200, width: 0.5),
           ),
         ),
         child: BottomNavigationBar(

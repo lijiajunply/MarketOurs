@@ -41,18 +41,12 @@ class HomeFeedState {
 }
 
 class HotFeedState {
-  const HotFeedState({
-    required this.posts,
-    required this.isRefreshing,
-  });
+  const HotFeedState({required this.posts, required this.isRefreshing});
 
   final List<PostDto> posts;
   final bool isRefreshing;
 
-  HotFeedState copyWith({
-    List<PostDto>? posts,
-    bool? isRefreshing,
-  }) {
+  HotFeedState copyWith({List<PostDto>? posts, bool? isRefreshing}) {
     return HotFeedState(
       posts: posts ?? this.posts,
       isRefreshing: isRefreshing ?? this.isRefreshing,
@@ -136,9 +130,6 @@ class HotFeedNotifier extends AsyncNotifier<HotFeedState> {
   Future<HotFeedState> _fetch() async {
     final service = ref.read(postServiceProvider);
     final response = await service.getHotPosts(count: _count);
-    return HotFeedState(
-      posts: response.data ?? const [],
-      isRefreshing: false,
-    );
+    return HotFeedState(posts: response.data ?? const [], isRefreshing: false);
   }
 }

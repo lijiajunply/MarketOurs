@@ -95,13 +95,11 @@ class AuthService {
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 
-  Future<ApiResponse> verifyPhone({
-    required String token,
-    required String code,
-  }) async {
+  Future<ApiResponse> verifyPhone({String? token, required String code}) async {
     final response = await _api.post(
       '/Auth/verify-phone',
-      queryParameters: {'token': token, 'code': code},
+      queryParameters: {'token': token, 'code': code}
+        ..removeWhere((_, value) => value == null),
     );
     return ApiResponse.fromJson(response.data, (json) => json);
   }

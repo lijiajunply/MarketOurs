@@ -44,6 +44,8 @@
 				</dict>
 			</dict>
 		</dict>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>选择相册中的图片以发布帖子。</string>
 		<key>UIApplicationSceneManifest</key>
 		<dict>
 			<key>UIApplicationSupportsMultipleScenes</key>

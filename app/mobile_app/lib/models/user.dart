@@ -109,3 +109,38 @@ class UserUpdateDto {
       _$UserUpdateDtoFromJson(json);
   Map<String, dynamic> toJson() => _$UserUpdateDtoToJson(this);
 }
+
+@JsonSerializable()
+class PublicUserProfileDto {
+  final String id;
+  final String? name;
+  final String? role;
+  final String? avatar;
+  final String? info;
+  final DateTime? createdAt;
+
+  PublicUserProfileDto({
+    required this.id,
+    this.name,
+    this.role,
+    this.avatar,
+    this.info,
+    this.createdAt,
+  });
+
+  factory PublicUserProfileDto.fromJson(Map<String, dynamic> json) =>
+      _$PublicUserProfileDtoFromJson(json);
+  Map<String, dynamic> toJson() => _$PublicUserProfileDtoToJson(this);
+}
+
+@JsonSerializable()
+class ChangePasswordRequest {
+  final String oldPassword;
+  final String newPassword;
+
+  ChangePasswordRequest({required this.oldPassword, required this.newPassword});
+
+  factory ChangePasswordRequest.fromJson(Map<String, dynamic> json) =>
+      _$ChangePasswordRequestFromJson(json);
+  Map<String, dynamic> toJson() => _$ChangePasswordRequestToJson(this);
+}

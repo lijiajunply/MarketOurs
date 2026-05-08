@@ -9,8 +9,11 @@ import '../pages/auth/register_verify_screen.dart';
 import '../pages/auth/reset_password_screen.dart';
 import '../pages/home/home_screen.dart';
 import '../pages/hot/hot_screen.dart';
+import '../pages/post/create_post_screen.dart';
 import '../pages/post/post_detail_screen.dart';
+import '../pages/profile/change_password_screen.dart';
 import '../pages/profile/profile_screen.dart';
+import '../pages/profile/public_profile_screen.dart';
 import '../pages/notification/notification_screen.dart';
 import '../pages/main_shell.dart';
 import '../providers/auth_provider.dart';
@@ -27,7 +30,10 @@ abstract final class AppRoutePaths {
   static const notifications = '/notifications';
   static const hot = '/hot';
   static const profile = '/profile';
-  static const postDetail = '/posts/:postId';
+  static const changePassword = '/profile/reset-password';
+  static const publicProfile = '/user/:userId';
+  static const createPost = '/post/create';
+  static const postDetail = '/post/:postId';
 }
 
 abstract final class AppRouteNames {
@@ -41,15 +47,23 @@ abstract final class AppRouteNames {
   static const notifications = 'notifications';
   static const hot = 'hot';
   static const profile = 'profile';
+  static const changePassword = 'change-password';
+  static const publicProfile = 'public-profile';
+  static const createPost = 'create-post';
   static const postDetail = 'post-detail';
 }
 
 abstract final class AppRouteParams {
   static const postId = 'postId';
+  static const userId = 'userId';
 }
 
 String buildPostDetailLocation(String postId) {
-  return '/posts/$postId';
+  return '/post/$postId';
+}
+
+String buildPublicProfileLocation(String userId) {
+  return '/user/$userId';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -61,6 +75,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final path = state.uri.path;
       final isAuthRoute = _authRoutes.contains(path);
       final isSplashRoute = path == AppRoutePaths.splash;
+      final requiresAuth = _requiresAuth(path);
 
       if (authAsync.isLoading) {
         return isSplashRoute ? null : AppRoutePaths.splash;
@@ -77,10 +92,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (isSplashRoute) {
-        return AppRoutePaths.login;
+        return AppRoutePaths.home;
       }
 
-      if (isAuthRoute) {
+      if (isAuthRoute || !requiresAuth) {
         return null;
       }
 
@@ -128,6 +143,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: AppRouteNames.resetPassword,
         builder: (context, state) => ResetPasswordScreen(
           initialToken: state.uri.queryParameters['token'],
+          account: state.uri.queryParameters['account'],
         ),
       ),
       StatefulShellRoute.indexedStack(
@@ -175,6 +191,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        path: AppRoutePaths.changePassword,
+        name: AppRouteNames.changePassword,
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.publicProfile,
+        name: AppRouteNames.publicProfile,
+        builder: (context, state) {
+          final userId = state.pathParameters[AppRouteParams.userId];
+          if (userId == null || userId.isEmpty) {
+            throw StateError('公开主页路由缺少 userId');
+          }
+          return PublicProfileScreen(userId: userId);
+        },
+      ),
+      GoRoute(
+        path: AppRoutePaths.createPost,
+        name: AppRouteNames.createPost,
+        builder: (context, state) => const CreatePostScreen(),
+      ),
+      GoRoute(
         path: AppRoutePaths.postDetail,
         name: AppRouteNames.postDetail,
         builder: (context, state) {
@@ -196,3 +233,14 @@ const _authRoutes = {
   AppRoutePaths.forgotPassword,
   AppRoutePaths.resetPassword,
 };
+
+bool _requiresAuth(String path) {
+  if (path == AppRoutePaths.notifications ||
+      path == AppRoutePaths.profile ||
+      path == AppRoutePaths.changePassword ||
+      path == AppRoutePaths.createPost) {
+    return true;
+  }
+
+  return false;
+}

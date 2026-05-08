@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../models/notification.dart';
+import '../../router/app_router.dart';
 import '../../services/notification_service.dart';
 import 'push_settings_screen.dart';
 
@@ -75,7 +78,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         title: const Text('通知'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.done_all, size: 22, color: Color(0xFF007AFF)),
+            icon: const Icon(
+              Icons.done_all,
+              size: 22,
+              color: Color(0xFF007AFF),
+            ),
             onPressed: () async {
               await widget.service.markAllAsRead();
               _loadNotifications();
@@ -100,106 +107,111 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: _isLoading && _notifications.isEmpty
             ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
             : _notifications.isEmpty
-                ? _buildEmptyState()
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: _notifications.length,
-                    separatorBuilder: (context, index) => Divider(
-                      height: 1,
-                      indent: 72,
-                      color: Colors.grey.shade100,
+            ? _buildEmptyState()
+            : ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: _notifications.length,
+                separatorBuilder: (context, index) =>
+                    Divider(height: 1, indent: 72, color: Colors.grey.shade100),
+                itemBuilder: (context, index) {
+                  final n = _notifications[index];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
                     ),
-                    itemBuilder: (context, index) {
-                      final n = _notifications[index];
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        leading: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: _getIconColor(n.type).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            _getIcon(n.type),
-                            color: _getIconColor(n.type),
-                            size: 20,
-                          ),
-                        ),
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                n.title,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: n.isRead
-                                      ? FontWeight.w500
-                                      : FontWeight.w700,
-                                  color: Colors.black,
-                                ),
-                              ),
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _getIconColor(n.type).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _getIcon(n.type),
+                        color: _getIconColor(n.type),
+                        size: 20,
+                      ),
+                    ),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            n.title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: n.isRead
+                                  ? FontWeight.w500
+                                  : FontWeight.w700,
+                              color: Colors.black,
                             ),
-                            if (!n.isRead)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF007AFF),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                          ],
-                        ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                n.content,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                  height: 1.3,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                _formatDate(n.createdAt),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade400,
-                                ),
-                              ),
-                            ],
                           ),
                         ),
-                        onTap: () async {
-                          if (!n.isRead) {
-                            await widget.service.markAsRead(n.id);
-                            setState(() {
-                              _notifications[index] = NotificationDto(
-                                id: n.id,
-                                userId: n.userId,
-                                title: n.title,
-                                content: n.content,
-                                type: n.type,
-                                targetId: n.targetId,
-                                isRead: true,
-                                createdAt: n.createdAt,
-                              );
-                            });
-                          }
-                        },
-                      );
+                        if (!n.isRead)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF007AFF),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            n.content,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                              height: 1.3,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _formatDate(n.createdAt),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    onTap: () async {
+                      if (!n.isRead) {
+                        await widget.service.markAsRead(n.id);
+                        setState(() {
+                          _notifications[index] = NotificationDto(
+                            id: n.id,
+                            userId: n.userId,
+                            title: n.title,
+                            content: n.content,
+                            type: n.type,
+                            targetId: n.targetId,
+                            isRead: true,
+                            createdAt: n.createdAt,
+                          );
+                        });
+                      }
+
+                      if (!context.mounted) {
+                        return;
+                      }
+
+                      if (n.targetId?.isNotEmpty == true) {
+                        context.push(buildPostDetailLocation(n.targetId!));
+                      }
                     },
-                  ),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -209,8 +221,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_none_rounded,
-              size: 64, color: Colors.grey.shade200),
+          Icon(
+            Icons.notifications_none_rounded,
+            size: 64,
+            color: Colors.grey.shade200,
+          ),
           const SizedBox(height: 16),
           Text(
             '暂无通知',
