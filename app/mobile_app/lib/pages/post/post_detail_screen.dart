@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,9 @@ import '../../providers/auth_provider.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
 import '../../services/comment_service.dart';
+import '../../ui/app_feedback.dart';
+import '../../ui/app_fields.dart';
+import '../../ui/app_widgets.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   const PostDetailScreen({super.key, required this.postId});
@@ -91,7 +95,6 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     String? successMessage,
     bool reloadAll = true,
   }) async {
-    final messenger = ScaffoldMessenger.of(context);
     setState(() => _isWorking = true);
 
     try {
@@ -100,16 +103,15 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         await _loadData();
       }
       if (successMessage != null && mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(successMessage)));
+        await AppFeedback.showMessage(context, message: successMessage);
       }
     } catch (error) {
       if (!mounted) {
         return;
       }
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(error.toString().replaceFirst('Exception: ', '')),
-        ),
+      await AppFeedback.showMessage(
+        context,
+        message: error.toString().replaceFirst('Exception: ', ''),
       );
     } finally {
       if (mounted) {
@@ -252,23 +254,10 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   }
 
   Future<bool?> _confirm(String message) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('确定'),
-            ),
-          ],
-        );
-      },
+    return AppFeedback.confirm(
+      context,
+      message: message,
+      destructive: true,
     );
   }
 
@@ -300,16 +289,13 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 16),
-              TextField(
+              AppTextField(
                 controller: controller,
                 maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  alignLabelWithHint: true,
-                ),
+                placeholder: hintText,
               ),
               const SizedBox(height: 16),
-              FilledButton(
+              AppPrimaryButton(
                 onPressed: () => Navigator.of(context).pop(controller.text),
                 child: const Text('保存'),
               ),
@@ -351,21 +337,18 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 16),
-              TextField(
+              AppTextField(
                 controller: titleController,
-                decoration: const InputDecoration(labelText: '标题'),
+                placeholder: '标题',
               ),
               const SizedBox(height: 12),
-              TextField(
+              AppTextField(
                 controller: contentController,
                 maxLines: 6,
-                decoration: const InputDecoration(
-                  labelText: '内容',
-                  alignLabelWithHint: true,
-                ),
+                placeholder: '内容',
               ),
               const SizedBox(height: 16),
-              FilledButton(
+              AppPrimaryButton(
                 onPressed: () {
                   Navigator.of(context).pop((
                     titleController.text.trim(),
@@ -391,41 +374,78 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     final post = _post;
     final isOwner = post != null && user != null && post.userId == user.id;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          post?.title?.trim().isNotEmpty == true ? post!.title!.trim() : '帖子详情',
-        ),
-        actions: [
-          if (isOwner)
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'edit') {
-                  _editPost();
-                } else if (value == 'delete') {
-                  _deletePost();
-                }
+    return AppPageScaffold(
+      title: post?.title?.trim().isNotEmpty == true ? post!.title!.trim() : '帖子详情',
+      trailing: isOwner
+          ? CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              onPressed: () {
+                showCupertinoModalPopup<void>(
+                  context: context,
+                  builder: (_) => CupertinoActionSheet(
+                    actions: [
+                      CupertinoActionSheetAction(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _editPost();
+                        },
+                        child: const Text('编辑帖子'),
+                      ),
+                      CupertinoActionSheetAction(
+                        isDestructiveAction: true,
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _deletePost();
+                        },
+                        child: const Text('删除帖子'),
+                      ),
+                    ],
+                    cancelButton: CupertinoActionSheetAction(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('取消'),
+                    ),
+                  ),
+                );
               },
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'edit', child: Text('编辑帖子')),
-                PopupMenuItem(value: 'delete', child: Text('删除帖子')),
-              ],
+              child: const Icon(CupertinoIcons.ellipsis_circle),
+            )
+          : null,
+      bottomBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: AppTextField(
+                controller: _commentController,
+                placeholder: '写下你的评论...',
+                maxLines: 4,
+              ),
             ),
-        ],
+            const SizedBox(width: 12),
+            AppPrimaryButton(
+              onPressed: _isWorking ? null : _submitComment,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              child: const Text('发送'),
+            ),
+          ],
+        ),
       ),
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMessage != null || post == null
-            ? _PostDetailErrorView(
-                message: _errorMessage ?? '详情加载失败',
-                onRetry: _loadData,
-              )
-            : RefreshIndicator(
-                onRefresh: _loadData,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
-                  children: [
+      child: _isLoading
+          ? const Center(child: CupertinoActivityIndicator())
+          : _errorMessage != null || post == null
+          ? _PostDetailErrorView(
+              message: _errorMessage ?? '详情加载失败',
+              onRetry: _loadData,
+            )
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              child: ListView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 120),
+                children: [
                     _PostHero(
                       post: post,
                       onAuthorTap: post.userId == null
@@ -505,21 +525,23 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ),
-                        SegmentedButton<String>(
-                          showSelectedIcon: false,
-                          segments: const [
-                            ButtonSegment<String>(
-                              value: 'recent',
-                              label: Text('最新'),
+                        CupertinoSlidingSegmentedControl<String>(
+                          groupValue: _commentSort,
+                          children: const {
+                            'recent': Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              child: Text('最新'),
                             ),
-                            ButtonSegment<String>(
-                              value: 'hot',
-                              label: Text('最热'),
+                            'hot': Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              child: Text('最热'),
                             ),
-                          ],
-                          selected: {_commentSort},
-                          onSelectionChanged: (selection) {
-                            setState(() => _commentSort = selection.first);
+                          },
+                          onValueChanged: (selection) {
+                            if (selection == null) {
+                              return;
+                            }
+                            setState(() => _commentSort = selection);
                             _loadData();
                           },
                         ),
@@ -619,28 +641,6 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                   ],
                 ),
               ),
-      ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _commentController,
-                enabled: !_isWorking,
-                decoration: const InputDecoration(hintText: '写下你的评论...'),
-                minLines: 1,
-                maxLines: 4,
-              ),
-            ),
-            const SizedBox(width: 12),
-            FilledButton(
-              onPressed: _isWorking ? null : _submitComment,
-              child: const Text('发送'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

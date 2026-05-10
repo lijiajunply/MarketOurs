@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,9 @@ import '../../providers/auth_provider.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
 import '../../services/file_service.dart';
+import '../../ui/app_feedback.dart';
+import '../../ui/app_fields.dart';
+import '../../ui/app_widgets.dart';
 
 class CreatePostScreen extends ConsumerStatefulWidget {
   const CreatePostScreen({super.key});
@@ -52,7 +56,6 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   }
 
   Future<void> _submit() async {
-    final messenger = ScaffoldMessenger.of(context);
     final authState = ref.read(authControllerProvider).asData?.value;
     final user = authState?.user;
     if (user == null) {
@@ -94,7 +97,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         return;
       }
 
-      messenger.showSnackBar(const SnackBar(content: Text('帖子已发布')));
+      await AppFeedback.showMessage(context, message: '帖子已发布');
       context.go(buildPostDetailLocation(post.id));
     } catch (error) {
       if (!mounted) {
@@ -103,8 +106,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       setState(() {
         _errorMessage = error.toString().replaceFirst('Exception: ', '');
       });
-      messenger.showSnackBar(
-        SnackBar(content: Text(_errorMessage ?? '帖子创建失败')),
+      await AppFeedback.showMessage(
+        context,
+        message: _errorMessage ?? '帖子创建失败',
       );
     } finally {
       if (mounted) {
@@ -115,106 +119,107 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('发布帖子'),
-        actions: [
-          TextButton(
-            onPressed: _isSubmitting ? null : _submit,
-            child: Text(
-              _isSubmitting ? '发布中...' : '发布',
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
+    return AppPageScaffold(
+      title: '发布帖子',
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        onPressed: _isSubmitting ? null : _submit,
+        child: Text(_isSubmitting ? '发布中' : '发布'),
       ),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (_errorMessage != null) ...[
-                _ErrorBanner(message: _errorMessage!),
-                const SizedBox(height: 16),
-              ],
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: '标题',
-                  hintText: '给帖子起个标题',
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '请输入标题';
-                  }
-                  return null;
-                },
-              ),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 24),
+          children: [
+            if (_errorMessage != null) ...[
+              _ErrorBanner(message: _errorMessage!),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _contentController,
-                maxLines: 8,
-                decoration: const InputDecoration(
-                  labelText: '内容',
-                  hintText: '分享点什么吧',
-                  alignLabelWithHint: true,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '请输入内容';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ],
+            AppSectionCard(
+              child: Column(
                 children: [
-                  const Text(
-                    '图片',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  AppTextField(
+                    controller: _titleController,
+                    placeholder: '给帖子起个标题',
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return '请输入标题';
+                      }
+                      return null;
+                    },
                   ),
-                  TextButton.icon(
-                    onPressed: _isSubmitting ? null : _pickImages,
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('选择图片'),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _contentController,
+                    placeholder: '分享点什么吧',
+                    maxLines: 8,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return '请输入内容';
+                      }
+                      return null;
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              if (_images.isEmpty)
-                Container(
-                  height: 120,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7F8FA),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '暂未选择图片',
-                    style: TextStyle(color: Colors.grey.shade500),
-                  ),
-                )
-              else
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    for (var index = 0; index < _images.length; index++)
-                      _ImagePreview(
-                        image: _images[index],
-                        onRemove: () => _removeImage(index),
+            ),
+            const SizedBox(height: 16),
+            AppSectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '图片',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                  ],
-                ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _isSubmitting ? null : _submit,
-                child: Text(_isSubmitting ? '发布中...' : '立即发布'),
+                      AppSecondaryButton(
+                        onPressed: _isSubmitting ? null : _pickImages,
+                        child: const Text('选择图片'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (_images.isEmpty)
+                    Container(
+                      height: 120,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F8FA),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        '暂未选择图片',
+                        style: TextStyle(color: CupertinoColors.systemGrey),
+                      ),
+                    )
+                  else
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        for (var index = 0; index < _images.length; index++)
+                          _ImagePreview(
+                            image: _images[index],
+                            onRemove: () => _removeImage(index),
+                          ),
+                      ],
+                    ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+            AppPrimaryButton(
+              onPressed: _isSubmitting ? null : _submit,
+              child: Text(_isSubmitting ? '发布中...' : '立即发布'),
+            ),
+          ],
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
 import '../../services/user_service.dart';
+import '../../ui/app_widgets.dart';
 
 class PublicProfileScreen extends ConsumerStatefulWidget {
   const PublicProfileScreen({super.key, required this.userId});
@@ -79,59 +81,51 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
     final authState = ref.watch(authControllerProvider).asData?.value;
     final isMe = authState?.user?.id == widget.userId;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('用户主页')),
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMessage != null || _profile == null
-            ? _ErrorState(message: _errorMessage ?? '用户不存在', onRetry: _load)
-            : RefreshIndicator(
-                onRefresh: _load,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    _ProfileHero(profile: _profile!, isMe: isMe),
-                    if (isMe) ...[
-                      const SizedBox(height: 12),
-                      OutlinedButton(
-                        onPressed: () => context.push(AppRoutePaths.profile),
-                        child: const Text('管理我的资料'),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    Text(
-                      '最近发布',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '看看这位同学最近在 光汇 分享了什么。',
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                    const SizedBox(height: 16),
-                    if (_recentPosts.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF7F8FA),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Text('还没有公开帖子'),
-                      )
-                    else
-                      ..._recentPosts.map(
-                        (post) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _PostPreview(post: post),
-                        ),
-                      ),
-                  ],
+    return AppPageScaffold(
+      title: '用户主页',
+      child: _isLoading
+          ? const Center(child: CupertinoActivityIndicator())
+          : _errorMessage != null || _profile == null
+          ? _ErrorState(message: _errorMessage ?? '用户不存在', onRetry: _load)
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
                 ),
+                padding: const EdgeInsets.only(bottom: 24),
+                children: [
+                  _ProfileHero(profile: _profile!, isMe: isMe),
+                  if (isMe) ...[
+                    const SizedBox(height: 12),
+                    AppSecondaryButton(
+                      onPressed: () => context.push(AppRoutePaths.profile),
+                      child: const Text('管理我的资料'),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  const Text(
+                    '最近发布',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '看看这位同学最近在 光汇 分享了什么。',
+                    style: TextStyle(color: CupertinoColors.systemGrey),
+                  ),
+                  const SizedBox(height: 16),
+                  if (_recentPosts.isEmpty)
+                    const AppSectionCard(child: Text('还没有公开帖子'))
+                  else
+                    ..._recentPosts.map(
+                      (post) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _PostPreview(post: post),
+                      ),
+                    ),
+                ],
               ),
-      ),
+            ),
     );
   }
 }

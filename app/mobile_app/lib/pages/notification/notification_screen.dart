@@ -1,9 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/notification.dart';
 import '../../router/app_router.dart';
 import '../../services/notification_service.dart';
+import '../../ui/app_widgets.dart';
 import 'push_settings_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -72,147 +74,159 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('通知'),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.done_all,
-              size: 22,
-              color: Color(0xFF007AFF),
-            ),
-            onPressed: () async {
-              await widget.service.markAllAsRead();
-              _loadNotifications();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, size: 22),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PushSettingsScreen(service: widget.service),
+    return AppPageScaffold(
+      title: '通知',
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
+        onPressed: () {
+          showCupertinoModalPopup<void>(
+            context: context,
+            builder: (_) => CupertinoActionSheet(
+              actions: [
+                CupertinoActionSheetAction(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await widget.service.markAllAsRead();
+                    _loadNotifications();
+                  },
+                  child: const Text('全部标为已读'),
                 ),
-              );
-            },
-          ),
-        ],
+                CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (_) =>
+                            PushSettingsScreen(service: widget.service),
+                      ),
+                    );
+                  },
+                  child: const Text('推送设置'),
+                ),
+              ],
+              cancelButton: CupertinoActionSheetAction(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('取消'),
+              ),
+            ),
+          );
+        },
+        child: const Icon(CupertinoIcons.ellipsis_circle),
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadNotifications,
-        color: const Color(0xFF007AFF),
-        child: _isLoading && _notifications.isEmpty
-            ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-            : _notifications.isEmpty
-            ? _buildEmptyState()
-            : ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+      child: _isLoading && _notifications.isEmpty
+          ? const Center(child: CupertinoActivityIndicator())
+          : _notifications.isEmpty
+          ? _buildEmptyState()
+          : RefreshIndicator(
+              onRefresh: _loadNotifications,
+              child: ListView.separated(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: const EdgeInsets.only(bottom: 24),
                 itemCount: _notifications.length,
                 separatorBuilder: (context, index) =>
-                    Divider(height: 1, indent: 72, color: Colors.grey.shade100),
+                    const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final n = _notifications[index];
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    leading: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: _getIconColor(n.type).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        _getIcon(n.type),
-                        color: _getIconColor(n.type),
-                        size: 20,
-                      ),
-                    ),
-                    title: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            n.title,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: n.isRead
-                                  ? FontWeight.w500
-                                  : FontWeight.w700,
-                              color: Colors.black,
-                            ),
-                          ),
+                  return AppSectionCard(
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: _getIconColor(n.type).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        if (!n.isRead)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF007AFF),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Icon(
+                          _getIcon(n.type),
+                          color: _getIconColor(n.type),
+                          size: 20,
+                        ),
+                      ),
+                      title: Row(
                         children: [
-                          Text(
-                            n.content,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                              height: 1.3,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _formatDate(n.createdAt),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade400,
+                          Expanded(
+                            child: Text(
+                              n.title,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: n.isRead
+                                    ? FontWeight.w500
+                                    : FontWeight.w700,
+                              ),
                             ),
                           ),
+                          if (!n.isRead)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF007AFF),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                         ],
                       ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              n.content,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF6B7280),
+                                height: 1.4,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _formatDate(n.createdAt),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: CupertinoColors.systemGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      onTap: () async {
+                        if (!n.isRead) {
+                          await widget.service.markAsRead(n.id);
+                          setState(() {
+                            _notifications[index] = NotificationDto(
+                              id: n.id,
+                              userId: n.userId,
+                              title: n.title,
+                              content: n.content,
+                              type: n.type,
+                              targetId: n.targetId,
+                              isRead: true,
+                              createdAt: n.createdAt,
+                            );
+                          });
+                        }
+
+                        if (!context.mounted) {
+                          return;
+                        }
+
+                        if (n.targetId?.isNotEmpty == true) {
+                          context.push(buildPostDetailLocation(n.targetId!));
+                        }
+                      },
                     ),
-                    onTap: () async {
-                      if (!n.isRead) {
-                        await widget.service.markAsRead(n.id);
-                        setState(() {
-                          _notifications[index] = NotificationDto(
-                            id: n.id,
-                            userId: n.userId,
-                            title: n.title,
-                            content: n.content,
-                            type: n.type,
-                            targetId: n.targetId,
-                            isRead: true,
-                            createdAt: n.createdAt,
-                          );
-                        });
-                      }
-
-                      if (!context.mounted) {
-                        return;
-                      }
-
-                      if (n.targetId?.isNotEmpty == true) {
-                        context.push(buildPostDetailLocation(n.targetId!));
-                      }
-                    },
                   );
                 },
               ),
-      ),
+            ),
     );
   }
 
@@ -221,18 +235,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.notifications_none_rounded,
+          const Icon(
+            CupertinoIcons.bell_slash,
             size: 64,
-            color: Colors.grey.shade200,
+            color: CupertinoColors.systemGrey4,
           ),
           const SizedBox(height: 16),
           Text(
             '暂无通知',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.grey.shade400,
+              color: CupertinoColors.systemGrey,
             ),
           ),
         ],

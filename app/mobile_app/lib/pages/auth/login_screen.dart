@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -196,7 +195,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: CupertinoButton(
                   padding: EdgeInsets.zero,
-                  minSize: 0,
+                  minimumSize: Size.zero,
                   onPressed: isSubmitting
                       ? null
                       : () => context.go(AppRoutePaths.forgotPassword),
