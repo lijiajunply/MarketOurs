@@ -1,9 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
+import '../../ui/app_feedback.dart';
+import '../../ui/app_fields.dart';
+import '../../ui/app_widgets.dart';
 import 'auth_scaffold.dart';
 
 class RegisterVerifyScreen extends ConsumerStatefulWidget {
@@ -32,13 +36,12 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
   }
 
   Future<void> _sendCode() async {
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await ref
           .read(authControllerProvider.notifier)
           .sendRegistrationCode(widget.registrationToken);
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(content: Text('验证码已发送')));
+        await AppFeedback.showMessage(context, message: '验证码已发送');
       }
     } catch (_) {
       final errorMessage = ref
@@ -47,13 +50,12 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
           ?.value
           .errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
+        await AppFeedback.showMessage(context, message: errorMessage);
       }
     }
   }
 
   Future<void> _submit() async {
-    final messenger = ScaffoldMessenger.of(context);
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -70,7 +72,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
         return;
       }
 
-      messenger.showSnackBar(const SnackBar(content: Text('注册完成，请使用账号密码登录')));
+      await AppFeedback.showMessage(context, message: '注册完成，请使用账号密码登录');
       context.go(AppRoutePaths.login);
     } catch (_) {
       final errorMessage = ref
@@ -79,7 +81,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
           ?.value
           .errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
+        await AppFeedback.showMessage(context, message: errorMessage);
       }
     }
   }
@@ -95,7 +97,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
           ? '输入收到的验证码完成注册。'
           : '我们将为 ${widget.account} 发送验证码，请完成验证。',
       footer: Center(
-        child: TextButton(
+        child: CupertinoButton(
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.register),
@@ -107,14 +109,14 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            OutlinedButton(
+            AppSecondaryButton(
               onPressed: isSubmitting ? null : _sendCode,
               child: const Text('发送验证码'),
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            AppTextField(
               controller: _codeController,
-              decoration: const InputDecoration(labelText: '验证码'),
+              placeholder: '请输入验证码',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return '请输入验证码';
@@ -123,7 +125,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
               },
             ),
             const SizedBox(height: 24),
-            FilledButton(
+            AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
               child: Text(isSubmitting ? '验证中...' : '完成注册'),
             ),

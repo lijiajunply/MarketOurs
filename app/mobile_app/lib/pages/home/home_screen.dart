@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,25 +47,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final feedAsync = ref.watch(homeFeedProvider);
 
-    return Scaffold(
-      body: SafeArea(
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground,
+      child: SafeArea(
         child: feedAsync.when(
-          data: (state) => RefreshIndicator(
-            onRefresh: ref.read(homeFeedProvider.notifier).refresh,
-            child: CustomScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                const SliverToBoxAdapter(child: _HomeHeader()),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  sliver: _WaterfallSection(
-                    posts: state.posts,
-                    isLoadingMore: state.isLoadingMore,
-                  ),
-                ),
-              ],
+          data: (state) => CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
             ),
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: ref.read(homeFeedProvider.notifier).refresh,
+              ),
+              const SliverToBoxAdapter(child: _HomeHeader()),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                sliver: _WaterfallSection(
+                  posts: state.posts,
+                  isLoadingMore: state.isLoadingMore,
+                ),
+              ),
+            ],
           ),
           loading: () => const _FeedLoadingView(),
           error: (error, _) => _FeedErrorView(

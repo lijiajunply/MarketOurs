@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -30,7 +30,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.byType(CupertinoTabBar), findsOneWidget);
     expect(find.text('首页'), findsWidgets);
     expect(find.text('热榜'), findsWidgets);
   });
@@ -56,7 +56,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.byType(CupertinoTabBar), findsOneWidget);
     expect(find.text('首页'), findsWidgets);
     expect(find.text('热榜'), findsWidgets);
   });
@@ -84,7 +84,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.byType(CupertinoTabBar), findsOneWidget);
     expect(find.text('首页'), findsWidgets);
     expect(storage.session, isNull);
   });

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,38 +15,41 @@ class HotScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hotFeedAsync = ref.watch(hotFeedProvider);
 
-    return Scaffold(
-      body: SafeArea(
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground,
+      child: SafeArea(
         child: hotFeedAsync.when(
-          data: (state) => RefreshIndicator(
-            onRefresh: ref.read(hotFeedProvider.notifier).refresh,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                const SliverToBoxAdapter(child: _HotHeader()),
-                if (state.posts.isEmpty)
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    sliver: SliverToBoxAdapter(child: _HotEmptyView()),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    sliver: SliverList.builder(
-                      itemCount: state.posts.length,
-                      itemBuilder: (context, index) => Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == state.posts.length - 1 ? 0 : 16,
-                        ),
-                        child: _HotPostCard(
-                          post: state.posts[index],
-                          rank: index + 1,
-                        ),
+          data: (state) => CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: ref.read(hotFeedProvider.notifier).refresh,
+              ),
+              const SliverToBoxAdapter(child: _HotHeader()),
+              if (state.posts.isEmpty)
+                const SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  sliver: SliverToBoxAdapter(child: _HotEmptyView()),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  sliver: SliverList.builder(
+                    itemCount: state.posts.length,
+                    itemBuilder: (context, index) => Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index == state.posts.length - 1 ? 0 : 16,
+                      ),
+                      child: _HotPostCard(
+                        post: state.posts[index],
+                        rank: index + 1,
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
           loading: () => const _HotLoadingView(),
           error: (error, _) => _HotErrorView(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:mobile_app/models/user.dart';
 
 class UserCard extends StatelessWidget {
@@ -9,26 +9,33 @@ class UserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            radius: 12,
-            backgroundColor: const Color(0xFFF2F2F7),
-            backgroundImage: user.avatar?.trim().isNotEmpty == true
-                ? NetworkImage(user.avatar!.trim())
-                : null,
+          Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F7),
+              shape: BoxShape.circle,
+              image: user.avatar?.trim().isNotEmpty == true
+                  ? DecorationImage(
+                      image: NetworkImage(user.avatar!.trim()),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
             child: user.avatar?.trim().isNotEmpty == true
                 ? null
                 : Text(
                     _buildInitial(user.name),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: const Color(0xFF007AFF),
+                    style: const TextStyle(
+                      color: Color(0xFF007AFF),
                       fontWeight: FontWeight.w700,
+                      fontSize: 11,
                     ),
                   ),
           ),
@@ -37,9 +44,10 @@ class UserCard extends StatelessWidget {
             user.name?.trim().isNotEmpty == true
                 ? user.name!.trim()
                 : 'Unknown',
-            style: theme.textTheme.bodySmall?.copyWith(
+            style: const TextStyle(
               fontWeight: FontWeight.w500,
-              color: Colors.grey.shade500,
+              color: CupertinoColors.systemGrey,
+              fontSize: 13,
             ),
           ),
         ],

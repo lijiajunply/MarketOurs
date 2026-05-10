@@ -1,9 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
+import '../../ui/app_feedback.dart';
+import '../../ui/app_fields.dart';
+import '../../ui/app_widgets.dart';
 import 'auth_scaffold.dart';
 import 'password_form_field.dart';
 
@@ -39,7 +43,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   }
 
   Future<void> _submit() async {
-    final messenger = ScaffoldMessenger.of(context);
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -56,7 +59,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         return;
       }
 
-      messenger.showSnackBar(const SnackBar(content: Text('密码已重置，请重新登录')));
+      await AppFeedback.showMessage(context, message: '密码已重置，请重新登录');
       context.go(AppRoutePaths.login);
     } catch (_) {
       final errorMessage = ref
@@ -65,7 +68,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           ?.value
           .errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
+        await AppFeedback.showMessage(context, message: errorMessage);
       }
     }
   }
@@ -81,7 +84,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           ? '输入收到的验证码和新密码，完成密码重置。'
           : '我们已经向 ${widget.account} 发送验证码，请填写验证码并设置新密码。',
       footer: Center(
-        child: TextButton(
+        child: CupertinoButton(
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.forgotPassword),
@@ -93,9 +96,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextFormField(
+            AppTextField(
               controller: _tokenController,
-              decoration: const InputDecoration(labelText: '验证码 / Token'),
+              placeholder: '验证码 / Token',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return '请输入验证码或 Token';
@@ -106,7 +109,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             const SizedBox(height: 16),
             PasswordFormField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: '新密码'),
+              placeholder: '新密码',
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return '请输入新密码';
@@ -120,7 +123,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             const SizedBox(height: 16),
             PasswordFormField(
               controller: _confirmPasswordController,
-              decoration: const InputDecoration(labelText: '确认新密码'),
+              placeholder: '确认新密码',
               validator: (value) {
                 if (value != _passwordController.text) {
                   return '两次输入的密码不一致';
@@ -129,7 +132,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               },
             ),
             const SizedBox(height: 24),
-            FilledButton(
+            AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
               child: Text(isSubmitting ? '提交中...' : '确认重置'),
             ),

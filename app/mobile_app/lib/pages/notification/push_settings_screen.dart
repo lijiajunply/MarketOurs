@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
+import '../../ui/app_feedback.dart';
+import '../../ui/app_widgets.dart';
 
 class PushSettingsScreen extends StatefulWidget {
   final NotificationService service;
@@ -50,62 +52,49 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
     setState(() => _isSaving = false);
 
     if (mounted) {
-      ScaffoldMessenger.of(
+      await AppFeedback.showMessage(
         context,
-      ).showSnackBar(SnackBar(content: Text(success ? '保存成功' : '保存失败')));
+        message: success ? '保存成功' : '保存失败',
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('推送设置')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
+    return AppPageScaffold(
+      title: '推送设置',
+      child: _isLoading
+          ? const Center(child: CupertinoActivityIndicator())
+          : Column(
               children: [
                 _buildSwitchTile(
                   title: '邮件通知',
                   subtitle: '当收到新回复或系统通知时发送邮件',
                   value: _emailEnabled,
                   onChanged: (val) => setState(() => _emailEnabled = val),
-                  icon: Icons.email_outlined,
+                  icon: CupertinoIcons.mail,
                 ),
-                const Divider(),
+                const SizedBox(height: 12),
                 _buildSwitchTile(
                   title: '评论回复推送',
                   subtitle: '当有人回复您的贴子或评论时推送',
                   value: _commentReplyEnabled,
                   onChanged: (val) =>
                       setState(() => _commentReplyEnabled = val),
-                  icon: Icons.reply_all,
+                  icon: CupertinoIcons.chat_bubble_text,
                 ),
-                const Divider(),
+                const SizedBox(height: 12),
                 _buildSwitchTile(
                   title: '每日热榜推送',
                   subtitle: '每天早晨接收校园最热贴子精选',
                   value: _hotListEnabled,
                   onChanged: (val) => setState(() => _hotListEnabled = val),
-                  icon: Icons.whatshot_outlined,
+                  icon: CupertinoIcons.flame,
                 ),
-                const SizedBox(height: 32),
-                ElevatedButton.icon(
+                const SizedBox(height: 28),
+                AppPrimaryButton(
                   onPressed: _isSaving ? null : _saveSettings,
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.save),
-                  label: const Text('保存设置'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  child: Text(_isSaving ? '保存中...' : '保存设置'),
                 ),
               ],
             ),
@@ -119,12 +108,47 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
     required ValueChanged<bool> onChanged,
     required IconData icon,
   }) {
-    return SwitchListTile(
-      secondary: Icon(icon),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle),
-      value: value,
-      onChanged: onChanged,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemGroupedBackground,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: CupertinoColors.systemGrey6,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: const Color(0xFF007AFF)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: CupertinoColors.systemGrey,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          CupertinoSwitch(value: value, onChanged: onChanged),
+        ],
+      ),
     );
   }
 }

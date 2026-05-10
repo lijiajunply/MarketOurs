@@ -1,9 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
+import '../../ui/app_feedback.dart';
+import '../../ui/app_fields.dart';
+import '../../ui/app_widgets.dart';
 import 'auth_scaffold.dart';
 import 'password_form_field.dart';
 
@@ -31,7 +35,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _submit() async {
-    final messenger = ScaffoldMessenger.of(context);
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -49,7 +52,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         return;
       }
 
-      messenger.showSnackBar(const SnackBar(content: Text('注册信息已提交，请完成验证码验证')));
+      await AppFeedback.showMessage(context, message: '注册信息已提交，请完成验证码验证');
       context.goNamed(
         AppRouteNames.registerVerify,
         queryParameters: {
@@ -64,7 +67,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ?.value
           .errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
-        messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
+        await AppFeedback.showMessage(context, message: errorMessage);
       }
     }
   }
@@ -78,7 +81,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       title: '注册账号',
       subtitle: '先填写基础信息，我们会在下一步通过验证码完成注册验证。',
       footer: Center(
-        child: TextButton(
+        child: CupertinoButton(
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.login),
@@ -90,12 +93,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextFormField(
+            AppTextField(
               controller: _accountController,
-              decoration: const InputDecoration(
-                labelText: '账号',
-                hintText: '邮箱或手机号',
-              ),
+              placeholder: '账号 / 邮箱 / 手机号',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return '请输入账号';
@@ -104,12 +104,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            AppTextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: '昵称',
-                hintText: '给自己起个名字',
-              ),
+              placeholder: '给自己起个名字',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return '请输入昵称';
@@ -120,10 +117,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 16),
             PasswordFormField(
               controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: '密码',
-                hintText: '至少 6 位',
-              ),
+              placeholder: '密码，至少 6 位',
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return '请输入密码';
@@ -137,7 +131,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 16),
             PasswordFormField(
               controller: _confirmPasswordController,
-              decoration: const InputDecoration(labelText: '确认密码'),
+              placeholder: '再次输入密码',
               validator: (value) {
                 if (value != _passwordController.text) {
                   return '两次输入的密码不一致';
@@ -146,7 +140,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               },
             ),
             const SizedBox(height: 24),
-            FilledButton(
+            AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
               child: Text(isSubmitting ? '提交中...' : '下一步'),
             ),
