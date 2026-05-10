@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/components/user_card.dart';
@@ -7,6 +6,7 @@ import 'package:mobile_app/components/user_card.dart';
 import '../../models/post.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
+import '../../ui/app_widgets.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -86,20 +86,20 @@ class _HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '首页',
-            style: theme.textTheme.headlineMedium?.copyWith(
+            style: TextStyle(
+              fontSize: 32,
               fontWeight: FontWeight.w800,
+              color: Color(0xFF111827),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
         ],
       ),
     );
@@ -123,12 +123,12 @@ class _WaterfallSection extends StatelessWidget {
       itemBuilder: (context, index) {
         if (index == posts.length) {
           return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Center(child: CircularProgressIndicator()),
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CupertinoActivityIndicator()),
           );
         }
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
+          padding: const EdgeInsets.only(bottom: 16),
           child: _PostCard(post: posts[index]),
         );
       },
@@ -143,104 +143,87 @@ class _PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final imageUrl = post.images?.isNotEmpty == true
-        ? post.images!.first
-        : null;
+    final imageUrl = post.images?.isNotEmpty == true ? post.images!.first : null;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => context.push(buildPostDetailLocation(post.id)),
+    return AppTappableCard(
+      radius: 16,
+      padding: EdgeInsets.zero,
+      onPressed: () => context.push(buildPostDetailLocation(post.id)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (imageUrl != null)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: AspectRatio(
+                aspectRatio: _imageAspectRatio(post.id),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: const Color(0xFFF2F2F7),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      CupertinoIcons.photo,
+                      color: CupertinoColors.systemGrey2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (imageUrl != null)
-                  AspectRatio(
-                    aspectRatio: _imageAspectRatio(post.id),
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey.shade100,
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Colors.grey.shade400,
-                        ),
-                      ),
-                    ),
+                if (post.author != null) ...[
+                  UserCard(
+                    user: post.author!,
+                    onTap: post.author?.id == null
+                        ? null
+                        : () => context.push(
+                              buildPublicProfileLocation(post.author!.id!),
+                            ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (post.author != null) ...[
-                        UserCard(
-                          user: post.author!,
-                          onTap: post.author?.id == null
-                              ? null
-                              : () => context.push(
-                                  buildPublicProfileLocation(post.author!.id!),
-                                ),
-                        ),
-                        const SizedBox(height: 6),
-                      ],
-                      Text(
-                        (post.title?.trim().isNotEmpty ?? false)
-                            ? post.title!.trim()
-                            : '未命名帖子',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 17,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _StatChip(
-                            icon: Icons.favorite_border_rounded,
-                            label: '${post.likes ?? 0}',
-                          ),
-                          _StatChip(
-                            icon: Icons.remove_red_eye_outlined,
-                            label: '${post.watch ?? 0}',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _formatCreatedAt(post.createdAt),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: Colors.grey.shade400,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 6),
+                ],
+                Text(
+                  (post.title?.trim().isNotEmpty ?? false)
+                      ? post.title!.trim()
+                      : '未命名帖子',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _StatChip(
+                      icon: CupertinoIcons.heart,
+                      label: '${post.likes ?? 0}',
+                    ),
+                    _StatChip(
+                      icon: CupertinoIcons.eye,
+                      label: '${post.watch ?? 0}',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _formatCreatedAt(post.createdAt),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF8E8E93),
                   ),
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -292,13 +275,14 @@ class _StatChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.grey.shade600),
+          Icon(icon, size: 14, color: CupertinoColors.systemGrey),
           const SizedBox(width: 4),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Colors.grey.shade700,
+            style: const TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w500,
+              color: Color(0xFF6B7280),
             ),
           ),
         ],
@@ -312,7 +296,7 @@ class _FeedLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
+    return const Center(child: CupertinoActivityIndicator());
   }
 }
 
@@ -330,37 +314,28 @@ class _FeedErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.cloud_off_rounded,
+            const Icon(
+              CupertinoIcons.exclamationmark_circle,
               size: 42,
-              color: Colors.grey.shade400,
+              color: CupertinoColors.systemGrey2,
             ),
             const SizedBox(height: 12),
-            Text(
+            const Text(
               '帖子加载失败',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF111827),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+              style: const TextStyle(color: Color(0xFF6B7280)),
             ),
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: onRetry,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF007AFF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('重新加载'),
-            ),
+            AppPrimaryButton(onPressed: onRetry, child: const Text('重新加载')),
           ],
         ),
       ),
@@ -373,31 +348,29 @@ class _EmptyFeedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return AppSectionCard(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
+      child: const Column(
         children: [
-          Icon(Icons.inbox_outlined, size: 40, color: Colors.grey.shade300),
-          const SizedBox(height: 12),
+          Icon(
+            CupertinoIcons.tray,
+            size: 40,
+            color: CupertinoColors.systemGrey3,
+          ),
+          SizedBox(height: 12),
           Text(
             '还没有帖子',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF111827),
+            ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             '下拉刷新试试，或者等同学们先发出第一条内容。',
             textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+            style: TextStyle(color: Color(0xFF6B7280)),
           ),
         ],
       ),

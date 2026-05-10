@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -41,9 +40,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
     });
 
     try {
-      final profileResponse = await _userService.getPublicProfile(
-        widget.userId,
-      );
+      final profileResponse = await _userService.getPublicProfile(widget.userId);
       final postsResponse = await ref
           .read(postServiceProvider)
           .getUserPosts(widget.userId, pageIndex: 1, pageSize: 6);
@@ -86,46 +83,57 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
       child: _isLoading
           ? const Center(child: CupertinoActivityIndicator())
           : _errorMessage != null || _profile == null
-          ? _ErrorState(message: _errorMessage ?? '用户不存在', onRetry: _load)
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                padding: const EdgeInsets.only(bottom: 24),
-                children: [
-                  _ProfileHero(profile: _profile!, isMe: isMe),
-                  if (isMe) ...[
-                    const SizedBox(height: 12),
-                    AppSecondaryButton(
-                      onPressed: () => context.push(AppRoutePaths.profile),
-                      child: const Text('管理我的资料'),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  const Text(
-                    '最近发布',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+              ? _ErrorState(message: _errorMessage ?? '用户不存在', onRetry: _load)
+              : CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '看看这位同学最近在 光汇 分享了什么。',
-                    style: TextStyle(color: CupertinoColors.systemGrey),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_recentPosts.isEmpty)
-                    const AppSectionCard(child: Text('还没有公开帖子'))
-                  else
-                    ..._recentPosts.map(
-                      (post) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _PostPreview(post: post),
+                  slivers: [
+                    CupertinoSliverRefreshControl(onRefresh: _load),
+                    SliverPadding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _ProfileHero(profile: _profile!, isMe: isMe),
+                            if (isMe) ...[
+                              const SizedBox(height: 12),
+                              AppSecondaryButton(
+                                onPressed: () => context.push(AppRoutePaths.profile),
+                                child: const Text('管理我的资料'),
+                              ),
+                            ],
+                            const SizedBox(height: 24),
+                            const Text(
+                              '最近发布',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '看看这位同学最近在 光汇 分享了什么。',
+                              style: TextStyle(color: CupertinoColors.systemGrey),
+                            ),
+                            const SizedBox(height: 16),
+                            if (_recentPosts.isEmpty)
+                              const AppSectionCard(child: Text('还没有公开帖子'))
+                            else
+                              ..._recentPosts.map(
+                                (post) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _PostPreview(post: post),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                ],
-              ),
-            ),
+                  ],
+                ),
     );
   }
 }
@@ -138,46 +146,44 @@ class _ProfileHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AppSectionCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 36,
-            backgroundColor: const Color(0xFFF2F2F7),
-            backgroundImage: profile.avatar?.trim().isNotEmpty == true
-                ? NetworkImage(profile.avatar!.trim())
-                : null,
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F7),
+              shape: BoxShape.circle,
+              image: profile.avatar?.trim().isNotEmpty == true
+                  ? DecorationImage(
+                      image: NetworkImage(profile.avatar!.trim()),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            alignment: Alignment.center,
             child: profile.avatar?.trim().isNotEmpty == true
                 ? null
                 : Text(
                     _initial(profile.name),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: const Color(0xFF007AFF),
+                    style: const TextStyle(
+                      fontSize: 24,
                       fontWeight: FontWeight.w700,
+                      color: Color(0xFF007AFF),
                     ),
                   ),
           ),
           const SizedBox(height: 16),
           Text(
-            profile.name?.trim().isNotEmpty == true
-                ? profile.name!.trim()
-                : '未设置昵称',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            profile.name?.trim().isNotEmpty == true ? profile.name!.trim() : '未设置昵称',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF111827),
+            ),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -194,17 +200,16 @@ class _ProfileHero extends StatelessWidget {
             profile.info?.trim().isNotEmpty == true
                 ? profile.info!.trim()
                 : '这个人很低调，还没有写简介。',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade700,
+            style: const TextStyle(
+              fontSize: 15,
               height: 1.5,
+              color: Color(0xFF6B7280),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             '加入时间 ${_formatDate(profile.createdAt)}',
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: Colors.grey.shade500),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF8E8E93)),
           ),
         ],
       ),
@@ -252,41 +257,32 @@ class _PostPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => context.push(buildPostDetailLocation(post.id)),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFE8E8ED)),
+    return AppTappableCard(
+      onPressed: () => context.push(buildPostDetailLocation(post.id)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            post.title?.trim().isNotEmpty == true ? post.title!.trim() : '未命名帖子',
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF111827),
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                post.title?.trim().isNotEmpty == true
-                    ? post.title!.trim()
-                    : '未命名帖子',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                post.content?.trim().isNotEmpty == true
-                    ? post.content!.trim()
-                    : '这个帖子还没有内容描述。',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey.shade700, height: 1.5),
-              ),
-            ],
+          const SizedBox(height: 8),
+          Text(
+            post.content?.trim().isNotEmpty == true
+                ? post.content!.trim()
+                : '这个帖子还没有内容描述。',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              height: 1.5,
+              color: Color(0xFF6B7280),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -306,11 +302,15 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.person_search_outlined, size: 48),
+            const Icon(
+              CupertinoIcons.person_crop_circle_badge_exclam,
+              size: 48,
+              color: CupertinoColors.systemGrey2,
+            ),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 12),
-            FilledButton(onPressed: onRetry, child: const Text('重新加载')),
+            AppPrimaryButton(onPressed: onRetry, child: const Text('重新加载')),
           ],
         ),
       ),

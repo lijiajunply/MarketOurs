@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -249,19 +248,22 @@ class _ImagePreview extends StatelessWidget {
               height: 104,
               color: const Color(0xFFF7F8FA),
               alignment: Alignment.center,
-              child: const Icon(Icons.image_outlined),
+              child: const Icon(CupertinoIcons.photo),
             ),
           ),
         ),
         Positioned(
           right: -6,
           top: -6,
-          child: IconButton(
-            onPressed: onRemove,
-            icon: const Icon(Icons.cancel_rounded),
-            color: Colors.black87,
+          child: CupertinoButton(
             padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 28, height: 28),
+            minimumSize: Size.zero,
+            onPressed: onRemove,
+            child: const Icon(
+              CupertinoIcons.clear_circled_solid,
+              color: Color(0xCC111827),
+              size: 22,
+            ),
           ),
         ),
       ],

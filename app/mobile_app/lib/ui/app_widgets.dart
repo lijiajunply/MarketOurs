@@ -154,3 +154,156 @@ class AppSecondaryButton extends StatelessWidget {
     );
   }
 }
+
+class AppTappableCard extends StatelessWidget {
+  const AppTappableCard({
+    super.key,
+    required this.child,
+    this.onPressed,
+    this.padding,
+    this.radius = 18,
+    this.color,
+    this.border,
+  });
+
+  final Widget child;
+  final VoidCallback? onPressed;
+  final EdgeInsets? padding;
+  final double radius;
+  final Color? color;
+  final BoxBorder? border;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor =
+        color ??
+        CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context);
+
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      minimumSize: Size.zero,
+      pressedOpacity: 0.92,
+      onPressed: onPressed,
+      child: Container(
+        width: double.infinity,
+        padding: padding ?? const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(radius),
+          border:
+              border ??
+              Border.all(
+                color: CupertinoColors.separator.resolveFrom(
+                  context,
+                ).withValues(alpha: 0.18),
+              ),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class AppListTile extends StatelessWidget {
+  const AppListTile({
+    super.key,
+    required this.title,
+    this.leading,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+    this.padding = const EdgeInsets.symmetric(vertical: 12),
+    this.titleStyle,
+  });
+
+  final Widget title;
+  final Widget? leading;
+  final Widget? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final EdgeInsets padding;
+  final TextStyle? titleStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Padding(
+      padding: padding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (leading != null) ...[leading!, const SizedBox(width: 12)],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DefaultTextStyle(
+                  style:
+                      titleStyle ??
+                      const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF111827),
+                      ),
+                  child: title,
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  DefaultTextStyle(
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: CupertinoColors.secondaryLabel.resolveFrom(
+                        context,
+                      ),
+                    ),
+                    child: subtitle!,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+        ],
+      ),
+    );
+
+    if (onTap == null) {
+      return content;
+    }
+
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      minimumSize: Size.zero,
+      pressedOpacity: 0.92,
+      onPressed: onTap,
+      child: content,
+    );
+  }
+}
+
+Future<T?> showAppBottomSheet<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+}) {
+  return showCupertinoModalPopup<T>(
+    context: context,
+    builder: (sheetContext) {
+      return Align(
+        alignment: Alignment.bottomCenter,
+        child: SafeArea(
+          top: false,
+          child: Container(
+            margin: const EdgeInsets.only(top: 40),
+            decoration: BoxDecoration(
+              color: CupertinoColors.systemBackground.resolveFrom(sheetContext),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
+            ),
+            child: builder(sheetContext),
+          ),
+        ),
+      );
+    },
+  );
+}

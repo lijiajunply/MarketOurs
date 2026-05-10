@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/notification.dart';
@@ -41,34 +40,34 @@ class _NotificationScreenState extends State<NotificationScreen> {
   IconData _getIcon(NotificationType type) {
     switch (type) {
       case NotificationType.commentReply:
-        return Icons.reply;
+        return CupertinoIcons.reply;
       case NotificationType.postReply:
-        return Icons.comment;
+        return CupertinoIcons.chat_bubble_2;
       case NotificationType.hotList:
-        return Icons.whatshot;
+        return CupertinoIcons.flame;
       case NotificationType.system:
-        return Icons.notifications;
+        return CupertinoIcons.bell;
       case NotificationType.review:
-        return Icons.fact_check;
+        return CupertinoIcons.check_mark_circled;
       case NotificationType.unknown:
-        return Icons.notifications;
+        return CupertinoIcons.bell;
     }
   }
 
   Color _getIconColor(NotificationType type) {
     switch (type) {
       case NotificationType.commentReply:
-        return Colors.blue;
+        return const Color(0xFF0A84FF);
       case NotificationType.postReply:
-        return Colors.green;
+        return const Color(0xFF34C759);
       case NotificationType.hotList:
-        return Colors.orange;
+        return const Color(0xFFFF9500);
       case NotificationType.system:
-        return Colors.grey;
+        return CupertinoColors.systemGrey;
       case NotificationType.review:
-        return Colors.purple;
+        return const Color(0xFFAF52DE);
       case NotificationType.unknown:
-        return Colors.grey;
+        return CupertinoColors.systemGrey;
     }
   }
 
@@ -119,113 +118,123 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ? const Center(child: CupertinoActivityIndicator())
           : _notifications.isEmpty
           ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: _loadNotifications,
-              child: ListView.separated(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                padding: const EdgeInsets.only(bottom: 24),
-                itemCount: _notifications.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final n = _notifications[index];
-                  return AppSectionCard(
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: _getIconColor(n.type).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          _getIcon(n.type),
-                          color: _getIconColor(n.type),
-                          size: 20,
-                        ),
-                      ),
-                      title: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              n.title,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: n.isRead
-                                    ? FontWeight.w500
-                                    : FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          if (!n.isRead)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF007AFF),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                        ],
-                      ),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              n.content,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF6B7280),
-                                height: 1.4,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _formatDate(n.createdAt),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: CupertinoColors.systemGrey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      onTap: () async {
-                        if (!n.isRead) {
-                          await widget.service.markAsRead(n.id);
-                          setState(() {
-                            _notifications[index] = NotificationDto(
-                              id: n.id,
-                              userId: n.userId,
-                              title: n.title,
-                              content: n.content,
-                              type: n.type,
-                              targetId: n.targetId,
-                              isRead: true,
-                              createdAt: n.createdAt,
-                            );
-                          });
-                        }
-
-                        if (!context.mounted) {
-                          return;
-                        }
-
-                        if (n.targetId?.isNotEmpty == true) {
-                          context.push(buildPostDetailLocation(n.targetId!));
-                        }
-                      },
-                    ),
-                  );
-                },
+          : CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
               ),
+              slivers: [
+                CupertinoSliverRefreshControl(onRefresh: _loadNotifications),
+                SliverPadding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  sliver: SliverList.builder(
+                    itemCount: _notifications.length,
+                    itemBuilder: (context, index) {
+                      final n = _notifications[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: AppTappableCard(
+                          onPressed: () async {
+                            if (!n.isRead) {
+                              await widget.service.markAsRead(n.id);
+                              setState(() {
+                                _notifications[index] = NotificationDto(
+                                  id: n.id,
+                                  userId: n.userId,
+                                  title: n.title,
+                                  content: n.content,
+                                  type: n.type,
+                                  targetId: n.targetId,
+                                  isRead: true,
+                                  createdAt: n.createdAt,
+                                );
+                              });
+                            }
+
+                            if (!context.mounted) {
+                              return;
+                            }
+
+                            if (n.targetId?.isNotEmpty == true) {
+                              context.push(buildPostDetailLocation(n.targetId!));
+                            }
+                          },
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: _getIconColor(
+                                    n.type,
+                                  ).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Icon(
+                                  _getIcon(n.type),
+                                  color: _getIconColor(n.type),
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            n.title,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: n.isRead
+                                                  ? FontWeight.w500
+                                                  : FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        if (!n.isRead)
+                                          Container(
+                                            width: 8,
+                                            height: 8,
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFF0A84FF),
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      n.content,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF6B7280),
+                                        height: 1.4,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _formatDate(n.createdAt),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: CupertinoColors.systemGrey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
     );
   }

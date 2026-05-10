@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
-class AppTextField extends StatelessWidget {
+class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,
     this.controller,
@@ -28,34 +27,92 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
 
   @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  late final TextEditingController _controller;
+  late final bool _ownsController;
+
+  @override
+  void initState() {
+    super.initState();
+    _ownsController = widget.controller == null;
+    _controller = widget.controller ?? TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    if (_ownsController) {
+      _controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        hintText: placeholder,
-        filled: true,
-        fillColor: const Color(0xFFF2F2F7),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF007AFF)),
-        ),
-        prefixIcon: prefix,
-        suffixIcon: suffix,
-      ),
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      maxLines: maxLines,
-      obscureText: obscureText,
-      onFieldSubmitted: onFieldSubmitted,
-      validator: validator,
+    return FormField<String>(
+      initialValue: _controller.text,
+      validator: widget.validator,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      builder: (field) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: CupertinoColors.secondarySystemFill.resolveFrom(context),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: field.hasError
+                      ? CupertinoColors.systemRed.resolveFrom(context)
+                      : CupertinoColors.separator.resolveFrom(
+                          context,
+                        ).withValues(alpha: 0.18),
+                ),
+              ),
+              child: CupertinoTextField(
+                controller: _controller,
+                placeholder: widget.placeholder,
+                keyboardType: widget.keyboardType,
+                textInputAction: widget.textInputAction,
+                maxLines: widget.maxLines,
+                obscureText: widget.obscureText,
+                onChanged: field.didChange,
+                onSubmitted: widget.onFieldSubmitted,
+                prefix: widget.prefix,
+                suffix: widget.suffix,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
+                decoration: null,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF111827),
+                ),
+                placeholderStyle: TextStyle(
+                  fontSize: 16,
+                  color: CupertinoColors.placeholderText.resolveFrom(context),
+                ),
+              ),
+            ),
+            if (field.hasError) ...[
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Text(
+                  field.errorText ?? '',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: CupertinoColors.systemRed.resolveFrom(context),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

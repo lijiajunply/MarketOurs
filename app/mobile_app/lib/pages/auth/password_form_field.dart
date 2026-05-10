@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
+import '../../ui/app_fields.dart';
 
 class PasswordFormField extends StatefulWidget {
   const PasswordFormField({
@@ -25,30 +27,18 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    return AppTextField(
       controller: widget.controller,
-      decoration: InputDecoration(
-        hintText: widget.placeholder,
-        filled: true,
-        fillColor: const Color(0xFFF2F2F7),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF007AFF)),
-        ),
-        suffixIcon: IconButton(
+      placeholder: widget.placeholder,
+      suffix: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: Size.zero,
           onPressed: () => setState(() => _obscureText = !_obscureText),
-          icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
-          tooltip: _obscureText ? '查看密码' : '隐藏密码',
+          child: Icon(
+            _obscureText ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
+            size: 18,
+          ),
         ),
-      ),
       validator: widget.validator,
       onFieldSubmitted: widget.onFieldSubmitted,
       textInputAction: widget.textInputAction,
