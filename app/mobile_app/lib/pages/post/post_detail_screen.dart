@@ -28,6 +28,10 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   bool _isWorking = false;
   String? _errorMessage;
   String _commentSort = 'recent';
+  bool _postLiked = false;
+  bool _postDisliked = false;
+  final Set<String> _likedComments = {};
+  final Set<String> _dislikedComments = {};
 
   @override
   void initState() {
@@ -436,14 +440,60 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       dislikes: post.dislikes ?? 0,
                       watch: post.watch ?? 0,
                       isWorking: _isWorking,
+                      isLiked: _postLiked,
+                      isDisliked: _postDisliked,
                       onLike: () => _runAction(() async {
-                        await ref.read(postServiceProvider).likePost(post.id);
-                      }),
+                        final res = await ref.read(postServiceProvider).likePost(post.id);
+                        final data = res.data;
+                        if (data != null) {
+                          setState(() {
+                            _postLiked = data.isLiked;
+                            _postDisliked = false;
+                            _post = _post != null
+                                ? PostDto(
+                                    id: _post!.id,
+                                    title: _post!.title,
+                                    content: _post!.content,
+                                    images: _post!.images,
+                                    createdAt: _post!.createdAt,
+                                    updatedAt: _post!.updatedAt,
+                                    userId: _post!.userId,
+                                    author: _post!.author,
+                                    likes: data.likeCount,
+                                    dislikes: data.dislikeCount,
+                                    watch: _post!.watch,
+                                    isReview: _post!.isReview,
+                                  )
+                                : null;
+                          });
+                        }
+                      }, reloadAll: false),
                       onDislike: () => _runAction(() async {
-                        await ref
-                            .read(postServiceProvider)
-                            .dislikePost(post.id);
-                      }),
+                        final res = await ref.read(postServiceProvider).dislikePost(post.id);
+                        final data = res.data;
+                        if (data != null) {
+                          setState(() {
+                            _postDisliked = data.isDisliked;
+                            _postLiked = false;
+                            _post = _post != null
+                                ? PostDto(
+                                    id: _post!.id,
+                                    title: _post!.title,
+                                    content: _post!.content,
+                                    images: _post!.images,
+                                    createdAt: _post!.createdAt,
+                                    updatedAt: _post!.updatedAt,
+                                    userId: _post!.userId,
+                                    author: _post!.author,
+                                    likes: data.likeCount,
+                                    dislikes: data.dislikeCount,
+                                    watch: _post!.watch,
+                                    isReview: _post!.isReview,
+                                  )
+                                : null;
+                          });
+                        }
+                      }, reloadAll: false),
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -502,20 +552,66 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                             onDelete: user?.id == comment.userId
                                 ? () => _deleteComment(comment)
                                 : null,
+                            likedComments: _likedComments,
+                            dislikedComments: _dislikedComments,
                             onLike: () => _runAction(() async {
-                              await _commentService.likeComment(comment.id);
+                              final res = await _commentService.likeComment(comment.id);
+                              final data = res.data;
+                              if (data != null) {
+                                setState(() {
+                                  if (data.isLiked) {
+                                    _likedComments.add(comment.id);
+                                    _dislikedComments.remove(comment.id);
+                                  } else {
+                                    _likedComments.remove(comment.id);
+                                  }
+                                });
+                              }
                             }),
                             onDislike: () => _runAction(() async {
-                              await _commentService.dislikeComment(comment.id);
+                              final res = await _commentService.dislikeComment(comment.id);
+                              final data = res.data;
+                              if (data != null) {
+                                setState(() {
+                                  if (data.isDisliked) {
+                                    _dislikedComments.add(comment.id);
+                                    _likedComments.remove(comment.id);
+                                  } else {
+                                    _dislikedComments.remove(comment.id);
+                                  }
+                                });
+                              }
                             }),
                             onReplyChild: _replyComment,
                             onEditChild: _editComment,
                             onDeleteChild: _deleteComment,
                             onLikeChild: (child) => _runAction(() async {
-                              await _commentService.likeComment(child.id);
+                              final res = await _commentService.likeComment(child.id);
+                              final data = res.data;
+                              if (data != null) {
+                                setState(() {
+                                  if (data.isLiked) {
+                                    _likedComments.add(child.id);
+                                    _dislikedComments.remove(child.id);
+                                  } else {
+                                    _likedComments.remove(child.id);
+                                  }
+                                });
+                              }
                             }),
                             onDislikeChild: (child) => _runAction(() async {
-                              await _commentService.dislikeComment(child.id);
+                              final res = await _commentService.dislikeComment(child.id);
+                              final data = res.data;
+                              if (data != null) {
+                                setState(() {
+                                  if (data.isDisliked) {
+                                    _dislikedComments.add(child.id);
+                                    _likedComments.remove(child.id);
+                                  } else {
+                                    _dislikedComments.remove(child.id);
+                                  }
+                                });
+                              }
                             }),
                           ),
                         ),
@@ -646,6 +742,8 @@ class _ActionBar extends StatelessWidget {
     required this.dislikes,
     required this.watch,
     required this.isWorking,
+    required this.isLiked,
+    required this.isDisliked,
     required this.onLike,
     required this.onDislike,
   });
@@ -654,6 +752,8 @@ class _ActionBar extends StatelessWidget {
   final int dislikes;
   final int watch;
   final bool isWorking;
+  final bool isLiked;
+  final bool isDisliked;
   final VoidCallback onLike;
   final VoidCallback onDislike;
 
@@ -665,12 +765,19 @@ class _ActionBar extends StatelessWidget {
       children: [
         FilledButton.tonalIcon(
           onPressed: isWorking ? null : onLike,
-          icon: const Icon(Icons.favorite_border_rounded),
+          icon: Icon(
+            isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: isLiked ? Colors.red : null,
+          ),
           label: Text('$likes 点赞'),
         ),
         FilledButton.tonalIcon(
           onPressed: isWorking ? null : onDislike,
-          icon: const Icon(Icons.thumb_down_alt_outlined),
+          icon: Icon(
+            isDisliked
+                ? Icons.thumb_down_rounded
+                : Icons.thumb_down_alt_outlined,
+          ),
           label: Text('$dislikes 点踩'),
         ),
         _StatChip(icon: Icons.remove_red_eye_outlined, label: '$watch 浏览'),
@@ -716,6 +823,8 @@ class _CommentThread extends StatelessWidget {
     required this.onDeleteChild,
     required this.onLikeChild,
     required this.onDislikeChild,
+    required this.likedComments,
+    required this.dislikedComments,
   });
 
   final CommentDto comment;
@@ -731,6 +840,8 @@ class _CommentThread extends StatelessWidget {
   final ValueChanged<CommentDto>? onDeleteChild;
   final ValueChanged<CommentDto> onLikeChild;
   final ValueChanged<CommentDto> onDislikeChild;
+  final Set<String> likedComments;
+  final Set<String> dislikedComments;
 
   @override
   Widget build(BuildContext context) {
@@ -754,6 +865,8 @@ class _CommentThread extends StatelessWidget {
             onDelete: onDelete,
             onLike: onLike,
             onDislike: onDislike,
+            isLiked: likedComments.contains(comment.id),
+            isDisliked: dislikedComments.contains(comment.id),
           ),
           if (comment.repliedComments?.isNotEmpty == true) ...[
             const SizedBox(height: 12),
@@ -780,6 +893,8 @@ class _CommentThread extends StatelessWidget {
                           : null,
                       onLike: () => onLikeChild(reply),
                       onDislike: () => onDislikeChild(reply),
+                      isLiked: likedComments.contains(reply.id),
+                      isDisliked: dislikedComments.contains(reply.id),
                     ),
                     if (reply != comment.repliedComments!.last)
                       const Divider(height: 24),
@@ -803,6 +918,8 @@ class _CommentCard extends StatelessWidget {
     this.onDelete,
     required this.onLike,
     required this.onDislike,
+    this.isLiked = false,
+    this.isDisliked = false,
   });
 
   final CommentDto comment;
@@ -812,6 +929,8 @@ class _CommentCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback onLike;
   final VoidCallback onDislike;
+  final bool isLiked;
+  final bool isDisliked;
 
   @override
   Widget build(BuildContext context) {
@@ -840,8 +959,16 @@ class _CommentCard extends StatelessWidget {
               ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade500),
             ),
             _TextAction(label: '回复', onTap: onReply),
-            _TextAction(label: '点赞 ${comment.likes ?? 0}', onTap: onLike),
-            _TextAction(label: '点踩 ${comment.dislikes ?? 0}', onTap: onDislike),
+            _TextAction(
+              label: '点赞 ${comment.likes ?? 0}',
+              onTap: onLike,
+              active: isLiked,
+            ),
+            _TextAction(
+              label: '点踩 ${comment.dislikes ?? 0}',
+              onTap: onDislike,
+              active: isDisliked,
+            ),
             if (onEdit != null) _TextAction(label: '编辑', onTap: onEdit!),
             if (onDelete != null) _TextAction(label: '删除', onTap: onDelete!),
           ],
@@ -869,10 +996,15 @@ class _CommentCard extends StatelessWidget {
 }
 
 class _TextAction extends StatelessWidget {
-  const _TextAction({required this.label, required this.onTap});
+  const _TextAction({
+    required this.label,
+    required this.onTap,
+    this.active = false,
+  });
 
   final String label;
   final VoidCallback onTap;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
@@ -881,7 +1013,7 @@ class _TextAction extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: const Color(0xFF007AFF),
+          color: active ? Colors.red : const Color(0xFF007AFF),
           fontWeight: FontWeight.w600,
         ),
       ),

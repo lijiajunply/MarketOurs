@@ -34,24 +34,26 @@ const formatDate = (dateString: string, i18nInstance: i18n, updatedAtString?: st
   }
 }
 
-function CommentItem({ 
-  comment, 
-  user, 
-  i18n, 
-  t, 
+function CommentItem({
+  comment,
+  user,
+  i18n,
+  t,
   onUpdate,
   onReply,
   onDelete,
-  onLike
-}: { 
-  comment: CommentDto; 
-  user: any; 
-  i18n: any; 
+  onLike,
+  likedComments,
+}: {
+  comment: CommentDto;
+  user: any;
+  i18n: any;
   t: any;
   onUpdate: (id: string, content: string) => Promise<void>;
   onReply: (parentId: string, content: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onLike: (id: string) => Promise<void>;
+  likedComments: Set<string>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
@@ -149,7 +151,7 @@ function CommentItem({
               user ? "hover:bg-primary/10 hover:text-primary text-muted-foreground" : "text-muted-foreground/50 cursor-not-allowed"
             )}
           >
-            <Heart size={14} className={cn(comment.likes > 0 && "fill-primary text-primary")} /> 
+            <Heart size={14} className={cn(likedComments.has(comment.id) && "fill-primary text-primary")} />
             {comment.likes}
           </button>
           
@@ -214,16 +216,17 @@ function CommentItem({
         {comment.repliedComments && comment.repliedComments.length > 0 && (
           <div className="mt-4 space-y-6 pl-4 border-l-2 border-border/20">
             {comment.repliedComments.map((reply) => (
-              <CommentItem 
-                key={reply.id} 
-                comment={reply} 
-                user={user} 
-                i18n={i18n} 
-                t={t} 
+              <CommentItem
+                key={reply.id}
+                comment={reply}
+                user={user}
+                i18n={i18n}
+                t={t}
                 onUpdate={onUpdate}
                 onReply={onReply}
                 onDelete={onDelete}
                 onLike={onLike}
+                likedComments={likedComments}
               />
             ))}
           </div>
@@ -245,6 +248,8 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [commentSort, setCommentSort] = useState<"recent" | "hot">("recent")
+  const [postLiked, setPostLiked] = useState(false)
+  const [likedComments, setLikedComments] = useState<Set<string>>(new Set())
 
   // Editing state for post
   const [isEditingPost, setIsEditingPost] = useState(false)
@@ -311,8 +316,10 @@ export default function PostDetailPage() {
   const handlePostLike = async () => {
     if (!id || !user || !post) return;
     try {
-      await postService.likePost(id);
-      setPost({ ...post, likes: post.likes + 1 });
+      const res = await postService.likePost(id);
+      const { likeCount, dislikeCount, isLiked } = res.data;
+      setPost({ ...post, likes: likeCount, dislikes: dislikeCount });
+      setPostLiked(isLiked);
     } catch (err) {
       console.error("Failed to like post", err);
     }
@@ -321,11 +328,12 @@ export default function PostDetailPage() {
   const handleCommentLike = async (commentId: string) => {
     if (!user) return;
     try {
-      await commentService.likeComment(commentId);
+      const res = await commentService.likeComment(commentId);
+      const { likeCount, dislikeCount, isLiked } = res.data;
       const updateInTree = (list: CommentDto[]): CommentDto[] => {
         return list.map(c => {
           if (c.id === commentId) {
-            return { ...c, likes: c.likes + 1 };
+            return { ...c, likes: likeCount, dislikes: dislikeCount };
           }
           if (c.repliedComments && c.repliedComments.length > 0) {
             return { ...c, repliedComments: updateInTree(c.repliedComments) };
@@ -334,6 +342,12 @@ export default function PostDetailPage() {
         });
       };
       setComments(updateInTree(comments));
+      setLikedComments(prev => {
+        const next = new Set(prev);
+        if (isLiked) next.add(commentId);
+        else next.delete(commentId);
+        return next;
+      });
     } catch (err) {
       console.error("Failed to like comment", err);
     }
@@ -568,7 +582,7 @@ export default function PostDetailPage() {
               user ? "bg-primary/10 text-primary hover:bg-primary/20" : "bg-muted text-muted-foreground/50 cursor-not-allowed"
             )}
           >
-            <Heart size={20} className={cn("group-hover:scale-110 transition-transform", post.likes > 0 && "fill-primary")} />
+            <Heart size={20} className={cn("group-hover:scale-110 transition-transform", postLiked && "fill-primary")} />
             <span>{post.likes} {t("post.likes")}</span>
           </button>
           <button className="flex items-center gap-2 px-6 py-2.5 rounded-full hover:bg-muted transition-all font-bold text-muted-foreground group">
@@ -629,16 +643,17 @@ export default function PostDetailPage() {
 
         <div className="space-y-10">
           {comments.map((c) => (
-            <CommentItem 
-              key={c.id} 
-              comment={c} 
-              user={user} 
-              i18n={i18n} 
-              t={t} 
-              onUpdate={handleCommentUpdate} 
+            <CommentItem
+              key={c.id}
+              comment={c}
+              user={user}
+              i18n={i18n}
+              t={t}
+              onUpdate={handleCommentUpdate}
               onReply={handleCommentReply}
               onDelete={handleCommentDelete}
               onLike={handleCommentLike}
+              likedComments={likedComments}
             />
           ))}
           {comments.length === 0 && (

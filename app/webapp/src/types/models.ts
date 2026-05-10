@@ -283,3 +283,13 @@ export interface PushSettingsDto {
   enableHotListPush: boolean;
   enableCommentReplyPush: boolean;
 }
+
+/**
+ * Like/Dislike toggle result returned by backend
+ */
+export interface LikeToggleResult {
+  isLiked: boolean;
+  isDisliked: boolean;
+  likeCount: number;
+  dislikeCount: number;
+}

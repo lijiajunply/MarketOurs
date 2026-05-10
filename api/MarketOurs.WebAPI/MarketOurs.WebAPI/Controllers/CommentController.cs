@@ -165,30 +165,30 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
     /// 点赞评论 (支持切换状态)
     /// </summary>
     /// <param name="id">评论 ID</param>
-    /// <returns>操作结果描述</returns>
+    /// <returns>操作后的点赞/点踩状态与计数</returns>
     [HttpPost("{id}/like")]
-    public async Task<ApiResponse> Like(string id)
+    public async Task<ApiResponse<LikeToggleResult>> Like(string id)
     {
         var userId = this.GetRequiredUserId();
-        await commentService.SetLikesAsync(userId, id);
-        
+        var result = await commentService.SetLikesAsync(userId, id);
+
         logger.LogInformation("用户 {UserId} 点赞了评论 {CommentId}", userId, id);
-        return ApiResponse.Success("点赞成功");
+        return ApiResponse<LikeToggleResult>.Success(result, result.IsLiked ? "点赞成功" : "已取消点赞");
     }
 
     /// <summary>
     /// 点踩评论 (支持切换状态)
     /// </summary>
     /// <param name="id">评论 ID</param>
-    /// <returns>操作结果描述</returns>
+    /// <returns>操作后的点赞/点踩状态与计数</returns>
     [HttpPost("{id}/dislike")]
-    public async Task<ApiResponse> Dislike(string id)
+    public async Task<ApiResponse<LikeToggleResult>> Dislike(string id)
     {
         var userId = this.GetRequiredUserId();
-        await commentService.SetDislikesAsync(userId, id);
-        
+        var result = await commentService.SetDislikesAsync(userId, id);
+
         logger.LogInformation("用户 {UserId} 踩了评论 {CommentId}", userId, id);
-        return ApiResponse.Success("操作成功");
+        return ApiResponse<LikeToggleResult>.Success(result, result.IsDisliked ? "点踩成功" : "已取消点踩");
     }
 
     [HttpPut("{id}/review")]

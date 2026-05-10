@@ -83,18 +83,18 @@ public interface IPostService
     Task IncrementWatchAsync(string id);
 
     /// <summary>
-    /// 设置用户对帖子的点赞状态
+    /// 设置用户对帖子的点赞状态，返回操作后的最新状态
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <param name="postId">帖子ID</param>
-    Task SetLikesAsync(string userId, string postId);
+    Task<LikeToggleResult> SetLikesAsync(string userId, string postId);
 
     /// <summary>
-    /// 设置用户对帖子的点踩状态
+    /// 设置用户对帖子的点踩状态，返回操作后的最新状态
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <param name="postId">帖子ID</param>
-    Task SetDislikesAsync(string userId, string postId);
+    Task<LikeToggleResult> SetDislikesAsync(string userId, string postId);
 
     /// <summary>
     /// 获取帖子的评论列表 (构建树形结构)
@@ -422,21 +422,21 @@ public class PostService(
     }
 
     /// <inheritdoc/>
-    public async Task SetLikesAsync(string userId, string postId)
+    public async Task<LikeToggleResult> SetLikesAsync(string userId, string postId)
     {
         var post = await postRepo.GetByIdAsync(postId);
         if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
 
-        await likeManager.SetPostLikeAsync(postId, userId);
-        // Dynamic data fills automatically, no need to invalidate DTO cache
+        return await likeManager.SetPostLikeAsync(postId, userId);
     }
 
-    public async Task SetDislikesAsync(string userId, string postId)
+    /// <inheritdoc/>
+    public async Task<LikeToggleResult> SetDislikesAsync(string userId, string postId)
     {
         var post = await postRepo.GetByIdAsync(postId);
         if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
 
-        await likeManager.SetPostDislikeAsync(postId, userId);
+        return await likeManager.SetPostDislikeAsync(postId, userId);
     }
 
     /// <inheritdoc/>

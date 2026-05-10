@@ -5,6 +5,7 @@ import type {
   PostUpdateDto,
   PagedResult,
   CommentDto,
+  LikeToggleResult,
 } from '../types';
 
 export const postService = {
@@ -39,10 +40,10 @@ export const postService = {
     apiClient.delete<void>(`/Post/${id}`),
 
   likePost: (id: string) =>
-    apiClient.post<void>(`/Post/${id}/like`),
+    apiClient.post<LikeToggleResult>(`/Post/${id}/like`),
 
   dislikePost: (id: string) =>
-    apiClient.post<void>(`/Post/${id}/dislike`),
+    apiClient.post<LikeToggleResult>(`/Post/${id}/dislike`),
 
   getPostComments: (id: string, type: string) =>
     apiClient.get<CommentDto[]>(`/Post/${id}/comments/${type}`),

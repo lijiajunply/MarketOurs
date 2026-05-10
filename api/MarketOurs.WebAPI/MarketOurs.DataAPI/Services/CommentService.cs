@@ -57,14 +57,14 @@ public interface ICommentService
     Task<CommentDto> UpdateReviewAsync(string id, bool isReview);
 
     /// <summary>
-    /// 设置用户对评论的点赞状态
+    /// 设置用户对评论的点赞状态，返回操作后的最新状态
     /// </summary>
-    Task SetLikesAsync(string userId, string commentId);
+    Task<LikeToggleResult> SetLikesAsync(string userId, string commentId);
 
     /// <summary>
-    /// 设置用户对评论的点踩状态
+    /// 设置用户对评论的点踩状态，返回操作后的最新状态
     /// </summary>
-    Task SetDislikesAsync(string userId, string commentId);
+    Task<LikeToggleResult> SetDislikesAsync(string userId, string commentId);
 }
 
 public class CommentService(
@@ -299,21 +299,22 @@ public class CommentService(
         return MapToDto(comment);
     }
 
-    public async Task SetLikesAsync(string userId, string commentId)
+    /// <inheritdoc/>
+    public async Task<LikeToggleResult> SetLikesAsync(string userId, string commentId)
     {
         var comment = await commentRepo.GetByIdAsync(commentId);
         if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
 
-        await likeManager.SetCommentLikeAsync(commentId, userId);
-        // 互动操作不需要清除 DTO 缓存，因为 FillDynamicData 会实时获取最新计数
+        return await likeManager.SetCommentLikeAsync(commentId, userId);
     }
 
-    public async Task SetDislikesAsync(string userId, string commentId)
+    /// <inheritdoc/>
+    public async Task<LikeToggleResult> SetDislikesAsync(string userId, string commentId)
     {
         var comment = await commentRepo.GetByIdAsync(commentId);
         if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
 
-        await likeManager.SetCommentDislikeAsync(commentId, userId);
+        return await likeManager.SetCommentDislikeAsync(commentId, userId);
     }
 
     private void InvalidateCache(string id, string postId)

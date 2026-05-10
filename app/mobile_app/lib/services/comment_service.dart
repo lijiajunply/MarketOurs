@@ -1,5 +1,6 @@
 import '../models/api_response.dart';
 import '../models/comment.dart';
+import '../models/like_toggle_result.dart';
 import '../models/paged_result.dart';
 import 'api_service.dart';
 
@@ -96,13 +97,19 @@ class CommentService {
     );
   }
 
-  Future<ApiResponse> likeComment(String id) async {
+  Future<ApiResponse<LikeToggleResult>> likeComment(String id) async {
     final response = await _api.post('/Comment/$id/like');
-    return ApiResponse.fromJson(response.data, (json) => json);
+    return ApiResponse<LikeToggleResult>.fromJson(
+      response.data,
+      (json) => LikeToggleResult.fromJson(json as Map<String, dynamic>),
+    );
   }
 
-  Future<ApiResponse> dislikeComment(String id) async {
+  Future<ApiResponse<LikeToggleResult>> dislikeComment(String id) async {
     final response = await _api.post('/Comment/$id/dislike');
-    return ApiResponse.fromJson(response.data, (json) => json);
+    return ApiResponse<LikeToggleResult>.fromJson(
+      response.data,
+      (json) => LikeToggleResult.fromJson(json as Map<String, dynamic>),
+    );
   }
 }

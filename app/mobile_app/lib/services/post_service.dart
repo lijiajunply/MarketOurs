@@ -1,4 +1,5 @@
 import '../models/api_response.dart';
+import '../models/like_toggle_result.dart';
 import '../models/paged_result.dart';
 import '../models/post.dart';
 import '../models/comment.dart';
@@ -111,14 +112,20 @@ class PostService {
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 
-  Future<ApiResponse> likePost(String id) async {
+  Future<ApiResponse<LikeToggleResult>> likePost(String id) async {
     final response = await _api.post('/Post/$id/like');
-    return ApiResponse.fromJson(response.data, (json) => json);
+    return ApiResponse<LikeToggleResult>.fromJson(
+      response.data,
+      (json) => LikeToggleResult.fromJson(json as Map<String, dynamic>),
+    );
   }
 
-  Future<ApiResponse> dislikePost(String id) async {
+  Future<ApiResponse<LikeToggleResult>> dislikePost(String id) async {
     final response = await _api.post('/Post/$id/dislike');
-    return ApiResponse.fromJson(response.data, (json) => json);
+    return ApiResponse<LikeToggleResult>.fromJson(
+      response.data,
+      (json) => LikeToggleResult.fromJson(json as Map<String, dynamic>),
+    );
   }
 
   Future<ApiResponse<List<CommentDto>>> getPostComments(

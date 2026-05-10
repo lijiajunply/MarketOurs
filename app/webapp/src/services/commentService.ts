@@ -4,6 +4,7 @@ import type {
   CommentCreateDto,
   CommentUpdateDto,
   PagedResult,
+  LikeToggleResult,
 } from '../types';
 
 export const commentService = {
@@ -31,10 +32,10 @@ export const commentService = {
     apiClient.post<CommentDto>(`/Comment/${id}/reply`, data),
 
   likeComment: (id: string) =>
-    apiClient.post<void>(`/Comment/${id}/like`),
+    apiClient.post<LikeToggleResult>(`/Comment/${id}/like`),
 
   dislikeComment: (id: string) =>
-    apiClient.post<void>(`/Comment/${id}/dislike`),
+    apiClient.post<LikeToggleResult>(`/Comment/${id}/dislike`),
 
   searchComments: (pageIndex?: number, pageSize?: number, keyword?: string) => {
     const params = new URLSearchParams();

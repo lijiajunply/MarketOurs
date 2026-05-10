@@ -140,28 +140,28 @@ public class PostController(IPostService postService) : ControllerBase
     /// 点赞帖子 (支持切换状态)
     /// </summary>
     /// <param name="id">帖子 ID</param>
-    /// <returns>操作结果描述</returns>
+    /// <returns>操作后的点赞/点踩状态与计数</returns>
     [HttpPost("{id}/like")]
     [Authorize]
-    public async Task<ApiResponse> Like(string id)
+    public async Task<ApiResponse<LikeToggleResult>> Like(string id)
     {
         var userId = this.GetRequiredUserId();
-        await postService.SetLikesAsync(userId, id);
-        return ApiResponse.Success("操作成功");
+        var result = await postService.SetLikesAsync(userId, id);
+        return ApiResponse<LikeToggleResult>.Success(result, result.IsLiked ? "点赞成功" : "已取消点赞");
     }
 
     /// <summary>
     /// 点踩帖子 (支持切换状态)
     /// </summary>
     /// <param name="id">帖子 ID</param>
-    /// <returns>操作结果描述</returns>
+    /// <returns>操作后的点赞/点踩状态与计数</returns>
     [HttpPost("{id}/dislike")]
     [Authorize]
-    public async Task<ApiResponse> Dislike(string id)
+    public async Task<ApiResponse<LikeToggleResult>> Dislike(string id)
     {
         var userId = this.GetRequiredUserId();
-        await postService.SetDislikesAsync(userId, id);
-        return ApiResponse.Success("操作成功");
+        var result = await postService.SetDislikesAsync(userId, id);
+        return ApiResponse<LikeToggleResult>.Success(result, result.IsDisliked ? "点踩成功" : "已取消点踩");
     }
 
     /// <summary>
