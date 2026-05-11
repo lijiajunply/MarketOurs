@@ -257,30 +257,12 @@ class _ProfileHero extends StatelessWidget {
       onPressed: onViewPublicProfile,
       child: Row(
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.muted,
-              borderRadius: BorderRadius.circular(20),
-              image: user.avatar?.trim().isNotEmpty == true
-                  ? DecorationImage(
-                      image: NetworkImage(user.avatar!.trim()),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            alignment: Alignment.center,
-            child: user.avatar?.trim().isNotEmpty == true
-                ? null
-                : Text(
-                    _buildInitial(user.name),
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 24,
-                    ),
-                  ),
+          AppAvatar(
+            url: user.avatar,
+            name: user.name,
+            size: 72,
+            radius: 20,
+            isCircle: false,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -313,12 +295,6 @@ class _ProfileHero extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _buildInitial(String? name) {
-    final trimmed = name?.trim();
-    if (trimmed == null || trimmed.isEmpty) return '我';
-    return trimmed.substring(0, 1);
   }
 }
 

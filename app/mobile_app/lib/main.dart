@@ -19,7 +19,8 @@ class MarketOursApp extends ConsumerWidget {
       title: '光汇',
       debugShowCheckedModeBanner: false,
       routerConfig: router,
-      theme: const CupertinoThemeData(
+      theme: CupertinoThemeData(
+        brightness: MediaQuery.platformBrightnessOf(context),
         primaryColor: AppColors.primary,
         scaffoldBackgroundColor: AppColors.background,
         barBackgroundColor: AppColors.background,

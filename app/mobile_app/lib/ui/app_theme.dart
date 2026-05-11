@@ -3,20 +3,76 @@ import 'package:flutter/cupertino.dart';
 abstract final class AppColors {
   static const Color primary = Color(0xFF0071E3);
   static const Color primaryForeground = Color(0xFFFFFFFF);
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color foreground = Color(0xFF1D1D1F);
-  static const Color card = Color(0xFFF5F5F7);
-  static const Color cardForeground = Color(0xFF1D1D1F);
-  static const Color secondary = Color(0xFFF5F5F7);
-  static const Color secondaryForeground = Color(0xFF1D1D1F);
-  static const Color muted = Color(0xFFF5F5F7);
-  static const Color mutedForeground = Color(0xFF86868B);
-  static const Color border = Color(0xFFD2D2D7);
-  static const Color input = Color(0xFFD2D2D7);
-  static const Color destructive = Color(0xFFFF3B30);
-  static const Color hot = Color(0xFFFF7A00);
-  static const Color hotSoft = Color(0xFFFFF1E6);
-  static const Color hotBorder = Color(0xFFFFD8BF);
+
+  static const Color background = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFFFFFFF),
+    darkColor: Color(0xFF000000),
+  );
+
+  static const Color foreground = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF1D1D1F),
+    darkColor: Color(0xFFF5F5F7),
+  );
+
+  static const Color card = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFF5F5F7),
+    darkColor: Color(0xFF1C1C1E),
+  );
+
+  static const Color cardForeground = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF1D1D1F),
+    darkColor: Color(0xFFF5F5F7),
+  );
+
+  static const Color secondary = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFF5F5F7),
+    darkColor: Color(0xFF1C1C1E),
+  );
+
+  static const Color secondaryForeground = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF1D1D1F),
+    darkColor: Color(0xFFF5F5F7),
+  );
+
+  static const Color muted = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFF5F5F7),
+    darkColor: Color(0xFF1C1C1E),
+  );
+
+  static const Color mutedForeground = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF86868B),
+    darkColor: Color(0xFF8E8E93),
+  );
+
+  static const Color border = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFD2D2D7),
+    darkColor: Color(0xFF38383A),
+  );
+
+  static const Color input = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFD2D2D7),
+    darkColor: Color(0xFF38383A),
+  );
+
+  static const Color destructive = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFFF3B30),
+    darkColor: Color(0xFFFF453A),
+  );
+
+  static const Color hot = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFFF7A00),
+    darkColor: Color(0xFFFF9F0A),
+  );
+
+  static const Color hotSoft = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFFFF1E6),
+    darkColor: Color(0xFF2C1A0A),
+  );
+
+  static const Color hotBorder = CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFFFD8BF),
+    darkColor: Color(0xFF5C3600),
+  );
 }
 
 abstract final class AppRadii {
@@ -107,14 +163,18 @@ abstract final class AppDecorations {
     );
   }
 
-  static const LinearGradient hotGradient = LinearGradient(
+  static final LinearGradient hotGradient = LinearGradient(
     colors: [AppColors.hotSoft, AppColors.background],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  static const LinearGradient profileGradient = LinearGradient(
-    colors: [Color(0x220071E3), Color(0x080071E3), Color(0x00FFFFFF)],
+  static final LinearGradient profileGradient = LinearGradient(
+    colors: [
+      AppColors.primary.withValues(alpha: 0.14),
+      AppColors.primary.withValues(alpha: 0.03),
+      AppColors.background.withValues(alpha: 0.0),
+    ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:mobile_app/models/user.dart';
 
 import '../ui/app_theme.dart';
+import '../ui/app_widgets.dart';
 
 class UserCard extends StatelessWidget {
   const UserCard({
@@ -26,30 +27,10 @@ class UserCard extends StatelessWidget {
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 40,
-          height: 40,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.secondary,
-            shape: BoxShape.circle,
-            image: user.avatar?.trim().isNotEmpty == true
-                ? DecorationImage(
-                    image: NetworkImage(user.avatar!.trim()),
-                    fit: BoxFit.cover,
-                  )
-                : null,
-          ),
-          child: user.avatar?.trim().isNotEmpty == true
-              ? null
-              : Text(
-                  _buildInitial(user.name),
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                  ),
-                ),
+        AppAvatar(
+          url: user.avatar,
+          name: user.name,
+          size: 40,
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -95,13 +76,5 @@ class UserCard extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: content,
     );
-  }
-
-  String _buildInitial(String? name) {
-    final trimmed = name?.trim();
-    if (trimmed == null || trimmed.isEmpty) {
-      return 'U';
-    }
-    return trimmed.substring(0, 1).toUpperCase();
   }
 }

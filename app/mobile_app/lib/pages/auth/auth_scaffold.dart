@@ -78,7 +78,7 @@ class AuthScaffold extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  AppTappableCard(
+                  AppGlassCard(
                     padding: const EdgeInsets.all(24),
                     radius: AppRadii.lg,
                     child: child,

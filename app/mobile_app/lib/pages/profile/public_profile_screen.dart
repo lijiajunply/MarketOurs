@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_app/ui/app_theme.dart';
 
 import '../../models/post.dart';
 import '../../models/user.dart';
@@ -40,7 +41,9 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
     });
 
     try {
-      final profileResponse = await _userService.getPublicProfile(widget.userId);
+      final profileResponse = await _userService.getPublicProfile(
+        widget.userId,
+      );
       final postsResponse = await ref
           .read(postServiceProvider)
           .getUserPosts(widget.userId, pageIndex: 1, pageSize: 6);
@@ -83,57 +86,58 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
       child: _isLoading
           ? const Center(child: CupertinoActivityIndicator())
           : _errorMessage != null || _profile == null
-              ? _ErrorState(message: _errorMessage ?? '用户不存在', onRetry: _load)
-              : CustomScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  slivers: [
-                    CupertinoSliverRefreshControl(onRefresh: _load),
-                    SliverPadding(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      sliver: SliverToBoxAdapter(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _ProfileHero(profile: _profile!, isMe: isMe),
-                            if (isMe) ...[
-                              const SizedBox(height: 12),
-                              AppSecondaryButton(
-                                onPressed: () => context.push(AppRoutePaths.profile),
-                                child: const Text('管理我的资料'),
-                              ),
-                            ],
-                            const SizedBox(height: 24),
-                            const Text(
-                              '最近发布',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF111827),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              '看看这位同学最近在 光汇 分享了什么。',
-                              style: TextStyle(color: CupertinoColors.systemGrey),
-                            ),
-                            const SizedBox(height: 16),
-                            if (_recentPosts.isEmpty)
-                              const AppSectionCard(child: Text('还没有公开帖子'))
-                            else
-                              ..._recentPosts.map(
-                                (post) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: _PostPreview(post: post),
-                                ),
-                              ),
-                          ],
+          ? _ErrorState(message: _errorMessage ?? '用户不存在', onRetry: _load)
+          : CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                CupertinoSliverRefreshControl(onRefresh: _load),
+                SliverPadding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _ProfileHero(profile: _profile!, isMe: isMe),
+                        if (isMe) ...[
+                          const SizedBox(height: 12),
+                          AppSecondaryButton(
+                            onPressed: () =>
+                                context.push(AppRoutePaths.profile),
+                            child: const Text('管理我的资料'),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        const Text(
+                          '最近发布',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.foreground,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          '看看这位同学最近在 光汇 分享了什么。',
+                          style: TextStyle(color: CupertinoColors.systemGrey),
+                        ),
+                        const SizedBox(height: 16),
+                        if (_recentPosts.isEmpty)
+                          const AppSectionCard(child: Text('还没有公开帖子'))
+                        else
+                          ..._recentPosts.map(
+                            (post) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _PostPreview(post: post),
+                            ),
+                          ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
     );
   }
 }
@@ -151,38 +155,20 @@ class _ProfileHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF2F2F7),
-              shape: BoxShape.circle,
-              image: profile.avatar?.trim().isNotEmpty == true
-                  ? DecorationImage(
-                      image: NetworkImage(profile.avatar!.trim()),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            alignment: Alignment.center,
-            child: profile.avatar?.trim().isNotEmpty == true
-                ? null
-                : Text(
-                    _initial(profile.name),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF007AFF),
-                    ),
-                  ),
+          AppAvatar(
+            url: profile.avatar,
+            name: profile.name,
+            size: 72,
           ),
           const SizedBox(height: 16),
           Text(
-            profile.name?.trim().isNotEmpty == true ? profile.name!.trim() : '未设置昵称',
+            profile.name?.trim().isNotEmpty == true
+                ? profile.name!.trim()
+                : '未设置昵称',
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF111827),
+              color: AppColors.foreground,
             ),
           ),
           const SizedBox(height: 8),
@@ -203,25 +189,20 @@ class _ProfileHero extends StatelessWidget {
             style: const TextStyle(
               fontSize: 15,
               height: 1.5,
-              color: Color(0xFF6B7280),
+              color: AppColors.mutedForeground,
             ),
           ),
           const SizedBox(height: 16),
           Text(
             '加入时间 ${_formatDate(profile.createdAt)}',
-            style: const TextStyle(fontSize: 12, color: Color(0xFF8E8E93)),
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.mutedForeground,
+            ),
           ),
         ],
       ),
     );
-  }
-
-  String _initial(String? name) {
-    final trimmed = name?.trim();
-    if (trimmed == null || trimmed.isEmpty) {
-      return '我';
-    }
-    return trimmed.substring(0, 1);
   }
 
   String _formatDate(DateTime? value) {
@@ -242,10 +223,10 @@ class _MetaChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F7),
+        color: AppColors.secondary,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(label),
+      child: Text(label, style: const TextStyle(color: AppColors.foreground)),
     );
   }
 }
@@ -263,11 +244,13 @@ class _PostPreview extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            post.title?.trim().isNotEmpty == true ? post.title!.trim() : '未命名帖子',
+            post.title?.trim().isNotEmpty == true
+                ? post.title!.trim()
+                : '未命名帖子',
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF111827),
+              color: AppColors.foreground,
             ),
           ),
           const SizedBox(height: 8),
@@ -279,7 +262,7 @@ class _PostPreview extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               height: 1.5,
-              color: Color(0xFF6B7280),
+              color: AppColors.mutedForeground,
             ),
           ),
         ],

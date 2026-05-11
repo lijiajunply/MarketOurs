@@ -42,12 +42,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _sendCode() async {
-    final account = _accountController.text.trim();
-    if (account.isEmpty) {
-      await AppFeedback.showMessage(context, message: '请先输入账号');
+    if (!_formKey.currentState!.validate()) {
       return;
     }
-
+    
+    final account = _accountController.text.trim();
     setState(() => _isSendingCode = true);
     try {
       await ref
