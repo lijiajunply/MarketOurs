@@ -276,7 +276,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-              const Text('验证码会发送到你填写的邮箱或手机号。', style: AppTextStyles.muted),
+              Text('验证码会发送到你填写的邮箱或手机号。', style: AppTextStyles.muted(context)),
             ],
             const SizedBox(height: 22),
             AppPrimaryButton(

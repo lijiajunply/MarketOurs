@@ -67,9 +67,12 @@ class _AppTextFieldState extends State<AppTextField> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.85),
+                color: CupertinoDynamicColor.resolve(AppColors.secondary, context)
+                    .withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(AppRadii.lg),
-                border: Border.all(color: borderColor),
+                border: Border.all(
+                  color: CupertinoDynamicColor.resolve(borderColor, context),
+                ),
               ),
               child: CupertinoTextField(
                 controller: _controller,
@@ -97,10 +100,13 @@ class _AppTextFieldState extends State<AppTextField> {
                   vertical: 16,
                 ),
                 decoration: null,
-                style: AppTextStyles.body,
-                placeholderStyle: const TextStyle(
+                style: AppTextStyles.body(context),
+                placeholderStyle: TextStyle(
                   fontSize: 16,
-                  color: AppColors.mutedForeground,
+                  color: CupertinoDynamicColor.resolve(
+                    AppColors.mutedForeground,
+                    context,
+                  ),
                 ),
               ),
             ),
@@ -110,10 +116,13 @@ class _AppTextFieldState extends State<AppTextField> {
                 padding: const EdgeInsets.only(left: 4),
                 child: Text(
                   field.errorText ?? '',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.destructive,
+                    color: CupertinoDynamicColor.resolve(
+                      AppColors.destructive,
+                      context,
+                    ),
                   ),
                 ),
               ),

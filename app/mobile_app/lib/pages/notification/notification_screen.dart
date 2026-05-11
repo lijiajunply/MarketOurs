@@ -218,7 +218,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   n.content,
-                                  style: AppTextStyles.muted.copyWith(
+                                  style: AppTextStyles.muted(context).copyWith(
                                     fontSize: 14,
                                     height: 1.4,
                                   ),
@@ -228,7 +228,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 const SizedBox(height: 8),
                                 Text(
                                   _formatDate(n.createdAt),
-                                  style: AppTextStyles.label.copyWith(
+                                  style: AppTextStyles.label(context).copyWith(
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),

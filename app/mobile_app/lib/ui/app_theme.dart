@@ -92,88 +92,97 @@ abstract final class AppShadows {
 }
 
 abstract final class AppTextStyles {
-  static const TextStyle hero = TextStyle(
+  static TextStyle hero(BuildContext context) => TextStyle(
     fontSize: 34,
     height: 1.1,
     fontWeight: FontWeight.w800,
-    color: AppColors.foreground,
+    color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
     letterSpacing: -0.5,
   );
 
-  static const TextStyle title = TextStyle(
+  static TextStyle title(BuildContext context) => TextStyle(
     fontSize: 28,
     height: 1.2,
     fontWeight: FontWeight.w800,
-    color: AppColors.foreground,
+    color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
     letterSpacing: -0.4,
   );
 
-  static const TextStyle sectionTitle = TextStyle(
+  static TextStyle sectionTitle(BuildContext context) => TextStyle(
     fontSize: 22,
     height: 1.25,
     fontWeight: FontWeight.w700,
-    color: AppColors.foreground,
+    color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
     letterSpacing: -0.2,
   );
 
-  static const TextStyle body = TextStyle(
+  static TextStyle body(BuildContext context) => TextStyle(
     fontSize: 17,
     height: 1.45,
-    color: AppColors.foreground,
+    color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
   );
 
-  static const TextStyle muted = TextStyle(
+  static TextStyle muted(BuildContext context) => TextStyle(
     fontSize: 15,
     height: 1.4,
-    color: AppColors.mutedForeground,
+    color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
   );
 
-  static const TextStyle label = TextStyle(
+  static TextStyle label(BuildContext context) => TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
-    color: AppColors.mutedForeground,
+    color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
   );
 }
 
 abstract final class AppDecorations {
-  static BoxDecoration card({double radius = AppRadii.lg}) {
+  static BoxDecoration card(BuildContext context, {double radius = AppRadii.lg}) {
     return BoxDecoration(
-      color: AppColors.card,
+      color: CupertinoDynamicColor.resolve(AppColors.card, context),
       borderRadius: BorderRadius.circular(radius),
     );
   }
 
-  static BoxDecoration mutedCard({double radius = AppRadii.lg}) {
+  static BoxDecoration mutedCard(BuildContext context, {double radius = AppRadii.lg}) {
     return BoxDecoration(
-      color: AppColors.secondary,
+      color: CupertinoDynamicColor.resolve(AppColors.secondary, context),
       borderRadius: BorderRadius.circular(radius),
     );
   }
 
-  static BoxDecoration pill({
+  static BoxDecoration pill(
+    BuildContext context, {
     Color background = AppColors.secondary,
     Color border = AppColors.border,
     bool showBorder = false,
   }) {
     return BoxDecoration(
-      color: background,
+      color: CupertinoDynamicColor.resolve(background, context),
       borderRadius: BorderRadius.circular(AppRadii.pill),
-      border: showBorder ? Border.all(color: border.withValues(alpha: 0.45)) : null,
+      border: showBorder
+          ? Border.all(
+              color: CupertinoDynamicColor.resolve(border, context)
+                  .withValues(alpha: 0.45),
+            )
+          : null,
     );
   }
 
-  static final LinearGradient hotGradient = LinearGradient(
-    colors: [AppColors.hotSoft, AppColors.background],
+  static LinearGradient hotGradient(BuildContext context) => LinearGradient(
+    colors: [
+      CupertinoDynamicColor.resolve(AppColors.hotSoft, context),
+      CupertinoDynamicColor.resolve(AppColors.background, context),
+    ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  static final LinearGradient profileGradient = LinearGradient(
+  static LinearGradient profileGradient(BuildContext context) => LinearGradient(
     colors: [
-      AppColors.primary.withValues(alpha: 0.14),
-      AppColors.primary.withValues(alpha: 0.03),
-      AppColors.background.withValues(alpha: 0.0),
+      CupertinoDynamicColor.resolve(AppColors.primary, context).withValues(alpha: 0.14),
+      CupertinoDynamicColor.resolve(AppColors.primary, context).withValues(alpha: 0.03),
+      CupertinoDynamicColor.resolve(AppColors.background, context).withValues(alpha: 0.0),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

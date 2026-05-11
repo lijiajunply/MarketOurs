@@ -79,7 +79,8 @@ class _FeedbackDialog extends StatelessWidget {
             width: 320,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.background.withValues(alpha: 0.98),
+              color: CupertinoDynamicColor.resolve(AppColors.background, context)
+                  .withValues(alpha: 0.98),
               borderRadius: BorderRadius.circular(AppRadii.xl),
               boxShadow: AppShadows.none,
             ),
@@ -88,13 +89,13 @@ class _FeedbackDialog extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: AppTextStyles.sectionTitle,
+                  style: AppTextStyles.sectionTitle(context),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
                 Text(
                   message,
-                  style: AppTextStyles.muted,
+                  style: AppTextStyles.muted(context),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 18),
@@ -144,11 +145,14 @@ class _FeedbackAction extends StatelessWidget {
     return CupertinoButton(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       borderRadius: BorderRadius.circular(AppRadii.lg),
-      color: backgroundColor,
+      color: CupertinoDynamicColor.resolve(backgroundColor, context),
       onPressed: onPressed,
       child: Text(
         label,
-        style: TextStyle(color: foregroundColor, fontWeight: FontWeight.w700),
+        style: TextStyle(
+          color: CupertinoDynamicColor.resolve(foregroundColor, context),
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

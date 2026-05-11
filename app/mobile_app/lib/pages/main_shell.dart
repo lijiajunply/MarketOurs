@@ -24,7 +24,10 @@ class MainShell extends ConsumerWidget {
         children: [
           Expanded(child: navigationShell),
           CupertinoTabBar(
-            backgroundColor: AppColors.background.withValues(alpha: 0.94),
+            backgroundColor: CupertinoDynamicColor.resolve(
+              AppColors.background,
+              context,
+            ).withValues(alpha: 0.94),
             activeColor: AppColors.primary,
             inactiveColor: AppColors.mutedForeground,
             currentIndex: navigationShell.currentIndex,

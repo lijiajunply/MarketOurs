@@ -41,9 +41,12 @@ class UserCard extends StatelessWidget {
                 name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.foreground,
+                  color: CupertinoDynamicColor.resolve(
+                    AppColors.foreground,
+                    context,
+                  ),
                   fontSize: 14,
                 ),
               ),
@@ -53,8 +56,11 @@ class UserCard extends StatelessWidget {
                   meta ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.mutedForeground,
+                  style: TextStyle(
+                    color: CupertinoDynamicColor.resolve(
+                      AppColors.mutedForeground,
+                      context,
+                    ),
                     fontSize: 12,
                   ),
                 ),

@@ -244,7 +244,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: AppTextStyles.sectionTitle),
+              Text(title, style: AppTextStyles.sectionTitle(context)),
               const SizedBox(height: 16),
               AppTextField(
                 controller: controller,
@@ -286,7 +286,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('编辑帖子', style: AppTextStyles.sectionTitle),
+              Text('编辑帖子', style: AppTextStyles.sectionTitle(context)),
               const SizedBox(height: 16),
               AppTextField(controller: titleController, placeholder: '标题'),
               const SizedBox(height: 12),
@@ -340,7 +340,10 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       slivers: [
                         CupertinoSliverNavigationBar(
                           largeTitle: const Text('详情'),
-                          backgroundColor: AppColors.background.withValues(alpha: 0.94),
+                          backgroundColor: CupertinoDynamicColor.resolve(
+                            AppColors.background,
+                            context,
+                          ).withValues(alpha: 0.94),
                           border: null,
                           trailing: isOwner
                               ? CupertinoButton(
@@ -459,12 +462,15 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                     Expanded(
                                       child: Text(
                                         '评论 ${_comments.length}',
-                                        style: AppTextStyles.sectionTitle,
+                                        style: AppTextStyles.sectionTitle(context),
                                       ),
                                     ),
                                     CupertinoSlidingSegmentedControl<String>(
                                       groupValue: _commentSort,
-                                      backgroundColor: AppColors.secondary,
+                                      backgroundColor: CupertinoDynamicColor.resolve(
+                                        AppColors.secondary,
+                                        context,
+                                      ),
                                       children: const {
                                         'recent': Padding(
                                           padding: EdgeInsets.symmetric(horizontal: 10),
@@ -568,8 +574,14 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
               child: Container(
                 padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
                 decoration: BoxDecoration(
-                  color: AppColors.background.withValues(alpha: 0.96),
-                  border: Border(top: BorderSide(color: AppColors.border.withValues(alpha: 0.3))),
+                  color: CupertinoDynamicColor.resolve(AppColors.background, context)
+                      .withValues(alpha: 0.96),
+                  border: Border(
+                    top: BorderSide(
+                      color: CupertinoDynamicColor.resolve(AppColors.border, context)
+                          .withValues(alpha: 0.3),
+                    ),
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -620,12 +632,12 @@ class _PostHero extends StatelessWidget {
           if (post.author != null) const SizedBox(height: 18),
           Text(
             post.title?.trim().isNotEmpty == true ? post.title!.trim() : '未命名帖子',
-            style: AppTextStyles.title.copyWith(fontSize: 24),
+            style: AppTextStyles.title(context).copyWith(fontSize: 24),
           ),
           const SizedBox(height: 12),
           Text(
             post.content?.trim().isNotEmpty == true ? post.content!.trim() : '这个帖子还没有填写描述。',
-            style: AppTextStyles.body,
+            style: AppTextStyles.body(context),
           ),
           if (post.images?.isNotEmpty == true) ...[
             const SizedBox(height: 16),
@@ -643,7 +655,7 @@ class _PostHero extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       width: 240,
-                      color: AppColors.muted,
+                      color: CupertinoDynamicColor.resolve(AppColors.muted, context),
                       child: const Icon(CupertinoIcons.photo, color: AppColors.mutedForeground),
                     ),
                   ),
@@ -701,7 +713,7 @@ class _ActionBar extends StatelessWidget {
             icon: isDisliked ? CupertinoIcons.hand_thumbsdown_fill : CupertinoIcons.hand_thumbsdown,
             label: '$dislikes',
             onTap: isWorking ? null : onDislike,
-            color: AppColors.mutedForeground,
+            color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
             active: isDisliked,
           ),
           const SizedBox(width: 12),
@@ -732,14 +744,26 @@ class _ActionChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: AppDecorations.pill(
+          context,
           background: active ? color.withValues(alpha: 0.1) : AppColors.secondary,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: active ? color : AppColors.mutedForeground),
+            Icon(
+              icon,
+              size: 16,
+              color: active ? color : CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
+            ),
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: active ? color : AppColors.foreground)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: active ? color : CupertinoDynamicColor.resolve(AppColors.foreground, context),
+              ),
+            ),
           ],
         ),
       ),
@@ -807,7 +831,12 @@ class _CommentThread extends StatelessWidget {
               margin: const EdgeInsets.only(left: 12),
               padding: const EdgeInsets.only(left: 14),
               decoration: BoxDecoration(
-                border: Border(left: BorderSide(color: AppColors.border.withValues(alpha: 0.3), width: 1)),
+                border: Border(
+                  left: BorderSide(
+                    color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
               ),
               child: Column(
                 children: [
@@ -860,7 +889,7 @@ class _CommentCard extends StatelessWidget {
             meta: _formatDate(comment.createdAt),
           ),
         const SizedBox(height: 10),
-        Text(comment.content ?? '', style: AppTextStyles.body.copyWith(fontSize: 15)),
+        Text(comment.content ?? '', style: AppTextStyles.body(context).copyWith(fontSize: 15)),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -871,7 +900,16 @@ class _CommentCard extends StatelessWidget {
             _TextAction(label: '踩', onTap: onDislike, active: isDisliked),
             const Spacer(),
             if (onEdit != null) _TextAction(label: '编辑', onTap: onEdit!),
-            if (onDelete != null) Padding(padding: const EdgeInsets.only(left: 12), child: _TextAction(label: '删除', onTap: onDelete!, activeColor: AppColors.destructive, active: true)),
+            if (onDelete != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: _TextAction(
+                  label: '删除',
+                  onTap: onDelete!,
+                  activeColor: AppColors.destructive,
+                  active: true,
+                ),
+              ),
           ],
         ),
       ],
@@ -897,11 +935,21 @@ class _TextAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedMuted = CupertinoDynamicColor.resolve(AppColors.mutedForeground, context);
+    final resolvedActive = CupertinoDynamicColor.resolve(activeColor, context);
+
     return CupertinoButton(
       padding: EdgeInsets.zero,
       minimumSize: Size.zero,
       onPressed: onTap,
-      child: Text(label, style: TextStyle(color: active ? activeColor : AppColors.mutedForeground, fontSize: 13, fontWeight: FontWeight.w700)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: active ? resolvedActive : resolvedMuted,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

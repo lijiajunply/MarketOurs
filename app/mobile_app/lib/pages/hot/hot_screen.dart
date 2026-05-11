@@ -173,7 +173,7 @@ class _HotPostCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: AppTextStyles.sectionTitle.copyWith(fontSize: 20),
+                        style: AppTextStyles.sectionTitle(context).copyWith(fontSize: 20),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -191,7 +191,7 @@ class _HotPostCard extends StatelessWidget {
                           ),
                   ),
                 if (post.author != null) const SizedBox(height: 12),
-                Text(excerpt, style: AppTextStyles.muted),
+                Text(excerpt, style: AppTextStyles.muted(context)),
                 const SizedBox(height: 16),
                 Row(
                   children: [

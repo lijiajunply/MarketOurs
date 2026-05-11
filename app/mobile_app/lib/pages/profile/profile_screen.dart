@@ -24,7 +24,10 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: AppColors.background,
         child: CustomScrollView(
           slivers: [
-            const CupertinoSliverNavigationBar(largeTitle: Text('我的'), border: null),
+            const CupertinoSliverNavigationBar(
+              largeTitle: Text('我的'),
+              border: null,
+            ),
             SliverFillRemaining(
               child: Center(
                 child: AppEmptyState(
@@ -84,7 +87,10 @@ class ProfileScreen extends ConsumerWidget {
                         label: '简介',
                         value: _fallback(user.info, '还没有写简介'),
                       ),
-                      _InfoRow(label: '邮箱', value: _fallback(user.email, '未绑定')),
+                      _InfoRow(
+                        label: '邮箱',
+                        value: _fallback(user.email, '未绑定'),
+                      ),
                       _VerificationRow(
                         label: '邮箱验证',
                         isVerified: user.isEmailVerified ?? false,
@@ -161,7 +167,11 @@ class ProfileScreen extends ConsumerWidget {
       if (!context.mounted) return;
       await AppFeedback.showMessage(context, message: '验证码已发送');
     } catch (_) {
-      final errorMessage = ref.read(authControllerProvider).asData?.value.errorMessage;
+      final errorMessage = ref
+          .read(authControllerProvider)
+          .asData
+          ?.value
+          .errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && context.mounted) {
         await AppFeedback.showMessage(context, message: errorMessage);
       }
@@ -188,7 +198,7 @@ class ProfileScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('输入验证码', style: AppTextStyles.sectionTitle),
+              Text('输入验证码', style: AppTextStyles.sectionTitle(context)),
               const SizedBox(height: 16),
               AppTextField(
                 controller: codeController,
@@ -228,7 +238,11 @@ class ProfileScreen extends ConsumerWidget {
       if (!context.mounted) return;
       await AppFeedback.showMessage(context, message: successMessage);
     } catch (_) {
-      final errorMessage = ref.read(authControllerProvider).asData?.value.errorMessage;
+      final errorMessage = ref
+          .read(authControllerProvider)
+          .asData
+          ?.value
+          .errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && context.mounted) {
         await AppFeedback.showMessage(context, message: errorMessage);
       }
@@ -273,14 +287,14 @@ class _ProfileHero extends StatelessWidget {
                   user.name?.trim().isNotEmpty == true
                       ? user.name!.trim()
                       : '未设置昵称',
-                  style: AppTextStyles.sectionTitle,
+                  style: AppTextStyles.sectionTitle(context),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   user.info?.trim().isNotEmpty == true
                       ? user.info!.trim()
                       : '这个人很低调，还没有写简介。',
-                  style: AppTextStyles.muted,
+                  style: AppTextStyles.muted(context),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -311,14 +325,12 @@ class _ProfileSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 8, bottom: 8),
-          child: Text(title, style: AppTextStyles.label),
+          child: Text(title, style: AppTextStyles.label(context)),
         ),
         AppTappableCard(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           radius: AppRadii.lg,
-          child: Column(
-            children: children,
-          ),
+          child: Column(children: children),
         ),
       ],
     );
@@ -355,7 +367,11 @@ class _NavRow extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color),
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 13)),
       trailing: const Icon(
@@ -449,9 +465,15 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialUser.name ?? '');
-    _infoController = TextEditingController(text: widget.initialUser.info ?? '');
-    _avatarController = TextEditingController(text: widget.initialUser.avatar ?? '');
+    _nameController = TextEditingController(
+      text: widget.initialUser.name ?? '',
+    );
+    _infoController = TextEditingController(
+      text: widget.initialUser.info ?? '',
+    );
+    _avatarController = TextEditingController(
+      text: widget.initialUser.avatar ?? '',
+    );
   }
 
   @override
@@ -466,7 +488,9 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await ref.read(authControllerProvider.notifier).updateProfile(
+      await ref
+          .read(authControllerProvider.notifier)
+          .updateProfile(
             UserUpdateDto(
               name: _nameController.text.trim(),
               info: _infoController.text.trim(),
@@ -477,7 +501,11 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
       await AppFeedback.showMessage(context, message: '个人资料已更新');
       Navigator.of(context).pop();
     } catch (_) {
-      final errorMessage = ref.read(authControllerProvider).asData?.value.errorMessage;
+      final errorMessage = ref
+          .read(authControllerProvider)
+          .asData
+          ?.value
+          .errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
         await AppFeedback.showMessage(context, message: errorMessage);
       }
@@ -501,7 +529,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            const Text('编辑资料', style: AppTextStyles.sectionTitle),
+            Text('编辑资料', style: AppTextStyles.sectionTitle(context)),
             const SizedBox(height: 20),
             AppTextField(controller: _nameController, placeholder: '昵称'),
             const SizedBox(height: 12),
@@ -511,7 +539,10 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
               maxLines: 3,
             ),
             const SizedBox(height: 12),
-            AppTextField(controller: _avatarController, placeholder: '头像链接 (URL)'),
+            AppTextField(
+              controller: _avatarController,
+              placeholder: '头像链接 (URL)',
+            ),
             const SizedBox(height: 24),
             AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,

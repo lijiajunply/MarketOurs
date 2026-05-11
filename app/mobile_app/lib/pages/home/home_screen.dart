@@ -213,12 +213,9 @@ class _PostCard extends StatelessWidget {
                           ),
                   ),
                 if (post.author != null) const SizedBox(height: 12),
-                Text(
-                  title,
-                  style: AppTextStyles.sectionTitle,
-                ),
+                Text(title, style: AppTextStyles.sectionTitle(context)),
                 const SizedBox(height: 8),
-                Text(excerpt, style: AppTextStyles.muted),
+                Text(excerpt, style: AppTextStyles.muted(context)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -285,21 +282,22 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedColor = CupertinoDynamicColor.resolve(
+      active ? AppColors.destructive : AppColors.mutedForeground,
+      context,
+    );
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: active ? AppColors.destructive : AppColors.mutedForeground,
-        ),
+        Icon(icon, size: 16, color: resolvedColor),
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: AppColors.mutedForeground,
+            color: resolvedColor,
           ),
         ),
       ],
