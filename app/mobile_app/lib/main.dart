@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'router/app_router.dart';
+import 'ui/app_theme.dart';
 
 void main() {
   runApp(const ProviderScope(child: MarketOursApp()));
@@ -19,14 +20,14 @@ class MarketOursApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       theme: const CupertinoThemeData(
-        primaryColor: Color(0xFF007AFF),
-        scaffoldBackgroundColor: Color(0xFFF2F2F7),
-        barBackgroundColor: Color(0xFFF2F2F7),
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: AppColors.background,
+        barBackgroundColor: AppColors.background,
         textTheme: CupertinoTextThemeData(
           textStyle: TextStyle(
-            color: Color(0xFF111827),
+            color: AppColors.foreground,
             fontSize: 16,
-            height: 1.4,
+            height: 1.5,
           ),
         ),
       ),

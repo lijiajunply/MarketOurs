@@ -72,6 +72,9 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
       }
 
       await AppFeedback.showMessage(context, message: '注册完成，请使用账号密码登录');
+      if (!mounted) {
+        return;
+      }
       context.go(AppRoutePaths.login);
     } catch (_) {
       final errorMessage = ref
@@ -91,6 +94,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
+      badge: 'Verify Account',
       title: '验证注册',
       subtitle: widget.account == null
           ? '输入收到的验证码完成注册。'
@@ -100,7 +104,10 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.register),
-          child: const Text('返回上一步'),
+          child: const Text(
+            '返回上一步',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
         ),
       ),
       child: Form(

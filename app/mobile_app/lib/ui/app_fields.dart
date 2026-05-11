@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import 'app_theme.dart';
+
 class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,
@@ -56,20 +58,18 @@ class _AppTextFieldState extends State<AppTextField> {
       validator: widget.validator,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       builder: (field) {
+        final borderColor = field.hasError
+            ? AppColors.destructive
+            : AppColors.input.withValues(alpha: 0.55);
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DecoratedBox(
+            Container(
               decoration: BoxDecoration(
-                color: CupertinoColors.secondarySystemFill.resolveFrom(context),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: field.hasError
-                      ? CupertinoColors.systemRed.resolveFrom(context)
-                      : CupertinoColors.separator.resolveFrom(
-                          context,
-                        ).withValues(alpha: 0.18),
-                ),
+                color: AppColors.secondary.withValues(alpha: 0.85),
+                borderRadius: BorderRadius.circular(AppRadii.lg),
+                border: Border.all(color: borderColor),
               ),
               child: CupertinoTextField(
                 controller: _controller,
@@ -80,20 +80,27 @@ class _AppTextFieldState extends State<AppTextField> {
                 obscureText: widget.obscureText,
                 onChanged: field.didChange,
                 onSubmitted: widget.onFieldSubmitted,
-                prefix: widget.prefix,
-                suffix: widget.suffix,
+                prefix: widget.prefix == null
+                    ? null
+                    : Padding(
+                        padding: const EdgeInsets.only(left: 14),
+                        child: widget.prefix!,
+                      ),
+                suffix: widget.suffix == null
+                    ? null
+                    : Padding(
+                        padding: const EdgeInsets.only(right: 14),
+                        child: widget.suffix!,
+                      ),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
+                  horizontal: 16,
+                  vertical: 16,
                 ),
                 decoration: null,
-                style: const TextStyle(
+                style: AppTextStyles.body,
+                placeholderStyle: const TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF111827),
-                ),
-                placeholderStyle: TextStyle(
-                  fontSize: 16,
-                  color: CupertinoColors.placeholderText.resolveFrom(context),
+                  color: AppColors.mutedForeground,
                 ),
               ),
             ),
@@ -103,9 +110,10 @@ class _AppTextFieldState extends State<AppTextField> {
                 padding: const EdgeInsets.only(left: 4),
                 child: Text(
                   field.errorText ?? '',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
-                    color: CupertinoColors.systemRed.resolveFrom(context),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.destructive,
                   ),
                 ),
               ),
@@ -156,6 +164,7 @@ class _AppPasswordFieldState extends State<AppPasswordField> {
         child: Icon(
           _obscureText ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
           size: 18,
+          color: AppColors.mutedForeground,
         ),
       ),
     );

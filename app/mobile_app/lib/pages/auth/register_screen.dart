@@ -52,6 +52,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
 
       await AppFeedback.showMessage(context, message: '注册信息已提交，请完成验证码验证');
+      if (!mounted) {
+        return;
+      }
       context.goNamed(
         AppRouteNames.registerVerify,
         queryParameters: {
@@ -77,6 +80,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
+      badge: 'Join MarketOurs',
       title: '注册账号',
       subtitle: '先填写基础信息，我们会在下一步通过验证码完成注册验证。',
       footer: Center(
@@ -84,7 +88,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.login),
-          child: const Text('已有账号？返回登录'),
+          child: const Text(
+            '已有账号？返回登录',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
         ),
       ),
       child: Form(

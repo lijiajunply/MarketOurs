@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
 import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
+import '../../ui/app_theme.dart';
 import '../../ui/app_widgets.dart';
 import 'auth_scaffold.dart';
 import 'password_form_field.dart';
@@ -115,6 +116,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final errorMessage = authState?.errorMessage;
     if (success) {
       await AppFeedback.showMessage(context, message: '登录成功');
+      if (!mounted) {
+        return;
+      }
       context.go(AppRoutePaths.home);
       return;
     }
@@ -130,6 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
+      badge: 'Welcome Back',
       title: '登录',
       subtitle: '支持账号密码登录，也支持验证码快捷登录。',
       footer: Center(
@@ -137,7 +142,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.register),
-          child: const Text('没有账号？去注册'),
+          child: const Text(
+            '没有账号？去注册',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
         ),
       ),
       child: Form(
@@ -145,28 +153,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CupertinoSlidingSegmentedControl<_LoginMode>(
-              groupValue: _loginMode,
-              children: const {
-                _LoginMode.password: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Text('密码登录'),
-                ),
-                _LoginMode.otp: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Text('验证码登录'),
-                ),
-              },
-              onValueChanged: (selection) {
-                if (selection != null) {
-                  setState(() => _loginMode = selection);
-                }
-              },
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.secondary,
+                borderRadius: BorderRadius.circular(AppRadii.lg),
+              ),
+              child: CupertinoSlidingSegmentedControl<_LoginMode>(
+                groupValue: _loginMode,
+                thumbColor: AppColors.card,
+                backgroundColor: AppColors.secondary,
+                children: const {
+                  _LoginMode.password: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Text('密码登录'),
+                  ),
+                  _LoginMode.otp: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Text('验证码登录'),
+                  ),
+                },
+                onValueChanged: (selection) {
+                  if (selection != null) {
+                    setState(() => _loginMode = selection);
+                  }
+                },
+              ),
             ),
             const SizedBox(height: 20),
             AppTextField(
               controller: _accountController,
               placeholder: '账号 / 邮箱 / 手机号',
+              prefix: const Icon(
+                CupertinoIcons.person_crop_circle,
+                color: AppColors.mutedForeground,
+                size: 18,
+              ),
               textInputAction: _loginMode == _LoginMode.password
                   ? TextInputAction.next
                   : TextInputAction.done,
@@ -199,17 +221,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: isSubmitting
                       ? null
                       : () => context.go(AppRoutePaths.forgotPassword),
-                  child: const Text('忘记密码？'),
+                  child: const Text(
+                    '忘记密码？',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ] else ...[
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: AppTextField(
                       controller: _otpController,
                       placeholder: '请输入 6 位验证码',
                       keyboardType: TextInputType.number,
+                      prefix: const Icon(
+                        CupertinoIcons.shield,
+                        color: AppColors.mutedForeground,
+                        size: 18,
+                      ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return '请输入验证码';
@@ -219,31 +253,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  AppSecondaryButton(
-                    onPressed: isSubmitting || _isSendingCode || _countdown > 0
-                        ? null
-                        : _sendCode,
-                    child: Text(
-                      _isSendingCode
-                          ? '发送中'
-                          : _countdown > 0
-                          ? '${_countdown}s'
-                          : '发送验证码',
+                  SizedBox(
+                    width: 116,
+                    child: AppSecondaryButton(
+                      onPressed:
+                          isSubmitting || _isSendingCode || _countdown > 0
+                          ? null
+                          : _sendCode,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 17,
+                        horizontal: 10,
+                      ),
+                      child: Text(
+                        _isSendingCode
+                            ? '发送中'
+                            : _countdown > 0
+                            ? '${_countdown}s'
+                            : '发送验证码',
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              const Text(
-                '验证码会发送到你填写的邮箱或手机号。',
-                style: TextStyle(
-                  color: Color(0xFF6B7280),
-                  fontSize: 13,
-                  height: 1.5,
-                ),
-              ),
+              const Text('验证码会发送到你填写的邮箱或手机号。', style: AppTextStyles.muted),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: 22),
             AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
               child: Text(isSubmitting ? '登录中...' : '登录'),

@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 
 import 'app_responsive.dart';
+import 'app_theme.dart';
 
 class AppPageScaffold extends StatelessWidget {
   const AppPageScaffold({
@@ -11,7 +14,6 @@ class AppPageScaffold extends StatelessWidget {
     this.bottomBar,
     this.maxContentWidth,
     this.padding,
-    this.centerTitle = false,
     required this.child,
   });
 
@@ -21,7 +23,6 @@ class AppPageScaffold extends StatelessWidget {
   final Widget? bottomBar;
   final double? maxContentWidth;
   final EdgeInsets? padding;
-  final bool centerTitle;
   final Widget child;
 
   @override
@@ -29,20 +30,27 @@ class AppPageScaffold extends StatelessWidget {
     final contentPadding =
         padding ?? AppResponsive.pagePadding(context, narrow: 16, wide: 24);
     final contentMaxWidth =
-        maxContentWidth ?? AppResponsive.contentMaxWidth(context);
+        maxContentWidth ??
+        AppResponsive.contentMaxWidth(context, fallback: 920);
 
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: AppColors.background,
       navigationBar: title == null
           ? null
           : CupertinoNavigationBar(
-              middle: Text(title!),
+              middle: Text(
+                title!,
+                style: const TextStyle(
+                  color: AppColors.foreground,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               leading: leading,
               trailing: trailing,
-              border: const Border(
+              backgroundColor: AppColors.background.withValues(alpha: 0.82),
+              border: Border(
                 bottom: BorderSide(
-                  color: CupertinoColors.separator,
-                  width: 0.0,
+                  color: AppColors.border.withValues(alpha: 0.35),
                 ),
               ),
               automaticallyImplyLeading: leading == null,
@@ -51,37 +59,75 @@ class AppPageScaffold extends StatelessWidget {
       child: SafeArea(
         top: title == null,
         bottom: bottomBar == null,
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: contentMaxWidth),
-                      child: Padding(padding: contentPadding, child: child),
-                    ),
-                  );
-                },
-              ),
-            ),
-            if (bottomBar != null)
-              Align(
-                alignment: Alignment.bottomCenter,
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.topCenter,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: contentMaxWidth),
                   child: Padding(
                     padding: EdgeInsets.only(
                       left: contentPadding.left,
                       right: contentPadding.right,
-                      bottom: contentPadding.bottom,
+                      top: contentPadding.top,
+                      bottom: bottomBar == null ? contentPadding.bottom : 120,
                     ),
-                    child: bottomBar!,
+                    child: child,
+                  ),
+                ),
+              ),
+            ),
+            if (bottomBar != null)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: contentMaxWidth),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        contentPadding.left,
+                        0,
+                        contentPadding.right,
+                        12,
+                      ),
+                      child: bottomBar!,
+                    ),
                   ),
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class AppGlassCard extends StatelessWidget {
+  const AppGlassCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(18),
+    this.radius = AppRadii.xl,
+  });
+
+  final Widget child;
+  final EdgeInsets padding;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          padding: padding,
+          decoration: AppDecorations.card(radius: radius),
+          child: child,
         ),
       ),
     );
@@ -96,15 +142,8 @@ class AppSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: padding ?? const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CupertinoColors.secondarySystemGroupedBackground,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: CupertinoColors.separator.withValues(alpha: 0.22),
-        ),
-      ),
+    return AppGlassCard(
+      padding: padding ?? const EdgeInsets.all(20),
       child: child,
     );
   }
@@ -115,7 +154,7 @@ class AppPrimaryButton extends StatelessWidget {
     super.key,
     required this.onPressed,
     required this.child,
-    this.padding = const EdgeInsets.symmetric(vertical: 14),
+    this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
   });
 
   final VoidCallback? onPressed;
@@ -124,11 +163,22 @@ class AppPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton.filled(
-      onPressed: onPressed,
+    final disabled = onPressed == null;
+    return CupertinoButton(
       padding: padding,
-      borderRadius: BorderRadius.circular(14),
-      child: child,
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      color: disabled
+          ? AppColors.primary.withValues(alpha: 0.45)
+          : AppColors.primary,
+      onPressed: onPressed,
+      child: DefaultTextStyle(
+        style: const TextStyle(
+          color: AppColors.primaryForeground,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+        ),
+        child: child,
+      ),
     );
   }
 }
@@ -138,19 +188,30 @@ class AppSecondaryButton extends StatelessWidget {
     super.key,
     required this.onPressed,
     required this.child,
+    this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
   });
 
   final VoidCallback? onPressed;
   final Widget child;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
     return CupertinoButton(
       onPressed: onPressed,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
-      color: CupertinoColors.secondarySystemFill,
-      borderRadius: BorderRadius.circular(14),
-      child: child,
+      padding: padding,
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      color: AppColors.secondary,
+      child: DefaultTextStyle(
+        style: TextStyle(
+          color: onPressed == null
+              ? AppColors.mutedForeground
+              : AppColors.secondaryForeground,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+        ),
+        child: child,
+      ),
     );
   }
 }
@@ -161,7 +222,7 @@ class AppTappableCard extends StatelessWidget {
     required this.child,
     this.onPressed,
     this.padding,
-    this.radius = 18,
+    this.radius = AppRadii.xl,
     this.color,
     this.border,
   });
@@ -175,31 +236,30 @@ class AppTappableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor =
-        color ??
-        CupertinoColors.secondarySystemGroupedBackground.resolveFrom(context);
+    final card = Container(
+      width: double.infinity,
+      padding: padding ?? const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: color ?? AppColors.card,
+        borderRadius: BorderRadius.circular(radius),
+        border:
+            border ??
+            Border.all(color: AppColors.border.withValues(alpha: 0.45)),
+        boxShadow: AppShadows.card,
+      ),
+      child: child,
+    );
+
+    if (onPressed == null) {
+      return card;
+    }
 
     return CupertinoButton(
       padding: EdgeInsets.zero,
       minimumSize: Size.zero,
-      pressedOpacity: 0.92,
+      pressedOpacity: 0.94,
       onPressed: onPressed,
-      child: Container(
-        width: double.infinity,
-        padding: padding ?? const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(radius),
-          border:
-              border ??
-              Border.all(
-                color: CupertinoColors.separator.resolveFrom(
-                  context,
-                ).withValues(alpha: 0.18),
-              ),
-        ),
-        child: child,
-      ),
+      child: card,
     );
   }
 }
@@ -212,7 +272,7 @@ class AppListTile extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
-    this.padding = const EdgeInsets.symmetric(vertical: 12),
+    this.padding = const EdgeInsets.symmetric(vertical: 14),
     this.titleStyle,
   });
 
@@ -241,21 +301,15 @@ class AppListTile extends StatelessWidget {
                       titleStyle ??
                       const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF111827),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.foreground,
                       ),
                   child: title,
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 4),
                   DefaultTextStyle(
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      color: CupertinoColors.secondaryLabel.resolveFrom(
-                        context,
-                      ),
-                    ),
+                    style: AppTextStyles.muted,
                     child: subtitle!,
                   ),
                 ],
@@ -274,9 +328,133 @@ class AppListTile extends StatelessWidget {
     return CupertinoButton(
       padding: EdgeInsets.zero,
       minimumSize: Size.zero,
-      pressedOpacity: 0.92,
+      pressedOpacity: 0.94,
       onPressed: onTap,
       child: content,
+    );
+  }
+}
+
+class AppBadge extends StatelessWidget {
+  const AppBadge({
+    super.key,
+    required this.child,
+    this.backgroundColor = AppColors.secondary,
+    this.foregroundColor = AppColors.foreground,
+  });
+
+  final Widget child;
+  final Color backgroundColor;
+  final Color foregroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: AppDecorations.pill(
+        background: backgroundColor,
+        border: backgroundColor,
+      ),
+      child: DefaultTextStyle(
+        style: TextStyle(
+          color: foregroundColor,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class AppStatChip extends StatelessWidget {
+  const AppStatChip({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.iconColor,
+    this.backgroundColor = AppColors.secondary,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color? iconColor;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: AppDecorations.pill(
+        background: backgroundColor,
+        border: AppColors.border,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: iconColor ?? AppColors.mutedForeground),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.foreground,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AppEmptyState extends StatelessWidget {
+  const AppEmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.description,
+    this.action,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSectionCard(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                color: AppColors.secondary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: AppColors.mutedForeground, size: 28),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: AppTextStyles.sectionTitle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: AppTextStyles.muted,
+              textAlign: TextAlign.center,
+            ),
+            if (action != null) ...[const SizedBox(height: 18), action!],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -292,15 +470,26 @@ Future<T?> showAppBottomSheet<T>({
         alignment: Alignment.bottomCenter,
         child: SafeArea(
           top: false,
-          child: Container(
-            margin: const EdgeInsets.only(top: 40),
-            decoration: BoxDecoration(
-              color: CupertinoColors.systemBackground.resolveFrom(sheetContext),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadii.xl),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+              child: Container(
+                margin: const EdgeInsets.only(top: 40),
+                decoration: BoxDecoration(
+                  color: AppColors.background.withValues(alpha: 0.94),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppRadii.xl),
+                  ),
+                  border: Border.all(
+                    color: AppColors.border.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: builder(sheetContext),
               ),
             ),
-            child: builder(sheetContext),
           ),
         ),
       );

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -30,9 +29,10 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(CupertinoTabBar), findsOneWidget);
     expect(find.text('首页'), findsWidgets);
     expect(find.text('热榜'), findsWidgets);
+    expect(find.text('发布'), findsOneWidget);
+    expect(find.text('通知'), findsWidgets);
   });
 
   testWidgets('shows home when token restore succeeds', (tester) async {
@@ -56,9 +56,9 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(CupertinoTabBar), findsOneWidget);
     expect(find.text('首页'), findsWidgets);
     expect(find.text('热榜'), findsWidgets);
+    expect(find.text('发布'), findsOneWidget);
   });
 
   testWidgets('clears invalid restored token and returns to login', (
@@ -84,8 +84,8 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.byType(CupertinoTabBar), findsOneWidget);
     expect(find.text('首页'), findsWidgets);
+    expect(find.text('发布'), findsOneWidget);
     expect(storage.session, isNull);
   });
 

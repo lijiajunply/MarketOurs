@@ -6,6 +6,7 @@ import 'package:mobile_app/components/user_card.dart';
 import '../../models/post.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
+import '../../ui/app_theme.dart';
 import '../../ui/app_widgets.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -17,6 +18,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   late final ScrollController _scrollController;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -26,6 +28,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _scrollController
       ..removeListener(_handleScroll)
       ..dispose();
@@ -48,7 +51,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final feedAsync = ref.watch(homeFeedProvider);
 
     return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: AppColors.background,
       child: SafeArea(
         child: feedAsync.when(
           data: (state) => CustomScrollView(
@@ -61,9 +64,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onRefresh: ref.read(homeFeedProvider.notifier).refresh,
               ),
               const SliverToBoxAdapter(child: _HomeHeader()),
+              const SliverToBoxAdapter(child: SizedBox(height: 18)),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                sliver: _WaterfallSection(
+                sliver: _PostListSection(
                   posts: state.posts,
                   isLoadingMore: state.isLoadingMore,
                 ),
@@ -86,28 +90,52 @@ class _HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 20),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '首页',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF111827),
+          AppGlassCard(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                AppBadge(
+                  backgroundColor: Color(0x190071E3),
+                  foregroundColor: AppColors.primary,
+                  child: Text('Campus Feed'),
+                ),
+                SizedBox(height: 18),
+                Text('首页', style: AppTextStyles.hero),
+                SizedBox(height: 10),
+                Text('看看校园里刚刚发生了什么，快速浏览最新帖子与热门讨论。', style: AppTextStyles.muted),
+              ],
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: AppDecorations.card(radius: AppRadii.lg),
+            child: const Row(
+              children: [
+                Icon(
+                  CupertinoIcons.search,
+                  color: AppColors.mutedForeground,
+                  size: 18,
+                ),
+                SizedBox(width: 10),
+                Expanded(child: Text('搜索帖子标题或内容', style: AppTextStyles.muted)),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _WaterfallSection extends StatelessWidget {
-  const _WaterfallSection({required this.posts, required this.isLoadingMore});
+class _PostListSection extends StatelessWidget {
+  const _PostListSection({required this.posts, required this.isLoadingMore});
 
   final List<PostDto> posts;
   final bool isLoadingMore;
@@ -115,7 +143,13 @@ class _WaterfallSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (posts.isEmpty) {
-      return const SliverToBoxAdapter(child: _EmptyFeedView());
+      return const SliverToBoxAdapter(
+        child: AppEmptyState(
+          icon: CupertinoIcons.news,
+          title: '还没有帖子',
+          description: '等第一位同学来发布内容，或者稍后再刷新看看。',
+        ),
+      );
     }
 
     return SliverList.builder(
@@ -143,82 +177,93 @@ class _PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = post.images?.isNotEmpty == true ? post.images!.first : null;
+    final title = post.title?.trim().isNotEmpty == true
+        ? post.title!.trim()
+        : '未命名帖子';
+    final content = post.content?.trim().isNotEmpty == true
+        ? post.content!.trim()
+        : '这个帖子还没有填写内容。';
+    final excerpt = content.length > 120
+        ? '${content.substring(0, 120)}...'
+        : content;
 
     return AppTappableCard(
-      radius: 16,
       padding: EdgeInsets.zero,
+      radius: AppRadii.xl,
       onPressed: () => context.push(buildPostDetailLocation(post.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (imageUrl != null)
+          if (post.images?.isNotEmpty == true)
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppRadii.xl),
+              ),
               child: AspectRatio(
-                aspectRatio: _imageAspectRatio(post.id),
+                aspectRatio: 1.8,
                 child: Image.network(
-                  imageUrl,
+                  post.images!.first,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
-                    color: const Color(0xFFF2F2F7),
+                    color: AppColors.secondary,
                     alignment: Alignment.center,
                     child: const Icon(
                       CupertinoIcons.photo,
-                      color: CupertinoColors.systemGrey2,
+                      color: AppColors.mutedForeground,
                     ),
                   ),
                 ),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (post.author != null) ...[
+                if (post.author != null)
                   UserCard(
                     user: post.author!,
+                    meta: _formatCreatedAt(post.createdAt),
+                    showMeta: true,
                     onTap: post.author?.id == null
                         ? null
                         : () => context.push(
-                              buildPublicProfileLocation(post.author!.id!),
-                            ),
+                            buildPublicProfileLocation(post.author!.id!),
+                          ),
                   ),
-                  const SizedBox(height: 6),
-                ],
+                if (post.author != null) const SizedBox(height: 14),
                 Text(
-                  (post.title?.trim().isNotEmpty ?? false)
-                      ? post.title!.trim()
-                      : '未命名帖子',
+                  title,
                   style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
+                    fontSize: 24,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.foreground,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                const SizedBox(height: 10),
+                Text(excerpt, style: AppTextStyles.muted),
+                const SizedBox(height: 18),
+                Row(
                   children: [
-                    _StatChip(
+                    AppStatChip(
                       icon: CupertinoIcons.heart,
                       label: '${post.likes ?? 0}',
+                      iconColor: const Color(0xFFFF5A5F),
                     ),
-                    _StatChip(
+                    const SizedBox(width: 10),
+                    AppStatChip(
                       icon: CupertinoIcons.eye,
                       label: '${post.watch ?? 0}',
+                      iconColor: const Color(0xFF5AC8FA),
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      CupertinoIcons.chevron_right,
+                      color: AppColors.mutedForeground,
+                      size: 18,
                     ),
                   ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  _formatCreatedAt(post.createdAt),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF8E8E93),
-                  ),
                 ),
               ],
             ),
@@ -226,12 +271,6 @@ class _PostCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  double _imageAspectRatio(String seed) {
-    final value = seed.codeUnits.fold<int>(0, (sum, item) => sum + item);
-    final variants = [1 / 1.1, 1 / 1.25, 1 / 1.4, 1 / 1];
-    return variants[value % variants.length];
   }
 
   String _formatCreatedAt(DateTime? dateTime) {
@@ -258,45 +297,12 @@ class _PostCard extends StatelessWidget {
   }
 }
 
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F7),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: CupertinoColors.systemGrey),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF6B7280),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _FeedLoadingView extends StatelessWidget {
   const _FeedLoadingView();
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: CupertinoActivityIndicator());
+    return const Center(child: CupertinoActivityIndicator(radius: 14));
   }
 }
 
@@ -304,75 +310,22 @@ class _FeedErrorView extends StatelessWidget {
   const _FeedErrorView({required this.message, required this.onRetry});
 
   final String message;
-  final VoidCallback onRetry;
+  final Future<void> Function() onRetry;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              CupertinoIcons.exclamationmark_circle,
-              size: 42,
-              color: CupertinoColors.systemGrey2,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              '帖子加载失败',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF111827),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF6B7280)),
-            ),
-            const SizedBox(height: 16),
-            AppPrimaryButton(onPressed: onRetry, child: const Text('重新加载')),
-          ],
+        padding: const EdgeInsets.all(16),
+        child: AppEmptyState(
+          icon: CupertinoIcons.exclamationmark_triangle,
+          title: '加载失败',
+          description: message,
+          action: AppPrimaryButton(
+            onPressed: onRetry,
+            child: const Text('重新加载'),
+          ),
         ),
-      ),
-    );
-  }
-}
-
-class _EmptyFeedView extends StatelessWidget {
-  const _EmptyFeedView();
-
-  @override
-  Widget build(BuildContext context) {
-    return AppSectionCard(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-      child: const Column(
-        children: [
-          Icon(
-            CupertinoIcons.tray,
-            size: 40,
-            color: CupertinoColors.systemGrey3,
-          ),
-          SizedBox(height: 12),
-          Text(
-            '还没有帖子',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF111827),
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            '下拉刷新试试，或者等同学们先发出第一条内容。',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFF6B7280)),
-          ),
-        ],
       ),
     );
   }

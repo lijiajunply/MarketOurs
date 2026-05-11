@@ -42,6 +42,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       }
 
       await AppFeedback.showMessage(context, message: '验证码已发送，请继续重置密码');
+      if (!mounted) {
+        return;
+      }
       context.goNamed(
         AppRouteNames.resetPassword,
         queryParameters: {'account': _accountController.text.trim()},
@@ -64,6 +67,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
+      badge: 'Reset Access',
       title: '找回密码',
       subtitle: '输入注册时使用的账号，我们会发送重置验证码。',
       footer: Center(
@@ -71,7 +75,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.login),
-          child: const Text('返回登录'),
+          child: const Text(
+            '返回登录',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
         ),
       ),
       child: Form(
