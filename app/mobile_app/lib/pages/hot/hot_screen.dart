@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_app/components/user_card.dart';
 
 import '../../models/post.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
 import '../../ui/app_theme.dart';
@@ -15,114 +16,78 @@ class HotScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hotFeedAsync = ref.watch(hotFeedProvider);
+    final authState = ref.watch(authControllerProvider).asData?.value;
+    final isAuthenticated = authState?.status == AuthStatus.authenticated;
 
     return CupertinoPageScaffold(
       backgroundColor: AppColors.background,
-      child: SafeArea(
-        child: hotFeedAsync.when(
-          data: (state) => CustomScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: ref.read(hotFeedProvider.notifier).refresh,
+      child: hotFeedAsync.when(
+        data: (state) => CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          slivers: [
+            CupertinoSliverNavigationBar(
+              largeTitle: const Text('热榜'),
+              backgroundColor: AppColors.background.withValues(alpha: 0.94),
+              border: null,
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () {
+                  if (isAuthenticated) {
+                    context.push(AppRoutePaths.createPost);
+                  } else {
+                    context.go(AppRoutePaths.login);
+                  }
+                },
+                child: const Icon(
+                  CupertinoIcons.plus_circle_fill,
+                  size: 28,
+                  color: AppColors.primary,
+                ),
               ),
-              const SliverToBoxAdapter(child: _HotHeader()),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                sliver: state.posts.isEmpty
-                    ? const SliverToBoxAdapter(
-                        child: AppEmptyState(
-                          icon: CupertinoIcons.flame,
-                          title: '热榜暂时为空',
-                          description: '等大家再热闹一点，热门帖子就会出现在这里。',
-                        ),
-                      )
-                    : SliverList.builder(
-                        itemCount: state.posts.length,
-                        itemBuilder: (context, index) => Padding(
-                          padding: EdgeInsets.only(
-                            bottom: index == state.posts.length - 1 ? 0 : 16,
-                          ),
-                          child: _HotPostCard(
-                            post: state.posts[index],
-                            rank: index + 1,
-                          ),
+            ),
+            CupertinoSliverRefreshControl(
+              onRefresh: ref.read(hotFeedProvider.notifier).refresh,
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              sliver: state.posts.isEmpty
+                  ? const SliverToBoxAdapter(
+                      child: AppEmptyState(
+                        icon: CupertinoIcons.flame,
+                        title: '热榜暂时为空',
+                        description: '等大家再热闹一点，热门帖子就会出现在这里。',
+                      ),
+                    )
+                  : SliverList.builder(
+                      itemCount: state.posts.length,
+                      itemBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _HotPostCard(
+                          post: state.posts[index],
+                          rank: index + 1,
                         ),
                       ),
-              ),
-            ],
-          ),
-          loading: () => const Center(child: CupertinoActivityIndicator()),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: AppEmptyState(
-                icon: CupertinoIcons.exclamationmark_triangle,
-                title: '热榜加载失败',
-                description: '$error',
-                action: AppPrimaryButton(
-                  onPressed: () => ref.read(hotFeedProvider.notifier).refresh(),
-                  child: const Text('重新加载'),
-                ),
+                    ),
+            ),
+          ],
+        ),
+        loading: () => const Center(child: CupertinoActivityIndicator(radius: 14)),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: AppEmptyState(
+              icon: CupertinoIcons.exclamationmark_triangle,
+              title: '加载失败',
+              description: '$error',
+              action: AppPrimaryButton(
+                onPressed: () => ref.read(hotFeedProvider.notifier).refresh(),
+                child: const Text('重新加载'),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _HotHeader extends StatelessWidget {
-  const _HotHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: AppDecorations.hotGradient,
-        borderRadius: BorderRadius.circular(AppRadii.xl),
-        border: Border.all(color: AppColors.hotBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1AF59E0B),
-            blurRadius: 28,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppBadge(
-            backgroundColor: AppColors.background,
-            foregroundColor: AppColors.hot,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(CupertinoIcons.flame_fill, size: 16, color: AppColors.hot),
-                SizedBox(width: 8),
-                Text('校园热榜'),
-              ],
-            ),
-          ),
-          SizedBox(height: 18),
-          Text(
-            '大家都在围观什么',
-            style: TextStyle(
-              fontSize: 30,
-              height: 1.1,
-              fontWeight: FontWeight.w800,
-              color: AppColors.foreground,
-            ),
-          ),
-          SizedBox(height: 10),
-          Text('按实时热度整理出的热门帖子榜单，快速看看最近最受关注的话题。', style: AppTextStyles.muted),
-        ],
       ),
     );
   }
@@ -146,17 +111,12 @@ class _HotPostCard extends StatelessWidget {
         ? '${content.substring(0, 120)}...'
         : content;
 
+    final isTop3 = rank <= 3;
+    final rankColor = isTop3 ? AppColors.hot : AppColors.mutedForeground;
+
     return AppTappableCard(
       padding: EdgeInsets.zero,
-      radius: AppRadii.xl,
-      color: rank <= 3
-          ? AppColors.hotSoft.withValues(alpha: 0.55)
-          : AppColors.card,
-      border: Border.all(
-        color: rank <= 3
-            ? AppColors.hotBorder
-            : AppColors.border.withValues(alpha: 0.5),
-      ),
+      radius: AppRadii.lg,
       onPressed: () => context.push(buildPostDetailLocation(post.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +124,7 @@ class _HotPostCard extends StatelessWidget {
           if (post.images?.isNotEmpty == true)
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadii.xl),
+                top: Radius.circular(AppRadii.lg),
               ),
               child: AspectRatio(
                 aspectRatio: 1.8,
@@ -172,72 +132,55 @@ class _HotPostCard extends StatelessWidget {
                   post.images!.first,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
-                    color: AppColors.hotSoft,
+                    color: AppColors.muted,
                     alignment: Alignment.center,
                     child: const Icon(
                       CupertinoIcons.photo,
-                      color: AppColors.hot,
+                      color: AppColors.mutedForeground,
                     ),
                   ),
                 ),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: rank <= 3 ? AppColors.hot : AppColors.secondary,
-                        borderRadius: BorderRadius.circular(AppRadii.lg),
-                      ),
+                      width: 28,
+                      height: 28,
                       alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isTop3
+                            ? AppColors.hot.withValues(alpha: 0.12)
+                            : AppColors.muted,
+                        shape: BoxShape.circle,
+                      ),
                       child: Text(
-                        rank.toString().padLeft(2, '0'),
+                        '$rank',
                         style: TextStyle(
-                          color: rank <= 3
-                              ? AppColors.primaryForeground
-                              : AppColors.foreground,
-                          fontSize: 18,
+                          color: rankColor,
+                          fontSize: 14,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            '热度排行',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.hot,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              height: 1.2,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.foreground,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        title,
+                        style: AppTextStyles.sectionTitle.copyWith(fontSize: 20),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 if (post.author != null)
                   UserCard(
                     user: post.author!,
@@ -252,18 +195,46 @@ class _HotPostCard extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    AppStatChip(
-                      icon: CupertinoIcons.heart,
-                      label: '${post.likes ?? 0}',
-                      iconColor: const Color(0xFFFF5A5F),
-                      backgroundColor: AppColors.background,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(CupertinoIcons.flame, color: rankColor, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${post.watch ?? 0} 热度',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: rankColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    AppStatChip(
-                      icon: CupertinoIcons.eye,
-                      label: '${post.watch ?? 0}',
-                      iconColor: AppColors.hot,
-                      backgroundColor: AppColors.background,
+                    const SizedBox(width: 16),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          CupertinoIcons.bubble_left,
+                          size: 14,
+                          color: AppColors.mutedForeground,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${post.commentsCount ?? 0} 讨论',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.mutedForeground,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      CupertinoIcons.chevron_right,
+                      color: AppColors.mutedForeground,
+                      size: 14,
                     ),
                   ],
                 ),

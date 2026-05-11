@@ -47,44 +47,40 @@ class AuthScaffold extends StatelessWidget {
                     const SizedBox(height: 18),
                   ],
                   Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: AppDecorations.profileGradient,
-                      borderRadius: BorderRadius.circular(AppRadii.xl),
-                    ),
+                    padding: const EdgeInsets.all(28),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 52,
-                          height: 52,
+                          width: 48,
+                          height: 48,
                           decoration: const BoxDecoration(
                             color: AppColors.primary,
                             borderRadius: BorderRadius.all(
-                              Radius.circular(AppRadii.lg),
+                              Radius.circular(AppRadii.md),
                             ),
-                            boxShadow: AppShadows.primary,
                           ),
                           alignment: Alignment.center,
                           child: const Text(
-                            'L',
+                            'G',
                             style: TextStyle(
                               color: AppColors.primaryForeground,
                               fontWeight: FontWeight.w800,
-                              fontSize: 24,
+                              fontSize: 22,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         Text(title, style: AppTextStyles.hero),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         Text(subtitle, style: AppTextStyles.muted),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 22),
-                  AppSectionCard(
-                    padding: const EdgeInsets.all(22),
+                  const SizedBox(height: 12),
+                  AppTappableCard(
+                    padding: const EdgeInsets.all(24),
+                    radius: AppRadii.lg,
                     child: child,
                   ),
                   if (footer != null) ...[const SizedBox(height: 14), footer!],

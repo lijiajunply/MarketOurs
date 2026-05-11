@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_app/components/user_card.dart';
 
 import '../../models/post.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
 import '../../ui/app_theme.dart';
@@ -49,86 +50,66 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final feedAsync = ref.watch(homeFeedProvider);
+    final authState = ref.watch(authControllerProvider).asData?.value;
+    final isAuthenticated = authState?.status == AuthStatus.authenticated;
 
     return CupertinoPageScaffold(
       backgroundColor: AppColors.background,
-      child: SafeArea(
-        child: feedAsync.when(
-          data: (state) => CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: ref.read(homeFeedProvider.notifier).refresh,
-              ),
-              const SliverToBoxAdapter(child: _HomeHeader()),
-              const SliverToBoxAdapter(child: SizedBox(height: 18)),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                sliver: _PostListSection(
-                  posts: state.posts,
-                  isLoadingMore: state.isLoadingMore,
+      child: feedAsync.when(
+        data: (state) => CustomScrollView(
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          slivers: [
+            CupertinoSliverNavigationBar(
+              largeTitle: const Text('首页'),
+              backgroundColor: AppColors.background.withValues(alpha: 0.94),
+              border: null,
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () {
+                  if (isAuthenticated) {
+                    context.push(AppRoutePaths.createPost);
+                  } else {
+                    context.go(AppRoutePaths.login);
+                  }
+                },
+                child: const Icon(
+                  CupertinoIcons.plus_circle_fill,
+                  size: 28,
+                  color: AppColors.primary,
                 ),
               ),
-            ],
-          ),
-          loading: () => const _FeedLoadingView(),
-          error: (error, _) => _FeedErrorView(
-            message: '$error',
-            onRetry: () => ref.read(homeFeedProvider.notifier).refresh(),
-          ),
+            ),
+            CupertinoSliverRefreshControl(
+              onRefresh: ref.read(homeFeedProvider.notifier).refresh,
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: CupertinoSearchTextField(
+                  controller: _searchController,
+                  placeholder: '搜索帖子、话题或用户',
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                  backgroundColor: AppColors.secondary,
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              sliver: _PostListSection(
+                posts: state.posts,
+                isLoadingMore: state.isLoadingMore,
+              ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-}
-
-class _HomeHeader extends StatelessWidget {
-  const _HomeHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppGlassCard(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                AppBadge(
-                  backgroundColor: Color(0x190071E3),
-                  foregroundColor: AppColors.primary,
-                  child: Text('Campus Feed'),
-                ),
-                SizedBox(height: 18),
-                Text('首页', style: AppTextStyles.hero),
-                SizedBox(height: 10),
-                Text('看看校园里刚刚发生了什么，快速浏览最新帖子与热门讨论。', style: AppTextStyles.muted),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: AppDecorations.card(radius: AppRadii.lg),
-            child: const Row(
-              children: [
-                Icon(
-                  CupertinoIcons.search,
-                  color: AppColors.mutedForeground,
-                  size: 18,
-                ),
-                SizedBox(width: 10),
-                Expanded(child: Text('搜索帖子标题或内容', style: AppTextStyles.muted)),
-              ],
-            ),
-          ),
-        ],
+        loading: () => const _FeedLoadingView(),
+        error: (error, _) => _FeedErrorView(
+          message: '$error',
+          onRetry: () => ref.read(homeFeedProvider.notifier).refresh(),
+        ),
       ),
     );
   }
@@ -157,7 +138,7 @@ class _PostListSection extends StatelessWidget {
       itemBuilder: (context, index) {
         if (index == posts.length) {
           return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
+            padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CupertinoActivityIndicator()),
           );
         }
@@ -189,7 +170,7 @@ class _PostCard extends StatelessWidget {
 
     return AppTappableCard(
       padding: EdgeInsets.zero,
-      radius: AppRadii.xl,
+      radius: AppRadii.lg,
       onPressed: () => context.push(buildPostDetailLocation(post.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,7 +178,7 @@ class _PostCard extends StatelessWidget {
           if (post.images?.isNotEmpty == true)
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadii.xl),
+                top: Radius.circular(AppRadii.lg),
               ),
               child: AspectRatio(
                 aspectRatio: 1.8,
@@ -205,7 +186,7 @@ class _PostCard extends StatelessWidget {
                   post.images!.first,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
-                    color: AppColors.secondary,
+                    color: AppColors.muted,
                     alignment: Alignment.center,
                     child: const Icon(
                       CupertinoIcons.photo,
@@ -216,7 +197,7 @@ class _PostCard extends StatelessWidget {
               ),
             ),
           Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -231,37 +212,31 @@ class _PostCard extends StatelessWidget {
                             buildPublicProfileLocation(post.author!.id!),
                           ),
                   ),
-                if (post.author != null) const SizedBox(height: 14),
+                if (post.author != null) const SizedBox(height: 12),
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    height: 1.15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.foreground,
-                  ),
+                  style: AppTextStyles.sectionTitle,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(excerpt, style: AppTextStyles.muted),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 Row(
                   children: [
-                    AppStatChip(
+                    _StatItem(
                       icon: CupertinoIcons.heart,
                       label: '${post.likes ?? 0}',
-                      iconColor: const Color(0xFFFF5A5F),
+                      active: false,
                     ),
-                    const SizedBox(width: 10),
-                    AppStatChip(
-                      icon: CupertinoIcons.eye,
-                      label: '${post.watch ?? 0}',
-                      iconColor: const Color(0xFF5AC8FA),
+                    const SizedBox(width: 16),
+                    _StatItem(
+                      icon: CupertinoIcons.bubble_left,
+                      label: '${post.commentsCount ?? 0}',
                     ),
                     const Spacer(),
                     const Icon(
                       CupertinoIcons.chevron_right,
                       color: AppColors.mutedForeground,
-                      size: 18,
+                      size: 14,
                     ),
                   ],
                 ),
@@ -294,6 +269,41 @@ class _PostCard extends StatelessWidget {
       return '${difference.inDays} 天前';
     }
     return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  const _StatItem({
+    required this.icon,
+    required this.label,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: active ? AppColors.destructive : AppColors.mutedForeground,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.mutedForeground,
+          ),
+        ),
+      ],
+    );
   }
 }
 

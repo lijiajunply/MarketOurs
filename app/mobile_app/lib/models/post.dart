@@ -16,6 +16,7 @@ class PostDto {
   final int? likes;
   final int? dislikes;
   final int? watch;
+  final int? commentsCount;
   final bool? isReview;
 
   PostDto({
@@ -30,6 +31,7 @@ class PostDto {
     this.likes,
     this.dislikes,
     this.watch,
+    this.commentsCount,
     this.isReview,
   });
 

@@ -222,9 +222,8 @@ class AppTappableCard extends StatelessWidget {
     required this.child,
     this.onPressed,
     this.padding,
-    this.radius = AppRadii.xl,
+    this.radius = AppRadii.lg,
     this.color,
-    this.border,
   });
 
   final Widget child;
@@ -232,20 +231,14 @@ class AppTappableCard extends StatelessWidget {
   final EdgeInsets? padding;
   final double radius;
   final Color? color;
-  final BoxBorder? border;
 
   @override
   Widget build(BuildContext context) {
     final card = Container(
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: color ?? AppColors.card,
-        borderRadius: BorderRadius.circular(radius),
-        border:
-            border ??
-            Border.all(color: AppColors.border.withValues(alpha: 0.45)),
-        boxShadow: AppShadows.card,
+      decoration: AppDecorations.card(radius: radius).copyWith(
+        color: color,
       ),
       child: child,
     );
@@ -257,7 +250,7 @@ class AppTappableCard extends StatelessWidget {
     return CupertinoButton(
       padding: EdgeInsets.zero,
       minimumSize: Size.zero,
-      pressedOpacity: 0.94,
+      pressedOpacity: 0.92,
       onPressed: onPressed,
       child: card,
     );
@@ -350,16 +343,15 @@ class AppBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: AppDecorations.pill(
         background: backgroundColor,
-        border: backgroundColor,
       ),
       child: DefaultTextStyle(
         style: TextStyle(
           color: foregroundColor,
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
         child: child,
       ),

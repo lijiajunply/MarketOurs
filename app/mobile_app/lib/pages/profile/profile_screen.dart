@@ -20,121 +20,115 @@ class ProfileScreen extends ConsumerWidget {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     if (user == null) {
-      return AppPageScaffold(
-        title: '我的',
-        child: Center(
-          child: AppEmptyState(
-            icon: CupertinoIcons.person,
-            title: '还没有登录',
-            description: '登录后可以查看个人资料、修改账号信息和管理安全设置。',
-            action: AppPrimaryButton(
-              onPressed: () => context.go(AppRoutePaths.login),
-              child: const Text('去登录'),
+      return CupertinoPageScaffold(
+        backgroundColor: AppColors.background,
+        child: CustomScrollView(
+          slivers: [
+            const CupertinoSliverNavigationBar(largeTitle: Text('我的'), border: null),
+            SliverFillRemaining(
+              child: Center(
+                child: AppEmptyState(
+                  icon: CupertinoIcons.person,
+                  title: '还没有登录',
+                  description: '登录后可以查看个人资料、管理安全设置。',
+                  action: AppPrimaryButton(
+                    onPressed: () => context.go(AppRoutePaths.login),
+                    child: const Text('去登录'),
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       );
     }
 
-    return AppPageScaffold(
-      title: '我的',
+    return CupertinoPageScaffold(
+      backgroundColor: AppColors.background,
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
+          CupertinoSliverNavigationBar(
+            largeTitle: const Text('我的'),
+            backgroundColor: AppColors.background.withValues(alpha: 0.94),
+            border: null,
+            trailing: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => _openEditSheet(context, ref, user),
+              child: const Icon(CupertinoIcons.pencil_circle, size: 24),
+            ),
+          ),
           CupertinoSliverRefreshControl(
             onRefresh: () =>
                 ref.read(authControllerProvider.notifier).refreshProfile(),
           ),
           SliverToBoxAdapter(
-            child: Column(
-              children: [
-                _ProfileHero(
-                  user: user,
-                  onEdit: () => _openEditSheet(context, ref, user),
-                  onViewPublicProfile: () =>
-                      context.push(buildPublicProfileLocation(user.id)),
-                ),
-                const SizedBox(height: 16),
-                _ProfileSection(
-                  title: '资料信息',
-                  children: [
-                    _InfoRow(label: '昵称', value: _fallback(user.name, '未设置')),
-                    _InfoRow(
-                      label: '简介',
-                      value: _fallback(user.info, '还没有写简介'),
-                    ),
-                    _InfoRow(label: '邮箱', value: _fallback(user.email, '未绑定')),
-                    _VerificationRow(
-                      label: '邮箱验证',
-                      isVerified: user.isEmailVerified ?? false,
-                      actionLabel: '发送邮箱验证码',
-                      isBusy: isSubmitting,
-                      onVerify: () => _startVerification(
-                        context: context,
-                        ref: ref,
-                        sendCode: () => ref
-                            .read(authControllerProvider.notifier)
-                            .sendEmailCode(),
-                        verifyCode: (code) => ref
-                            .read(authControllerProvider.notifier)
-                            .verifyEmailCode(code: code),
-                        successMessage: '邮箱验证成功',
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  _ProfileHero(
+                    user: user,
+                    onViewPublicProfile: () =>
+                        context.push(buildPublicProfileLocation(user.id)),
+                  ),
+                  const SizedBox(height: 20),
+                  _ProfileSection(
+                    title: '资料信息',
+                    children: [
+                      _InfoRow(label: '昵称', value: _fallback(user.name, '未设置')),
+                      _InfoRow(
+                        label: '简介',
+                        value: _fallback(user.info, '还没有写简介'),
                       ),
-                    ),
-                    _InfoRow(label: '手机号', value: _fallback(user.phone, '未绑定')),
-                    _VerificationRow(
-                      label: '手机号验证',
-                      isVerified: user.isPhoneVerified ?? false,
-                      actionLabel: '发送手机验证码',
-                      isBusy: isSubmitting,
-                      onVerify: () => _startVerification(
-                        context: context,
-                        ref: ref,
-                        sendCode: () => ref
-                            .read(authControllerProvider.notifier)
-                            .sendPhoneCode(),
-                        verifyCode: (code) => ref
-                            .read(authControllerProvider.notifier)
-                            .verifyPhone(code: code),
-                        successMessage: '手机号验证成功',
+                      _InfoRow(label: '邮箱', value: _fallback(user.email, '未绑定')),
+                      _VerificationRow(
+                        label: '邮箱验证',
+                        isVerified: user.isEmailVerified ?? false,
+                        isBusy: isSubmitting,
+                        onVerify: () => _startVerification(
+                          context: context,
+                          ref: ref,
+                          sendCode: () => ref
+                              .read(authControllerProvider.notifier)
+                              .sendEmailCode(),
+                          verifyCode: (code) => ref
+                              .read(authControllerProvider.notifier)
+                              .verifyEmailCode(code: code),
+                          successMessage: '邮箱验证成功',
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _ProfileSection(
-                  title: '账号与安全',
-                  children: [
-                    _NavRow(
-                      icon: CupertinoIcons.lock_rotation,
-                      title: '修改密码',
-                      subtitle: '更新当前账号密码',
-                      onTap: () => context.push(AppRoutePaths.changePassword),
-                    ),
-                    _InfoRow(label: '角色', value: _fallback(user.role, 'User')),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _ProfileSection(
-                  title: '登录相关',
-                  children: [
-                    _NavRow(
-                      icon: CupertinoIcons.square_arrow_right,
-                      title: '退出登录',
-                      subtitle: '清除当前会话',
-                      destructive: true,
-                      onTap: isSubmitting
-                          ? null
-                          : () => ref
-                                .read(authControllerProvider.notifier)
-                                .logout(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _ProfileSection(
+                    title: '账户安全',
+                    children: [
+                      _NavRow(
+                        icon: CupertinoIcons.lock_rotation,
+                        title: '修改密码',
+                        subtitle: '更新当前账号密码',
+                        onTap: () => context.push(AppRoutePaths.changePassword),
+                      ),
+                      _NavRow(
+                        icon: CupertinoIcons.square_arrow_right,
+                        title: '退出登录',
+                        subtitle: '清除当前会话',
+                        destructive: true,
+                        onTap: isSubmitting
+                            ? null
+                            : () => ref
+                                  .read(authControllerProvider.notifier)
+                                  .logout(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ],
@@ -164,16 +158,10 @@ class ProfileScreen extends ConsumerWidget {
 
     try {
       await sendCode();
-      if (!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
       await AppFeedback.showMessage(context, message: '验证码已发送');
     } catch (_) {
-      final errorMessage = ref
-          .read(authControllerProvider)
-          .asData
-          ?.value
-          .errorMessage;
+      final errorMessage = ref.read(authControllerProvider).asData?.value.errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && context.mounted) {
         await AppFeedback.showMessage(context, message: errorMessage);
       }
@@ -201,12 +189,12 @@ class ProfileScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text('输入验证码', style: AppTextStyles.sectionTitle),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               AppTextField(
                 controller: codeController,
                 placeholder: '请输入收到的验证码',
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
@@ -215,7 +203,7 @@ class ProfileScreen extends ConsumerWidget {
                       child: const Text('取消'),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: AppPrimaryButton(
                       onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -237,16 +225,10 @@ class ProfileScreen extends ConsumerWidget {
 
     try {
       await verifyCode(codeController.text.trim());
-      if (!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
       await AppFeedback.showMessage(context, message: successMessage);
     } catch (_) {
-      final errorMessage = ref
-          .read(authControllerProvider)
-          .asData
-          ?.value
-          .errorMessage;
+      final errorMessage = ref.read(authControllerProvider).asData?.value.errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && context.mounted) {
         await AppFeedback.showMessage(context, message: errorMessage);
       }
@@ -262,90 +244,80 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 class _ProfileHero extends StatelessWidget {
-  const _ProfileHero({
-    required this.user,
-    required this.onEdit,
-    required this.onViewPublicProfile,
-  });
+  const _ProfileHero({required this.user, required this.onViewPublicProfile});
 
   final UserDto user;
-  final VoidCallback onEdit;
   final VoidCallback onViewPublicProfile;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: AppDecorations.profileGradient,
-        borderRadius: BorderRadius.circular(AppRadii.xl),
-      ),
-      child: AppSectionCard(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(
-                color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(28),
-                image: user.avatar?.trim().isNotEmpty == true
-                    ? DecorationImage(
-                        image: NetworkImage(user.avatar!.trim()),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: user.avatar?.trim().isNotEmpty == true
-                  ? null
-                  : Text(
-                      _buildInitial(user.name),
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 28,
-                      ),
+    return AppTappableCard(
+      padding: const EdgeInsets.all(20),
+      radius: AppRadii.lg,
+      onPressed: onViewPublicProfile,
+      child: Row(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.muted,
+              borderRadius: BorderRadius.circular(20),
+              image: user.avatar?.trim().isNotEmpty == true
+                  ? DecorationImage(
+                      image: NetworkImage(user.avatar!.trim()),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            alignment: Alignment.center,
+            child: user.avatar?.trim().isNotEmpty == true
+                ? null
+                : Text(
+                    _buildInitial(user.name),
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
                     ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              user.name?.trim().isNotEmpty == true
-                  ? user.name!.trim()
-                  : '未设置昵称',
-              style: AppTextStyles.title,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              user.info?.trim().isNotEmpty == true
-                  ? user.info!.trim()
-                  : '这个人很低调，还没有写简介。',
-              style: AppTextStyles.muted,
-            ),
-            const SizedBox(height: 18),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
+                  ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppPrimaryButton(onPressed: onEdit, child: const Text('编辑资料')),
-                AppSecondaryButton(
-                  onPressed: onViewPublicProfile,
-                  child: const Text('查看公开主页'),
+                Text(
+                  user.name?.trim().isNotEmpty == true
+                      ? user.name!.trim()
+                      : '未设置昵称',
+                  style: AppTextStyles.sectionTitle,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  user.info?.trim().isNotEmpty == true
+                      ? user.info!.trim()
+                      : '这个人很低调，还没有写简介。',
+                  style: AppTextStyles.muted,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const Icon(
+            CupertinoIcons.chevron_right,
+            size: 16,
+            color: AppColors.mutedForeground,
+          ),
+        ],
       ),
     );
   }
 
   String _buildInitial(String? name) {
     final trimmed = name?.trim();
-    if (trimmed == null || trimmed.isEmpty) {
-      return '我';
-    }
+    if (trimmed == null || trimmed.isEmpty) return '我';
     return trimmed.substring(0, 1);
   }
 }
@@ -358,16 +330,21 @@ class _ProfileSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppSectionCard(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: AppTextStyles.label),
-          const SizedBox(height: 6),
-          ...children,
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 8),
+          child: Text(title, style: AppTextStyles.label),
+        ),
+        AppTappableCard(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          radius: AppRadii.lg,
+          child: Column(
+            children: children,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -392,15 +369,22 @@ class _NavRow extends StatelessWidget {
     final color = destructive ? AppColors.destructive : AppColors.primary;
     return AppListTile(
       onTap: onTap,
-      leading: Icon(icon, color: color),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color, size: 18),
+      ),
       title: Text(
         title,
-        style: TextStyle(fontWeight: FontWeight.w700, color: color),
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color),
       ),
-      subtitle: Text(subtitle),
+      subtitle: Text(subtitle, style: const TextStyle(fontSize: 13)),
       trailing: const Icon(
         CupertinoIcons.chevron_right,
-        size: 16,
+        size: 14,
         color: AppColors.mutedForeground,
       ),
     );
@@ -416,8 +400,12 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppListTile(
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
-      subtitle: Text(value),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      title: Text(
+        label,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(value, style: const TextStyle(fontSize: 14)),
     );
   }
 }
@@ -426,26 +414,29 @@ class _VerificationRow extends StatelessWidget {
   const _VerificationRow({
     required this.label,
     required this.isVerified,
-    required this.actionLabel,
     required this.isBusy,
     required this.onVerify,
   });
 
   final String label;
   final bool isVerified;
-  final String actionLabel;
   final bool isBusy;
   final VoidCallback onVerify;
 
   @override
   Widget build(BuildContext context) {
     return AppListTile(
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
-      subtitle: Text(isVerified ? '已验证' : '未验证'),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      title: Text(
+        label,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(isVerified ? '已通过安全验证' : '尚未进行安全验证'),
       trailing: isVerified
           ? const Icon(
               CupertinoIcons.check_mark_circled_solid,
-              color: Color(0xFF16A34A),
+              color: Color(0xFF34C759),
+              size: 20,
             )
           : CupertinoButton(
               padding: EdgeInsets.zero,
@@ -455,6 +446,7 @@ class _VerificationRow extends StatelessWidget {
                 '去验证',
                 style: TextStyle(
                   color: AppColors.primary,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -477,27 +469,13 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _infoController;
   late final TextEditingController _avatarController;
-  late final TextEditingController _emailController;
-  late final TextEditingController _phoneController;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(
-      text: widget.initialUser.name ?? '',
-    );
-    _infoController = TextEditingController(
-      text: widget.initialUser.info ?? '',
-    );
-    _avatarController = TextEditingController(
-      text: widget.initialUser.avatar ?? '',
-    );
-    _emailController = TextEditingController(
-      text: widget.initialUser.email ?? '',
-    );
-    _phoneController = TextEditingController(
-      text: widget.initialUser.phone ?? '',
-    );
+    _nameController = TextEditingController(text: widget.initialUser.name ?? '');
+    _infoController = TextEditingController(text: widget.initialUser.info ?? '');
+    _avatarController = TextEditingController(text: widget.initialUser.avatar ?? '');
   }
 
   @override
@@ -505,46 +483,25 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
     _nameController.dispose();
     _infoController.dispose();
     _avatarController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     try {
-      await ref
-          .read(authControllerProvider.notifier)
-          .updateProfile(
+      await ref.read(authControllerProvider.notifier).updateProfile(
             UserUpdateDto(
               name: _nameController.text.trim(),
               info: _infoController.text.trim(),
               avatar: _avatarController.text.trim(),
-              email: _emailController.text.trim().isEmpty
-                  ? null
-                  : _emailController.text.trim(),
-              phone: _phoneController.text.trim().isEmpty
-                  ? null
-                  : _phoneController.text.trim(),
             ),
           );
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       await AppFeedback.showMessage(context, message: '个人资料已更新');
-      if (!mounted) {
-        return;
-      }
       Navigator.of(context).pop();
     } catch (_) {
-      final errorMessage = ref
-          .read(authControllerProvider)
-          .asData
-          ?.value
-          .errorMessage;
+      final errorMessage = ref.read(authControllerProvider).asData?.value.errorMessage;
       if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
         await AppFeedback.showMessage(context, message: errorMessage);
       }
@@ -569,21 +526,17 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
           shrinkWrap: true,
           children: [
             const Text('编辑资料', style: AppTextStyles.sectionTitle),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             AppTextField(controller: _nameController, placeholder: '昵称'),
             const SizedBox(height: 12),
             AppTextField(
               controller: _infoController,
-              placeholder: '简介',
-              maxLines: 4,
+              placeholder: '个人简介',
+              maxLines: 3,
             ),
             const SizedBox(height: 12),
-            AppTextField(controller: _avatarController, placeholder: '头像链接'),
-            const SizedBox(height: 12),
-            AppTextField(controller: _emailController, placeholder: '邮箱'),
-            const SizedBox(height: 12),
-            AppTextField(controller: _phoneController, placeholder: '手机号'),
-            const SizedBox(height: 18),
+            AppTextField(controller: _avatarController, placeholder: '头像链接 (URL)'),
+            const SizedBox(height: 24),
             AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
               child: Text(isSubmitting ? '保存中...' : '保存修改'),

@@ -5,7 +5,7 @@ abstract final class AppColors {
   static const Color primaryForeground = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFFFFFFF);
   static const Color foreground = Color(0xFF1D1D1F);
-  static const Color card = Color(0xFFFFFFFF);
+  static const Color card = Color(0xFFF5F5F7);
   static const Color cardForeground = Color(0xFF1D1D1F);
   static const Color secondary = Color(0xFFF5F5F7);
   static const Color secondaryForeground = Color(0xFF1D1D1F);
@@ -23,14 +23,12 @@ abstract final class AppRadii {
   static const double sm = 12;
   static const double md = 16;
   static const double lg = 20;
-  static const double xl = 28;
+  static const double xl = 24;
   static const double pill = 999;
 }
 
 abstract final class AppShadows {
-  static const List<BoxShadow> card = [
-    BoxShadow(color: Color(0x0F1D1D1F), blurRadius: 24, offset: Offset(0, 10)),
-  ];
+  static const List<BoxShadow> none = [];
 
   static const List<BoxShadow> primary = [
     BoxShadow(color: Color(0x330071E3), blurRadius: 24, offset: Offset(0, 10)),
@@ -39,72 +37,73 @@ abstract final class AppShadows {
 
 abstract final class AppTextStyles {
   static const TextStyle hero = TextStyle(
-    fontSize: 32,
+    fontSize: 34,
     height: 1.1,
     fontWeight: FontWeight.w800,
     color: AppColors.foreground,
+    letterSpacing: -0.5,
   );
 
   static const TextStyle title = TextStyle(
-    fontSize: 24,
+    fontSize: 28,
     height: 1.2,
     fontWeight: FontWeight.w800,
     color: AppColors.foreground,
+    letterSpacing: -0.4,
   );
 
   static const TextStyle sectionTitle = TextStyle(
-    fontSize: 20,
+    fontSize: 22,
     height: 1.25,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w700,
     color: AppColors.foreground,
+    letterSpacing: -0.2,
   );
 
   static const TextStyle body = TextStyle(
-    fontSize: 16,
-    height: 1.55,
+    fontSize: 17,
+    height: 1.45,
     color: AppColors.foreground,
   );
 
   static const TextStyle muted = TextStyle(
-    fontSize: 14,
-    height: 1.5,
+    fontSize: 15,
+    height: 1.4,
     color: AppColors.mutedForeground,
   );
 
   static const TextStyle label = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 0.3,
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.1,
     color: AppColors.mutedForeground,
   );
 }
 
 abstract final class AppDecorations {
-  static BoxDecoration card({double radius = AppRadii.xl}) {
+  static BoxDecoration card({double radius = AppRadii.lg}) {
     return BoxDecoration(
-      color: AppColors.card.withValues(alpha: 0.92),
+      color: AppColors.card,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: AppColors.border.withValues(alpha: 0.45)),
-      boxShadow: AppShadows.card,
     );
   }
 
   static BoxDecoration mutedCard({double radius = AppRadii.lg}) {
     return BoxDecoration(
-      color: AppColors.secondary.withValues(alpha: 0.9),
+      color: AppColors.secondary,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: AppColors.border.withValues(alpha: 0.35)),
     );
   }
 
   static BoxDecoration pill({
     Color background = AppColors.secondary,
     Color border = AppColors.border,
+    bool showBorder = false,
   }) {
     return BoxDecoration(
       color: background,
       borderRadius: BorderRadius.circular(AppRadii.pill),
-      border: Border.all(color: border.withValues(alpha: 0.45)),
+      border: showBorder ? Border.all(color: border.withValues(alpha: 0.45)) : null,
     );
   }
 
@@ -115,7 +114,7 @@ abstract final class AppDecorations {
   );
 
   static const LinearGradient profileGradient = LinearGradient(
-    colors: [Color(0x330071E3), Color(0x110071E3), Color(0x00FFFFFF)],
+    colors: [Color(0x220071E3), Color(0x080071E3), Color(0x00FFFFFF)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

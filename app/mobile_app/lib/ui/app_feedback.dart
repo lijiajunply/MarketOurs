@@ -79,12 +79,9 @@ class _FeedbackDialog extends StatelessWidget {
             width: 320,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.background.withValues(alpha: 0.96),
+              color: AppColors.background.withValues(alpha: 0.98),
               borderRadius: BorderRadius.circular(AppRadii.xl),
-              border: Border.all(
-                color: AppColors.border.withValues(alpha: 0.4),
-              ),
-              boxShadow: AppShadows.card,
+              boxShadow: AppShadows.none,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
