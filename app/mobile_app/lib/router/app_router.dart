@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -71,31 +72,37 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: AppRoutePaths.splash,
+    refreshListenable: _RouterRefreshNotifier(ref),
     redirect: (context, state) {
       final path = state.uri.path;
       final isAuthRoute = _authRoutes.contains(path);
       final isSplashRoute = path == AppRoutePaths.splash;
 
+      // 如果还在初始化加载中，保持在启动页
       if (authAsync.isLoading) {
         return isSplashRoute ? null : AppRoutePaths.splash;
       }
 
+      // 获取当前认证状态，如果没有值（比如出错），默认为未认证
       final authState = authAsync.asData?.value ?? AuthState.unauthenticated();
       final isAuthenticated = authState.status == AuthStatus.authenticated;
 
       if (isAuthenticated) {
+        // 已登录：如果当前在启动页或认证页（登录/注册等），跳到主页
         if (isSplashRoute || isAuthRoute) {
           return AppRoutePaths.home;
         }
+        // 其他情况保持当前路径
         return null;
       }
 
-      // 未登录状态
-      if (isSplashRoute || isAuthRoute) {
+      // 未登录：
+      // 如果当前就在认证页，不需要跳转
+      if (isAuthRoute) {
         return null;
       }
 
-      // 默认重定向到登录页
+      // 如果当前在启动页或其他受保护页面，强制跳到登录页
       return AppRoutePaths.login;
     },
     routes: [
@@ -180,7 +187,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutePaths.profile,
-                name: AppRouteNames.profile,
+                name: AppRoutePaths.profile,
                 builder: (context, state) => const ProfileScreen(),
               ),
             ],
@@ -231,9 +238,19 @@ const _authRoutes = {
   AppRoutePaths.resetPassword,
 };
 
-bool _requiresAuth(String path) {
-  final isAuthRoute = _authRoutes.contains(path);
-  final isSplashRoute = path == AppRoutePaths.splash;
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(Ref ref) {
+    _subscription = ref.listen(
+      authControllerProvider,
+      (_, __) => notifyListeners(),
+    );
+  }
 
-  return !isAuthRoute && !isSplashRoute;
+  late final ProviderSubscription _subscription;
+
+  @override
+  void dispose() {
+    _subscription.close();
+    super.dispose();
+  }
 }

@@ -131,7 +131,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
-      badge: 'Welcome Back',
       title: '登录',
       subtitle: '支持账号密码登录，也支持验证码快捷登录。',
       footer: Center(
