@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_app/components/user_card.dart';
 
 import '../../models/post.dart';
 import '../../providers/auth_provider.dart';
@@ -164,78 +163,133 @@ class _PostCard extends StatelessWidget {
     final content = post.content?.trim().isNotEmpty == true
         ? post.content!.trim()
         : '这个帖子还没有填写内容。';
-    final excerpt = content.length > 120
-        ? '${content.substring(0, 120)}...'
+    final excerpt = content.length > 100
+        ? '${content.substring(0, 100)}...'
         : content;
 
     return AppTappableCard(
       padding: EdgeInsets.zero,
-      radius: AppRadii.lg,
+      radius: AppRadii.xl,
       onPressed: () => context.push(buildPostDetailLocation(post.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (post.images?.isNotEmpty == true)
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadii.lg),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Row(
+              children: [
+                AppAvatar(
+                  url: post.author?.avatar,
+                  name: post.author?.name,
+                  size: 32,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post.author?.name ?? '匿名用户',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        _formatCreatedAt(post.createdAt),
+                        style: AppTextStyles.label(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  CupertinoIcons.ellipsis,
+                  size: 18,
+                  color: AppColors.mutedForeground,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              title,
+              style: AppTextStyles.sectionTitle(context).copyWith(
+                fontSize: 18,
+                height: 1.3,
               ),
-              child: AspectRatio(
-                aspectRatio: 1.8,
-                child: Image.network(
-                  post.images!.first,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: AppColors.muted,
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      CupertinoIcons.photo,
-                      color: AppColors.mutedForeground,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    excerpt,
+                    style: AppTextStyles.body(context).copyWith(
+                      fontSize: 15,
+                      color: CupertinoDynamicColor.resolve(AppColors.foreground, context).withValues(alpha: 0.8),
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (post.images?.isNotEmpty == true) ...[
+                  const SizedBox(width: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                    child: SizedBox(
+                      width: 88,
+                      height: 88,
+                      child: Image.network(
+                        post.images!.first,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: AppColors.muted,
+                          child: const Icon(CupertinoIcons.photo, color: AppColors.mutedForeground),
+                        ),
+                      ),
                     ),
                   ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3),
                 ),
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                if (post.author != null)
-                  UserCard(
-                    user: post.author!,
-                    meta: _formatCreatedAt(post.createdAt),
-                    showMeta: true,
-                    onTap: post.author?.id == null
-                        ? null
-                        : () => context.push(
-                            buildPublicProfileLocation(post.author!.id!),
-                          ),
-                  ),
-                if (post.author != null) const SizedBox(height: 12),
-                Text(title, style: AppTextStyles.sectionTitle(context)),
-                const SizedBox(height: 8),
-                Text(excerpt, style: AppTextStyles.muted(context)),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    _StatItem(
-                      icon: CupertinoIcons.heart,
-                      label: '${post.likes ?? 0}',
-                      active: false,
-                    ),
-                    const SizedBox(width: 16),
-                    _StatItem(
-                      icon: CupertinoIcons.bubble_left,
-                      label: '${post.commentsCount ?? 0}',
-                    ),
-                    const Spacer(),
-                    const Icon(
-                      CupertinoIcons.chevron_right,
-                      color: AppColors.mutedForeground,
-                      size: 14,
-                    ),
-                  ],
+                _StatItem(
+                  icon: CupertinoIcons.heart,
+                  label: '${post.likes ?? 0}',
+                  active: false,
+                ),
+                const SizedBox(width: 24),
+                _StatItem(
+                  icon: CupertinoIcons.bubble_left,
+                  label: '${post.commentsCount ?? 0}',
+                ),
+                const SizedBox(width: 24),
+                _StatItem(
+                  icon: CupertinoIcons.eye,
+                  label: '${post.watch ?? 0}',
+                ),
+                const Spacer(),
+                const Icon(
+                  CupertinoIcons.share,
+                  size: 18,
+                  color: AppColors.mutedForeground,
                 ),
               ],
             ),
@@ -246,26 +300,14 @@ class _PostCard extends StatelessWidget {
   }
 
   String _formatCreatedAt(DateTime? dateTime) {
-    if (dateTime == null) {
-      return '刚刚发布';
-    }
-
+    if (dateTime == null) return '刚刚';
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inMinutes < 1) {
-      return '刚刚发布';
-    }
-    if (difference.inHours < 1) {
-      return '${difference.inMinutes} 分钟前';
-    }
-    if (difference.inDays < 1) {
-      return '${difference.inHours} 小时前';
-    }
-    if (difference.inDays < 7) {
-      return '${difference.inDays} 天前';
-    }
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+    final diff = now.difference(dateTime);
+    if (diff.inMinutes < 1) return '刚刚';
+    if (diff.inHours < 1) return '${diff.inMinutes}分钟前';
+    if (diff.inDays < 1) return '${diff.inHours}小时前';
+    if (diff.inDays < 7) return '${diff.inDays}天前';
+    return '${dateTime.year}-${dateTime.month}-${dateTime.day}';
   }
 }
 

@@ -1,8 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../components/user_card.dart';
 import '../../models/comment.dart';
 import '../../models/post.dart';
 import '../../providers/auth_provider.dart';
@@ -339,12 +340,18 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       ),
                       slivers: [
                         CupertinoSliverNavigationBar(
-                          largeTitle: const Text('详情'),
                           backgroundColor: CupertinoDynamicColor.resolve(
                             AppColors.background,
                             context,
-                          ).withValues(alpha: 0.94),
-                          border: null,
+                          ).withValues(alpha: 0.8),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3),
+                              width: 0.5,
+                            ),
+                          ),
+                          largeTitle: const Text('详情'),
+                          middle: const Text('详情', style: TextStyle(fontWeight: FontWeight.w700)),
                           trailing: isOwner
                               ? CupertinoButton(
                                   padding: EdgeInsets.zero,
@@ -376,7 +383,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                       ),
                                     );
                                   },
-                                  child: const Icon(CupertinoIcons.ellipsis_circle, size: 24),
+                                  child: const Icon(CupertinoIcons.ellipsis, size: 22),
                                 )
                               : null,
                         ),
@@ -571,35 +578,57 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
-                decoration: BoxDecoration(
-                  color: CupertinoDynamicColor.resolve(AppColors.background, context)
-                      .withValues(alpha: 0.96),
-                  border: Border(
-                    top: BorderSide(
-                      color: CupertinoDynamicColor.resolve(AppColors.border, context)
-                          .withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: AppTextField(
-                        controller: _commentController,
-                        placeholder: '写下你的评论...',
-                        maxLines: 4,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
+                    decoration: BoxDecoration(
+                      color: CupertinoDynamicColor.resolve(AppColors.background, context).withValues(alpha: 0.8),
+                      border: Border(
+                        top: BorderSide(
+                          color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    AppPrimaryButton(
-                      onPressed: _isWorking ? null : _submitComment,
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                      child: const Text('发送', style: TextStyle(fontSize: 15)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: CupertinoDynamicColor.resolve(AppColors.secondary, context),
+                              borderRadius: BorderRadius.circular(AppRadii.pill),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            alignment: Alignment.centerLeft,
+                            child: CupertinoTextField(
+                              controller: _commentController,
+                              placeholder: '写下你的评论...',
+                              placeholderStyle: AppTextStyles.muted(context),
+                              decoration: null,
+                              style: AppTextStyles.body(context).copyWith(fontSize: 15),
+                              cursorColor: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: _isWorking ? null : _submitComment,
+                          child: Text(
+                            '发布',
+                            style: TextStyle(
+                              color: AppColors.primary.withValues(alpha: _isWorking ? 0.5 : 1.0),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -616,62 +645,90 @@ class _PostHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppTappableCard(
-      padding: const EdgeInsets.all(20),
-      radius: AppRadii.lg,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (post.author != null)
-            UserCard(
-              user: post.author!,
-              showMeta: true,
-              meta: _formatDate(post.createdAt, post.updatedAt),
-              onTap: onAuthorTap,
-            ),
-          if (post.author != null) const SizedBox(height: 18),
-          Text(
-            post.title?.trim().isNotEmpty == true ? post.title!.trim() : '未命名帖子',
-            style: AppTextStyles.title(context).copyWith(fontSize: 24),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            post.content?.trim().isNotEmpty == true ? post.content!.trim() : '这个帖子还没有填写描述。',
-            style: AppTextStyles.body(context),
-          ),
-          if (post.images?.isNotEmpty == true) ...[
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: post.images!.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) => ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                  child: Image.network(
-                    post.images![index],
-                    width: 240,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 240,
-                      color: CupertinoDynamicColor.resolve(AppColors.muted, context),
-                      child: const Icon(CupertinoIcons.photo, color: AppColors.mutedForeground),
-                    ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (post.author != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Row(
+              children: [
+                AppAvatar(
+                  url: post.author?.avatar,
+                  name: post.author?.name,
+                  size: 40,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post.author?.name ?? '匿名用户',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        _formatDate(post.createdAt, post.updatedAt),
+                        style: AppTextStyles.label(context),
+                      ),
+                    ],
                   ),
+                ),
+                AppSecondaryButton(
+                  onPressed: onAuthorTap,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: const Text('关注', style: TextStyle(fontSize: 13)),
+                ),
+              ],
+            ),
+          ),
+        Text(
+          post.title?.trim().isNotEmpty == true ? post.title!.trim() : '未命名帖子',
+          style: AppTextStyles.title(context).copyWith(
+            fontSize: 22,
+            height: 1.3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          post.content?.trim().isNotEmpty == true ? post.content!.trim() : '这个帖子还没有填写描述。',
+          style: AppTextStyles.body(context).copyWith(
+            fontSize: 17,
+            height: 1.6,
+            color: CupertinoDynamicColor.resolve(AppColors.foreground, context).withValues(alpha: 0.9),
+          ),
+        ),
+        if (post.images?.isNotEmpty == true) ...[
+          const SizedBox(height: 20),
+          ...post.images!.map((imageUrl) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadii.lg),
+              child: Image.network(
+                imageUrl,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 200,
+                  width: double.infinity,
+                  color: AppColors.muted,
+                  child: const Icon(CupertinoIcons.photo, color: AppColors.mutedForeground),
                 ),
               ),
             ),
-          ],
+          )),
         ],
-      ),
+      ],
     );
   }
 
   String _formatDate(DateTime? createdAt, DateTime? updatedAt) {
     final date = updatedAt ?? createdAt;
-    if (date == null) return '刚刚发布';
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    if (date == null) return '刚刚';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
 
@@ -697,8 +754,14 @@ class _ActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3)),
+          bottom: BorderSide(color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3)),
+        ),
+      ),
       child: Row(
         children: [
           _ActionChip(
@@ -716,11 +779,10 @@ class _ActionBar extends StatelessWidget {
             color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
             active: isDisliked,
           ),
-          const SizedBox(width: 12),
-          AppStatChip(
-            icon: CupertinoIcons.eye,
-            label: '$watch 浏览',
-            iconColor: const Color(0xFF5AC8FA),
+          const Spacer(),
+          Text(
+            '$watch 次浏览',
+            style: AppTextStyles.label(context),
           ),
         ],
       ),
@@ -742,24 +804,24 @@ class _ActionChip extends StatelessWidget {
       padding: EdgeInsets.zero,
       onPressed: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: AppDecorations.pill(
-          context,
-          background: active ? color.withValues(alpha: 0.1) : AppColors.secondary,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? color.withValues(alpha: 0.1) : AppColors.secondary,
+          borderRadius: BorderRadius.circular(AppRadii.pill),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 16,
+              size: 18,
               color: active ? color : CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: active ? color : CupertinoDynamicColor.resolve(AppColors.foreground, context),
               ),
@@ -808,64 +870,66 @@ class _CommentThread extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppTappableCard(
-      padding: const EdgeInsets.all(16),
-      radius: AppRadii.lg,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _CommentCard(
-            comment: comment,
-            onAuthorTap: comment.userId == null ? null : () => onAuthorTapForUser(comment.userId!),
-            onReply: onReply,
-            onEdit: onEdit,
-            onDelete: onDelete,
-            onLike: onLike,
-            onDislike: onDislike,
-            isLiked: likedComments.contains(comment.id),
-            isDisliked: dislikedComments.contains(comment.id),
-          ),
-          if (comment.repliedComments?.isNotEmpty == true) ...[
-            const SizedBox(height: 16),
-            Container(
-              margin: const EdgeInsets.only(left: 12),
-              padding: const EdgeInsets.only(left: 14),
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(
-                    color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3),
-                    width: 1,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _CommentCard(
+          comment: comment,
+          onAuthorTap: comment.userId == null ? null : () => onAuthorTapForUser(comment.userId!),
+          onReply: onReply,
+          onEdit: onEdit,
+          onDelete: onDelete,
+          onLike: onLike,
+          onDislike: onDislike,
+          isLiked: likedComments.contains(comment.id),
+          isDisliked: dislikedComments.contains(comment.id),
+        ),
+        if (comment.repliedComments?.isNotEmpty == true) ...[
+          Container(
+            margin: const EdgeInsets.only(left: 44, top: 12),
+            padding: const EdgeInsets.only(left: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3),
+                  width: 2,
                 ),
               ),
-              child: Column(
-                children: [
-                  for (final reply in comment.repliedComments!) ...[
-                    _CommentCard(
-                      comment: reply,
-                      onAuthorTap: reply.userId == null ? null : () => onAuthorTapForUser(reply.userId!),
-                      onReply: () => onReplyChild(reply),
-                      onEdit: currentUserId == reply.userId ? () => onEditChild?.call(reply) : null,
-                      onDelete: currentUserId == reply.userId ? () => onDeleteChild?.call(reply) : null,
-                      onLike: () => onLikeChild(reply),
-                      onDislike: () => onDislikeChild(reply),
-                      isLiked: likedComments.contains(reply.id),
-                      isDisliked: dislikedComments.contains(reply.id),
-                    ),
-                    if (reply != comment.repliedComments!.last) const SizedBox(height: 16),
-                  ],
-                ],
-              ),
             ),
-          ],
+            child: Column(
+              children: [
+                for (final reply in comment.repliedComments!) ...[
+                  _CommentCard(
+                    comment: reply,
+                    isReply: true,
+                    onAuthorTap: reply.userId == null ? null : () => onAuthorTapForUser(reply.userId!),
+                    onReply: () => onReplyChild(reply),
+                    onEdit: currentUserId == reply.userId ? () => onEditChild?.call(reply) : null,
+                    onDelete: currentUserId == reply.userId ? () => onDeleteChild?.call(reply) : null,
+                    onLike: () => onLikeChild(reply),
+                    onDislike: () => onDislikeChild(reply),
+                    isLiked: likedComments.contains(reply.id),
+                    isDisliked: dislikedComments.contains(reply.id),
+                  ),
+                  if (reply != comment.repliedComments!.last) const SizedBox(height: 16),
+                ],
+              ],
+            ),
+          ),
         ],
-      ),
+        const SizedBox(height: 16),
+        Container(
+          height: 1,
+          color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
 
 class _CommentCard extends StatelessWidget {
-  const _CommentCard({required this.comment, this.onAuthorTap, required this.onReply, this.onEdit, this.onDelete, required this.onLike, required this.onDislike, this.isLiked = false, this.isDisliked = false});
+  const _CommentCard({required this.comment, this.onAuthorTap, required this.onReply, this.onEdit, this.onDelete, required this.onLike, required this.onDislike, this.isLiked = false, this.isDisliked = false, this.isReply = false});
   final CommentDto comment;
   final VoidCallback? onAuthorTap;
   final VoidCallback onReply;
@@ -875,42 +939,79 @@ class _CommentCard extends StatelessWidget {
   final VoidCallback onDislike;
   final bool isLiked;
   final bool isDisliked;
+  final bool isReply;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (comment.author != null)
-          UserCard(
-            user: comment.author!,
-            onTap: onAuthorTap,
-            showMeta: true,
-            meta: _formatDate(comment.createdAt),
-          ),
-        const SizedBox(height: 10),
-        Text(comment.content ?? '', style: AppTextStyles.body(context).copyWith(fontSize: 15)),
-        const SizedBox(height: 12),
         Row(
           children: [
-            _TextAction(label: '回复', onTap: onReply),
-            const SizedBox(width: 16),
-            _TextAction(label: '${comment.likes ?? 0} 赞', onTap: onLike, active: isLiked),
-            const SizedBox(width: 16),
-            _TextAction(label: '踩', onTap: onDislike, active: isDisliked),
-            const Spacer(),
-            if (onEdit != null) _TextAction(label: '编辑', onTap: onEdit!),
-            if (onDelete != null)
-              Padding(
-                padding: const EdgeInsets.only(left: 12),
-                child: _TextAction(
-                  label: '删除',
-                  onTap: onDelete!,
-                  activeColor: AppColors.destructive,
-                  active: true,
-                ),
+            AppAvatar(
+              url: comment.author?.avatar,
+              name: comment.author?.name,
+              size: isReply ? 28 : 32,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    comment.author?.name ?? '匿名用户',
+                    style: TextStyle(
+                      fontSize: isReply ? 13 : 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    _formatDate(comment.createdAt),
+                    style: AppTextStyles.label(context).copyWith(fontSize: 11),
+                  ),
+                ],
               ),
+            ),
+            _CommentActionIcon(
+              icon: isLiked ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+              label: '${comment.likes ?? 0}',
+              onTap: onLike,
+              active: isLiked,
+              activeColor: const Color(0xFFFF5A5F),
+            ),
           ],
+        ),
+        Padding(
+          padding: EdgeInsets.only(left: isReply ? 38 : 42, top: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                comment.content ?? '',
+                style: AppTextStyles.body(context).copyWith(fontSize: 15, height: 1.5),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _TextAction(label: '回复', onTap: onReply),
+                  if (onEdit != null) ...[
+                    const SizedBox(width: 16),
+                    _TextAction(label: '编辑', onTap: onEdit!),
+                  ],
+                  if (onDelete != null) ...[
+                    const SizedBox(width: 16),
+                    _TextAction(label: '删除', onTap: onDelete!, activeColor: AppColors.destructive, active: true),
+                  ],
+                  const Spacer(),
+                  _CommentActionIcon(
+                    icon: isDisliked ? CupertinoIcons.hand_thumbsdown_fill : CupertinoIcons.hand_thumbsdown,
+                    onTap: onDislike,
+                    active: isDisliked,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -920,9 +1021,41 @@ class _CommentCard extends StatelessWidget {
     if (date == null) return '刚刚';
     final diff = DateTime.now().difference(date);
     if (diff.inMinutes < 1) return '刚刚';
-    if (diff.inHours < 1) return '${diff.inMinutes}m';
-    if (diff.inDays < 1) return '${diff.inHours}h';
-    return '${diff.inDays}d';
+    if (diff.inHours < 1) return '${diff.inMinutes}分钟前';
+    if (diff.inDays < 1) return '${diff.inHours}小时前';
+    return '${date.year}-${date.month}-${date.day}';
+  }
+}
+
+class _CommentActionIcon extends StatelessWidget {
+  const _CommentActionIcon({required this.icon, this.label, required this.onTap, this.active = false, this.activeColor});
+  final IconData icon;
+  final String? label;
+  final VoidCallback onTap;
+  final bool active;
+  final Color? activeColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active 
+        ? (activeColor ?? CupertinoDynamicColor.resolve(AppColors.primary, context))
+        : CupertinoDynamicColor.resolve(AppColors.mutedForeground, context);
+
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      minimumSize: Size.zero,
+      onPressed: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          if (label != null) ...[
+            const SizedBox(width: 4),
+            Text(label!, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
+          ],
+        ],
+      ),
+    );
   }
 }
 

@@ -27,9 +27,15 @@ class MainShell extends ConsumerWidget {
             backgroundColor: CupertinoDynamicColor.resolve(
               AppColors.background,
               context,
-            ).withValues(alpha: 0.94),
+            ).withValues(alpha: 0.8),
             activeColor: AppColors.primary,
-            inactiveColor: AppColors.mutedForeground,
+            inactiveColor: AppColors.mutedForeground.withValues(alpha: 0.8),
+            border: Border(
+              top: BorderSide(
+                color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.3),
+                width: 0.5,
+              ),
+            ),
             currentIndex: navigationShell.currentIndex,
             onTap: (index) => _onTap(context, index),
             items: const [

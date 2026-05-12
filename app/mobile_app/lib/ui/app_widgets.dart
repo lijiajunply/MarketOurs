@@ -233,8 +233,10 @@ class AppTappableCard extends StatelessWidget {
     required this.child,
     this.onPressed,
     this.padding,
-    this.radius = AppRadii.lg,
+    this.radius = AppRadii.xl,
     this.color,
+    this.showBorder = true,
+    this.showShadow = true,
   });
 
   final Widget child;
@@ -242,6 +244,8 @@ class AppTappableCard extends StatelessWidget {
   final EdgeInsets? padding;
   final double radius;
   final Color? color;
+  final bool showBorder;
+  final bool showShadow;
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +260,10 @@ class AppTappableCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(radius),
+        border: showBorder 
+            ? Border.all(color: CupertinoDynamicColor.resolve(AppColors.border, context).withValues(alpha: 0.5))
+            : null,
+        boxShadow: showShadow ? AppShadows.card : null,
       ),
       child: child,
     );
