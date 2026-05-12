@@ -147,9 +147,16 @@ class AuthController extends AsyncNotifier<AuthState> {
   }
 
   Future<void> sendLoginCode({required String account}) async {
-    await _runGuestAction(
-      () => _authService.sendLoginCode(SendCodeRequest(account: account)),
-    );
+    // We don't want to use _runGuestAction here because it sets isSubmitting to true
+    // on the main AuthState, which might trigger router listeners or UI overlays.
+    // Instead, we call the service directly. The UI manages its own loading state (_isSendingCode).
+    try {
+      await _authService.sendLoginCode(SendCodeRequest(account: account));
+    } catch (error) {
+      final current = state.asData?.value ?? AuthState.unauthenticated();
+      state = AsyncData(current.copyWith(errorMessage: _normalizeError(error)));
+      rethrow;
+    }
   }
 
   Future<bool> loginByCode({
