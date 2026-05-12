@@ -75,7 +75,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final path = state.uri.path;
       final isAuthRoute = _authRoutes.contains(path);
       final isSplashRoute = path == AppRoutePaths.splash;
-      final requiresAuth = _requiresAuth(path);
 
       if (authAsync.isLoading) {
         return isSplashRoute ? null : AppRoutePaths.splash;
@@ -91,14 +90,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      if (isSplashRoute) {
-        return AppRoutePaths.home;
-      }
-
-      if (isAuthRoute || !requiresAuth) {
+      // 未登录状态
+      if (isSplashRoute || isAuthRoute) {
         return null;
       }
 
+      // 默认重定向到登录页
       return AppRoutePaths.login;
     },
     routes: [
@@ -235,12 +232,8 @@ const _authRoutes = {
 };
 
 bool _requiresAuth(String path) {
-  if (path == AppRoutePaths.notifications ||
-      path == AppRoutePaths.profile ||
-      path == AppRoutePaths.changePassword ||
-      path == AppRoutePaths.createPost) {
-    return true;
-  }
+  final isAuthRoute = _authRoutes.contains(path);
+  final isSplashRoute = path == AppRoutePaths.splash;
 
-  return false;
+  return !isAuthRoute && !isSplashRoute;
 }
