@@ -3,9 +3,11 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
+import '../../services/file_service.dart';
 import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_theme.dart';
@@ -26,11 +28,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _accountController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String _avatarSeed = '';
+  String _avatarUrl = '';
+  bool _isUploadingAvatar = false;
   bool _isAccountDirty = false;
   bool _isPasswordDirty = false;
   bool _isAccountValid = false;
   bool _isPasswordValid = false;
+
+  final _imagePicker = ImagePicker();
+  final _fileService = FileService();
 
   static final _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
   static final _phoneRegex = RegExp(r'^1[3-9]\d{9}$');
@@ -53,11 +59,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void _generateRandomAvatar() {
     final random = Random();
     final seed = random.nextInt(0xFFFFFF).toRadixString(36).padLeft(5, '0');
-    setState(() => _avatarSeed = seed);
+    setState(
+      () => _avatarUrl =
+          'https://api.dicebear.com/9.x/avataaars/svg?seed=$seed',
+    );
   }
-
-  String get avatarUrl =>
-      'https://api.dicebear.com/9.x/avataaars/svg?seed=$_avatarSeed';
 
   bool _validateAccount(String value) {
     final valid = _emailRegex.hasValue(value) || _phoneRegex.hasValue(value);
@@ -69,6 +75,76 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final valid = _passwordRegex.hasValue(value);
     setState(() => _isPasswordValid = valid);
     return valid;
+  }
+
+  Future<void> _pickFromGallery() async {
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+    );
+    if (picked != null) await _uploadAvatar(picked);
+  }
+
+  Future<void> _takePhoto() async {
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 90,
+    );
+    if (picked != null) await _uploadAvatar(picked);
+  }
+
+  Future<void> _uploadAvatar(XFile file) async {
+    setState(() => _isUploadingAvatar = true);
+    try {
+      final response = await _fileService.uploadImage(file);
+      final url = response.data;
+      if (url != null && url.isNotEmpty && mounted) {
+        setState(() => _avatarUrl = url);
+      }
+    } catch (_) {
+      if (mounted) {
+        await AppFeedback.showMessage(context, message: '头像上传失败');
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingAvatar = false);
+    }
+  }
+
+  void _showAvatarOptions() {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('选择头像'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _generateRandomAvatar();
+            },
+            child: const Text('随机生成'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _pickFromGallery();
+            },
+            child: const Text('从相册选择'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _takePhoto();
+            },
+            child: const Text('拍照'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('取消'),
+        ),
+      ),
+    );
   }
 
   Future<void> _submit() async {
@@ -83,7 +159,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             account: _accountController.text.trim(),
             password: _passwordController.text,
             name: _nameController.text.trim(),
-            avatar: avatarUrl,
+            avatar: _avatarUrl,
           );
 
       if (!mounted) return;
@@ -145,38 +221,44 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           children: [
             // Avatar
             Center(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                        width: 3,
-                      ),
-                    ),
-                    child: ClipOval(
-                      child: Image.network(
-                        avatarUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          CupertinoIcons.person_circle,
-                          size: 64,
-                          color: AppColors.mutedForeground,
+              child: GestureDetector(
+                onTap: _isUploadingAvatar ? null : _showAvatarOptions,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          width: 3,
                         ),
                       ),
+                      child: ClipOval(
+                        child:
+                            _isUploadingAvatar
+                                ? Center(
+                                  child: CupertinoActivityIndicator(
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                                : Image.network(
+                                  _avatarUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (context, error, stackTrace) => Icon(
+                                        CupertinoIcons.person_circle,
+                                        size: 64,
+                                        color: AppColors.mutedForeground,
+                                      ),
+                                ),
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    right: -4,
-                    bottom: -4,
-                    child: CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      onPressed: _generateRandomAvatar,
+                    Positioned(
+                      right: -4,
+                      bottom: -4,
                       child: Container(
                         width: 32,
                         height: 32,
@@ -191,21 +273,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          CupertinoIcons.refresh,
+                        child: Icon(
+                          _isUploadingAvatar
+                              ? CupertinoIcons.refresh
+                              : CupertinoIcons.camera,
                           size: 16,
                           color: CupertinoColors.white,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 4),
             Center(
               child: Text(
-                '点击刷新随机头像',
+                '点击更换头像',
                 style: AppTextStyles.label(context).copyWith(fontSize: 11),
               ),
             ),

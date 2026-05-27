@@ -65,6 +65,12 @@ SQL=Host=localhost;Database=marketours;Username=postgres;Password=yourpassword
 # Redis 连接配置
 REDIS=localhost:6379
 
+# Vercel Blob 图床配置
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
+BLOB_STORE_ID=store_xxx # 可选，通常可从 token 自动解析
+BLOB_ACCESS=public
+BLOB_BASE_PATH=uploads
+
 # 初始管理员账号凭证 (用户名,密码 - 如果为空则默认生成)
 USER=admin,your_secure_password
 
@@ -87,6 +93,17 @@ dotnet run
 ```
 
 应用启动时将自动检测并执行任何挂起的数据库迁移操作，并根据环境配置自动初始化管理员用户数据。
+
+### 图片上传存储
+
+当前图片上传默认走 **Vercel Blob**。后端仍然保留原有的 `/File/upload/image` 和 `/File/upload/images` 接口，但存储实现已经从本地 `wwwroot/uploads` 切换为远端 Blob。
+
+- `BLOB_READ_WRITE_TOKEN`: Vercel Blob 的读写令牌，必填。
+- `BLOB_STORE_ID`: 可选；如果 token 解析失败，可以显式指定。
+- `BLOB_ACCESS`: 默认 `public`，适合作为公开图床。
+- `BLOB_BASE_PATH`: Blob 内的目录前缀，默认 `uploads`。
+
+返回值将是完整的公网图片 URL，可直接存入帖子 `images` 字段。
 
 ## 📚 API 文档与监控
 

@@ -57,7 +57,8 @@ public static class ServiceCollectionExtensions
     public static void RegisterSecurityServices(this IServiceCollection services)
     {
         // 注册存储服务
-        services.AddScoped<IStorageService, LocalStorageService>();
+        services.AddScoped<LocalStorageService>();
+        services.AddHttpClient<IStorageService, VercelBlobStorageService>();
 
         // 注册IP黑名单缓存服务
         services.AddSingleton<IIpBlacklistCacheService, IpBlacklistCacheService>();

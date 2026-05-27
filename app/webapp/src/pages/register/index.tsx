@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { authService } from "../../services/authService";
-import { User, Mail, Lock, Loader2, ArrowRight, RefreshCw } from "lucide-react";
+import { fileService } from "../../services/fileService";
+import { User, Mail, Lock, Loader2, ArrowRight, RefreshCw, Image, Camera } from "lucide-react";
 import { PasswordField } from "../../components/auth/PasswordField";
 
 export default function RegisterPage() {
@@ -10,10 +11,12 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
-  const [avatarSeed, setAvatarSeed] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [showAvatarOptions, setShowAvatarOptions] = useState(false);
   const [error, setError] = useState("");
-  
+
   // Registration steps
   const [step, setStep] = useState<1 | 2>(1);
   const [regToken, setRegToken] = useState("");
@@ -21,6 +24,8 @@ export default function RegisterPage() {
   const [countdown, setCountdown] = useState(0);
 
   const navigate = useNavigate();
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [accountType, setAccountType] = useState<'email' | 'phone' | 'invalid'>('invalid');
   const [isAccountDirty, setIsAccountDirty] = useState(false);
   const [isPasswordDirty, setIsPasswordDirty] = useState(false);
@@ -34,10 +39,50 @@ export default function RegisterPage() {
     return () => clearInterval(timer);
   }, [countdown]);
 
+  const generateRandomAvatar = () => {
+    const randomSeed = Math.random().toString(36).substring(7);
+    setAvatarUrl(`https://api.dicebear.com/9.x/avataaars/svg?seed=${randomSeed}`);
+    setShowAvatarOptions(false);
+  };
+
+  // Generate a random avatar on mount
+  useEffect(() => {
+    generateRandomAvatar();
+  }, []);
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setShowAvatarOptions(false);
+    setIsUploadingAvatar(true);
+    setError("");
+
+    // Immediate preview
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarUrl(previewUrl);
+
+    try {
+      const response = await fileService.uploadImage(file);
+      if (response.data) {
+        setAvatarUrl(response.data);
+      }
+    } catch (err: any) {
+      setError(err.message || t("auth.error_registration_failed"));
+      // Revert to random on failure
+      generateRandomAvatar();
+    } finally {
+      setIsUploadingAvatar(false);
+      URL.revokeObjectURL(previewUrl);
+      // Reset input so the same file can be re-selected
+      e.target.value = '';
+    }
+  };
+
   const validateAccount = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^1[3-9]\d{9}$/;
-    
+
     if (emailRegex.test(value)) {
       setAccountType('email');
       return true;
@@ -70,31 +115,19 @@ export default function RegisterPage() {
     validatePassword(value);
   };
 
-  // Generate a random seed on mount
-  useEffect(() => {
-    generateRandomAvatar();
-  }, []);
-
-  const generateRandomAvatar = () => {
-    const randomSeed = Math.random().toString(36).substring(7);
-    setAvatarSeed(randomSeed);
-  };
-
-  const avatarUrl = `https://api.dicebear.com/9.x/avataaars/svg?seed=${avatarSeed}`;
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
-      const response = await authService.register({ 
-        name, 
-        account, 
+      const response = await authService.register({
+        name,
+        account,
         password,
-        avatar: avatarUrl 
+        avatar: avatarUrl
       });
-      
+
       if (response.data) {
         setRegToken(response.data);
         // Automatically send code
@@ -165,24 +198,87 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} className="space-y-6">
             {/* Avatar Selection Area */}
             <div className="flex flex-col items-center space-y-4">
-              <div className="relative group">
-                <div className="h-24 w-24 rounded-full overflow-hidden border-4 border-primary/20 shadow-xl transition-transform hover:scale-105">
-                  <img 
-                    src={avatarUrl} 
-                    alt="Avatar Preview" 
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+              <div className="relative">
                 <button
                   type="button"
-                  onClick={generateRandomAvatar}
-                  className="absolute -right-2 -bottom-2 p-2 bg-primary text-white rounded-full shadow-lg hover:rotate-180 transition-all duration-500"
-                  title={t("auth.click_to_randomize_avatar")}
+                  onClick={() => setShowAvatarOptions(!showAvatarOptions)}
+                  disabled={isUploadingAvatar}
+                  className="relative group cursor-pointer disabled:cursor-wait"
                 >
-                  <RefreshCw size={16} />
+                  <div className="h-24 w-24 rounded-full overflow-hidden border-4 border-primary/20 shadow-xl transition-transform hover:scale-105">
+                    {isUploadingAvatar ? (
+                      <div className="h-full w-full flex items-center justify-center bg-muted">
+                        <Loader2 className="animate-spin text-primary" size={32} />
+                      </div>
+                    ) : (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar Preview"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="absolute -right-2 -bottom-2 p-2 bg-primary text-white rounded-full shadow-lg transition-all duration-500">
+                    <RefreshCw size={16} className={isUploadingAvatar ? "animate-spin" : ""} />
+                  </div>
                 </button>
+
+                {/* Avatar options popover */}
+                {showAvatarOptions && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowAvatarOptions(false)}
+                    />
+                    <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-20 bg-card border border-border rounded-2xl shadow-xl p-2 min-w-[170px] animate-in fade-in zoom-in-95 duration-200">
+                      <button
+                        type="button"
+                        onClick={generateRandomAvatar}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-semibold transition-colors"
+                      >
+                        <RefreshCw size={16} className="text-primary" />
+                        {t("auth.random_avatar") || "随机生成"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => galleryInputRef.current?.click()}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-semibold transition-colors"
+                      >
+                        <Image size={16} className="text-primary" />
+                        {t("auth.pick_from_gallery") || "从相册选择"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-semibold transition-colors"
+                      >
+                        <Camera size={16} className="text-primary" />
+                        {t("auth.take_photo") || "拍照"}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-              <p className="text-xs text-muted-foreground font-medium">{t("auth.click_to_randomize_avatar")}</p>
+              <p className="text-xs text-muted-foreground font-medium">
+                {t("auth.click_to_change_avatar") || "点击头像更换，支持上传和拍照"}
+              </p>
+
+              {/* Hidden file inputs */}
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarFile}
+                className="hidden"
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleAvatarFile}
+                className="hidden"
+              />
             </div>
 
             <div className="space-y-4">
@@ -211,8 +307,8 @@ export default function RegisterPage() {
                     value={account}
                     onChange={(e) => handleAccountChange(e.target.value)}
                     className={`w-full pl-12 pr-4 py-3 rounded-2xl bg-muted/50 border outline-none transition-all ${
-                      isAccountDirty && accountType === 'invalid' 
-                        ? 'border-destructive focus:ring-destructive/20' 
+                      isAccountDirty && accountType === 'invalid'
+                        ? 'border-destructive focus:ring-destructive/20'
                         : 'border-border/50 focus:border-primary focus:ring-primary/20'
                     }`}
                     required
@@ -231,8 +327,8 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => handlePasswordChange(e.target.value)}
                   className={`w-full pl-12 pr-12 py-3 rounded-2xl bg-muted/50 border outline-none transition-all ${
-                    isPasswordDirty && !isPasswordValid 
-                      ? 'border-destructive focus:ring-destructive/20' 
+                    isPasswordDirty && !isPasswordValid
+                      ? 'border-destructive focus:ring-destructive/20'
                       : 'border-border/50 focus:border-primary focus:ring-primary/20'
                   }`}
                   required
@@ -248,7 +344,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={isLoading || accountType === 'invalid' || !isPasswordValid}
+              disabled={isLoading || isUploadingAvatar || accountType === 'invalid' || !isPasswordValid}
               className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
@@ -265,7 +361,7 @@ export default function RegisterPage() {
             <div className="space-y-2 text-center">
               <p className="text-sm font-medium">{t("auth.verification_code_sent_to")} <span className="text-primary">{account}</span></p>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-semibold ml-1">{t("auth.verification_code")}</label>
               <div className="relative">
@@ -288,8 +384,8 @@ export default function RegisterPage() {
                 disabled={isLoading || countdown > 0}
                 className="text-sm font-bold text-primary hover:underline disabled:opacity-50 disabled:no-underline"
               >
-                {countdown > 0 
-                  ? t("auth.resend_code_in", { count: countdown }) 
+                {countdown > 0
+                  ? t("auth.resend_code_in", { count: countdown })
                   : t("auth.resend_code")}
               </button>
             </div>

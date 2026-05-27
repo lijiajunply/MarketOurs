@@ -1,10 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
+import '../../services/file_service.dart';
 import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_theme.dart';
@@ -460,7 +464,11 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _infoController;
-  late final TextEditingController _avatarController;
+
+  String _avatarUrl = '';
+  bool _isUploadingAvatar = false;
+  final _imagePicker = ImagePicker();
+  final _fileService = FileService();
 
   @override
   void initState() {
@@ -471,86 +479,206 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
     _infoController = TextEditingController(
       text: widget.initialUser.info ?? '',
     );
-    _avatarController = TextEditingController(
-      text: widget.initialUser.avatar ?? '',
-    );
+    _avatarUrl = widget.initialUser.avatar ?? '';
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _infoController.dispose();
-    _avatarController.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    try {
-      await ref
-          .read(authControllerProvider.notifier)
-          .updateProfile(
-            UserUpdateDto(
-              name: _nameController.text.trim(),
-              info: _infoController.text.trim(),
-              avatar: _avatarController.text.trim(),
-            ),
-          );
-      if (!mounted) return;
-      await AppFeedback.showMessage(context, message: '个人资料已更新');
-      Navigator.of(context).pop();
-    } catch (_) {
-      final errorMessage = ref
-          .read(authControllerProvider)
-          .asData
-          ?.value
-          .errorMessage;
-      if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
-        await AppFeedback.showMessage(context, message: errorMessage);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider).asData?.value;
-    final isSubmitting = authState?.isSubmitting ?? false;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: Form(
-        key: _formKey,
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            Text('编辑资料', style: AppTextStyles.sectionTitle(context)),
-            const SizedBox(height: 20),
-            AppTextField(controller: _nameController, placeholder: '昵称'),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: _infoController,
-              placeholder: '个人简介',
-              maxLines: 3,
-            ),
-            const SizedBox(height: 12),
-            AppTextField(
-              controller: _avatarController,
-              placeholder: '头像链接 (URL)',
-            ),
-            const SizedBox(height: 24),
-            AppPrimaryButton(
-              onPressed: isSubmitting ? null : _submit,
-              child: Text(isSubmitting ? '保存中...' : '保存修改'),
-            ),
-          ],
-        ),
-      ),
+  void _generateRandomAvatar() {
+    final random = Random();
+    final seed = random.nextInt(0xFFFFFF).toRadixString(36).padLeft(5, '0');
+    setState(
+      () => _avatarUrl =
+          'https://api.dicebear.com/9.x/avataaars/svg?seed=$seed',
     );
   }
-}
+
+  Future<void> _pickFromGallery() async {
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+    );
+    if (picked != null) await _uploadAvatar(picked);
+  }
+
+  Future<void> _takePhoto() async {
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 90,
+    );
+    if (picked != null) await _uploadAvatar(picked);
+  }
+
+  Future<void> _uploadAvatar(XFile file) async {
+    setState(() => _isUploadingAvatar = true);
+    try {
+      final response = await _fileService.uploadImage(file);
+      final url = response.data;
+      if (url != null && url.isNotEmpty && mounted) {
+        setState(() => _avatarUrl = url);
+      }
+      } catch (_) {
+        if (mounted) {
+          await AppFeedback.showMessage(context, message: '头像上传失败');
+        }
+      } finally {
+        if (mounted) setState(() => _isUploadingAvatar = false);
+      }
+    }
+
+    void _showAvatarOptions() {
+      showCupertinoModalPopup<void>(
+        context: context,
+        builder: (ctx) => CupertinoActionSheet(
+          title: const Text('选择头像'),
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _generateRandomAvatar();
+              },
+              child: const Text('随机生成'),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _pickFromGallery();
+              },
+              child: const Text('从相册选择'),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _takePhoto();
+              },
+              child: const Text('拍照'),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+        ),
+      );
+    }
+
+    Future<void> _submit() async {
+      if (!_formKey.currentState!.validate()) return;
+
+      try {
+        await ref
+            .read(authControllerProvider.notifier)
+            .updateProfile(
+              UserUpdateDto(
+                name: _nameController.text.trim(),
+                info: _infoController.text.trim(),
+                avatar: _avatarUrl,
+              ),
+            );
+        if (!mounted) return;
+        await AppFeedback.showMessage(context, message: '个人资料已更新');
+        Navigator.of(context).pop();
+      } catch (_) {
+        final errorMessage = ref
+            .read(authControllerProvider)
+            .asData
+            ?.value
+            .errorMessage;
+        if (errorMessage != null && errorMessage.isNotEmpty && mounted) {
+          await AppFeedback.showMessage(context, message: errorMessage);
+        }
+      }
+    }
+
+    @override
+    Widget build(BuildContext context) {
+      final authState = ref.watch(authControllerProvider).asData?.value;
+      final isSubmitting = authState?.isSubmitting ?? false;
+
+      return Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        ),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              Text('编辑资料', style: AppTextStyles.sectionTitle(context)),
+              const SizedBox(height: 20),
+
+              // Avatar picker
+              Center(
+                child: GestureDetector(
+                  onTap: _isUploadingAvatar ? null : _showAvatarOptions,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      AppAvatar(
+                        url: _avatarUrl,
+                        name: _nameController.text,
+                        size: 88,
+                        radius: 44,
+                      ),
+                      if (_isUploadingAvatar)
+                        const Positioned.fill(
+                          child: Center(child: CupertinoActivityIndicator()),
+                        ),
+                      Positioned(
+                        right: -4,
+                        bottom: -4,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.camera,
+                            size: 16,
+                            color: CupertinoColors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  '点击更换头像',
+                  style: AppTextStyles.label(context).copyWith(fontSize: 11),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              AppTextField(controller: _nameController, placeholder: '昵称'),
+              const SizedBox(height: 12),
+              AppTextField(
+                controller: _infoController,
+                placeholder: '个人简介',
+                maxLines: 3,
+              ),
+              const SizedBox(height: 24),
+              AppPrimaryButton(
+                onPressed:
+                    isSubmitting || _isUploadingAvatar ? null : _submit,
+                child: Text(isSubmitting ? '保存中...' : '保存修改'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }

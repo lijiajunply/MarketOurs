@@ -1,24 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { userService } from "../../services/userService";
 import { authService } from "../../services/authService";
-import { logout, setCredentials } from "../../stores/authSlice";
+import { fileService } from "../../services/fileService";
+import { logout, setUser as setReduxUser } from "../../stores/authSlice";
 import type { RootState } from "../../stores";
-import { 
-  Mail, 
+import {
+  Mail,
   Phone,
-  Calendar, 
-  Shield, 
-  LogOut, 
-  Edit2, 
-  Save, 
-  X, 
-  CheckCircle2, 
+  Calendar,
+  Shield,
+  LogOut,
+  Edit2,
+  Save,
+  X,
+  CheckCircle2,
   AlertCircle,
   Camera,
   RefreshCw,
+  Loader2,
+  Image,
   Key,
   ArrowRight
 } from "lucide-react";
@@ -30,7 +33,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const currentUser = useSelector((state: RootState) => state.auth.user);
   
-  const [user, setUser] = useState<UserDto | null>(currentUser);
+  const [user, setUserState] = useState<UserDto | null>(currentUser);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -46,6 +49,12 @@ export default function ProfilePage() {
   const [name, setName] = useState(currentUser?.name || "");
   const [info, setInfo] = useState(currentUser?.info || "");
   const [avatar, setAvatar] = useState(currentUser?.avatar || "");
+
+  // Avatar upload states
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [showAvatarOptions, setShowAvatarOptions] = useState(false);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let timer: any;
@@ -63,7 +72,7 @@ export default function ProfilePage() {
     try {
       const response = await userService.getProfile();
       if (response.data) {
-        setUser(response.data);
+        setUserState(response.data);
         setName(response.data.name);
         setInfo(response.data.info || "");
         setAvatar(response.data.avatar);
@@ -83,13 +92,8 @@ export default function ProfilePage() {
         avatar
       });
       if (response.data) {
-        setUser(response.data);
-        // Update redux store if needed - usually setCredentials is used for login, 
-        // but we can update just the user part.
-        // For simplicity in this app, we'll just update local state and 
-        // rely on re-fetch or manual store update.
-        // Assuming we have a way to update just user:
-        dispatch(setCredentials({ user: response.data, token: localStorage.getItem('token') || "" }));
+        setUserState(response.data);
+        dispatch(setReduxUser(response.data));
         setIsEditing(false);
         setMessage({ type: 'success', text: t("profile.success_update") });
       }
@@ -105,9 +109,35 @@ export default function ProfilePage() {
     navigate("/login");
   };
 
-  const randomizeAvatar = () => {
+  const generateRandomAvatar = () => {
     const seed = Math.random().toString(36).substring(7);
     setAvatar(`https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}`);
+    setShowAvatarOptions(false);
+  };
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setShowAvatarOptions(false);
+    setIsUploadingAvatar(true);
+    setMessage(null);
+
+    const previewUrl = URL.createObjectURL(file);
+    setAvatar(previewUrl);
+
+    try {
+      const response = await fileService.uploadImage(file);
+      if (response.data) {
+        setAvatar(response.data);
+      }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || '头像上传失败' });
+    } finally {
+      setIsUploadingAvatar(false);
+      URL.revokeObjectURL(previewUrl);
+      e.target.value = '';
+    }
   };
 
   const handleSendCode = async () => {
@@ -166,24 +196,86 @@ export default function ProfilePage() {
       <div className="glass-card rounded-[2.5rem] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="h-32 bg-linear-to-r from-primary/20 to-primary/10 relative">
           <div className="absolute -bottom-16 left-8">
-            <div className="relative group">
-              <div className="h-32 w-32 rounded-3xl overflow-hidden border-4 border-background shadow-2xl bg-muted">
-                <img 
-                  src={avatar} 
-                  alt={user.name} 
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              {isEditing && (
-                <button
-                  onClick={randomizeAvatar}
-                  className="absolute -right-2 -bottom-2 p-2 bg-primary text-white rounded-xl shadow-lg hover:rotate-180 transition-all duration-500"
-                  title={t("auth.click_to_randomize_avatar")}
-                >
-                  <Camera size={18} />
-                </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => isEditing && setShowAvatarOptions(!showAvatarOptions)}
+                disabled={isUploadingAvatar || !isEditing}
+                className="relative group cursor-pointer disabled:cursor-default"
+              >
+                <div className="h-32 w-32 rounded-3xl overflow-hidden border-4 border-background shadow-2xl bg-muted">
+                  {isUploadingAvatar ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <Loader2 className="animate-spin text-primary" size={32} />
+                    </div>
+                  ) : (
+                    <img
+                      src={avatar}
+                      alt={user.name}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                </div>
+                {isEditing && (
+                  <div className="absolute -right-2 -bottom-2 p-2 bg-primary text-white rounded-xl shadow-lg transition-all duration-500">
+                    <Camera size={18} />
+                  </div>
+                )}
+              </button>
+
+              {/* Avatar options popover */}
+              {isEditing && showAvatarOptions && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowAvatarOptions(false)}
+                  />
+                  <div className="absolute top-full mt-2 left-0 z-20 bg-card border border-border rounded-2xl shadow-xl p-2 min-w-[170px] animate-in fade-in zoom-in-95 duration-200">
+                    <button
+                      type="button"
+                      onClick={generateRandomAvatar}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-semibold transition-colors"
+                    >
+                      <RefreshCw size={16} className="text-primary" />
+                      {t("auth.random_avatar") || "随机生成"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-semibold transition-colors"
+                    >
+                      <Image size={16} className="text-primary" />
+                      {t("auth.pick_from_gallery") || "从相册选择"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted text-sm font-semibold transition-colors"
+                    >
+                      <Camera size={16} className="text-primary" />
+                      {t("auth.take_photo") || "拍照"}
+                    </button>
+                  </div>
+                </>
               )}
             </div>
+
+            {/* Hidden file inputs */}
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarFile}
+              className="hidden"
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleAvatarFile}
+              className="hidden"
+            />
           </div>
           
           <div className="absolute top-4 right-4 flex gap-2">
