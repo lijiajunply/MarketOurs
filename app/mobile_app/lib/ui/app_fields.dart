@@ -10,6 +10,7 @@ class AppTextField extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.onFieldSubmitted,
+    this.onChanged,
     this.maxLines = 1,
     this.validator,
     this.prefix,
@@ -22,6 +23,7 @@ class AppTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onFieldSubmitted;
+  final ValueChanged<String>? onChanged;
   final int maxLines;
   final FormFieldValidator<String>? validator;
   final Widget? prefix;
@@ -81,7 +83,10 @@ class _AppTextFieldState extends State<AppTextField> {
                 textInputAction: widget.textInputAction,
                 maxLines: widget.maxLines,
                 obscureText: widget.obscureText,
-                onChanged: field.didChange,
+                onChanged: (v) {
+                    field.didChange(v);
+                    widget.onChanged?.call(v);
+                  },
                 onSubmitted: widget.onFieldSubmitted,
                 prefix: widget.prefix == null
                     ? null

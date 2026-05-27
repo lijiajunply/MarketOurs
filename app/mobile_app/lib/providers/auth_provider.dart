@@ -212,13 +212,19 @@ class AuthController extends AsyncNotifier<AuthState> {
     required String account,
     required String password,
     required String name,
+    String? avatar,
   }) async {
     final current = state.asData?.value ?? AuthState.unauthenticated();
     state = AsyncData(current.copyWith(isSubmitting: true, clearError: true));
 
     try {
       final response = await _authService.register(
-        UserCreateDto(account: account, password: password, name: name),
+        UserCreateDto(
+          account: account,
+          password: password,
+          name: name,
+          avatar: avatar,
+        ),
       );
 
       final registrationToken = response.data;

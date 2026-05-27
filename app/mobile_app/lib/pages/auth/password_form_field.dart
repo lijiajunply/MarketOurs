@@ -9,6 +9,7 @@ class PasswordFormField extends StatefulWidget {
     this.placeholder,
     this.validator,
     this.onFieldSubmitted,
+    this.onChanged,
     this.textInputAction,
   });
 
@@ -16,6 +17,7 @@ class PasswordFormField extends StatefulWidget {
   final String? placeholder;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onFieldSubmitted;
+  final ValueChanged<String>? onChanged;
   final TextInputAction? textInputAction;
 
   @override
@@ -41,6 +43,7 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
         ),
       validator: widget.validator,
       onFieldSubmitted: widget.onFieldSubmitted,
+      onChanged: widget.onChanged,
       textInputAction: widget.textInputAction,
       obscureText: _obscureText,
     );
