@@ -33,11 +33,13 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   PostDto? _post;
   List<CommentDto> _comments = const [];
   bool _isLoading = true;
+  bool _isCommentsLoading = false;
   bool _isWorking = false;
   String? _errorMessage;
   String _commentSort = 'recent';
   bool _postLiked = false;
   bool _postDisliked = false;
+  int _commentsRequestId = 0;
   final Set<String> _likedComments = {};
   final Set<String> _dislikedComments = {};
 
@@ -85,6 +87,33 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadComments() async {
+    final requestId = ++_commentsRequestId;
+    setState(() => _isCommentsLoading = true);
+
+    try {
+      final res = await ref
+          .read(postServiceProvider)
+          .getPostComments(widget.postId, _commentSort);
+      final comments = res.data;
+
+      if (!mounted || requestId != _commentsRequestId) return;
+      setState(() {
+        _comments = comments ?? const [];
+      });
+    } catch (error) {
+      if (!mounted || requestId != _commentsRequestId) return;
+      await AppFeedback.showError(
+        context,
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
+    } finally {
+      if (mounted && requestId == _commentsRequestId) {
+        setState(() => _isCommentsLoading = false);
+      }
     }
   }
 
@@ -517,16 +546,23 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                 ),
                               },
                               onValueChanged: (v) {
-                                if (v != null) {
+                                if (v != null && v != _commentSort) {
                                   setState(() => _commentSort = v);
-                                  _loadData();
+                                  _loadComments();
                                 }
                               },
                             ),
                           ],
                         ),
                         const SizedBox(height: 16),
-                        if (_comments.isEmpty)
+                        if (_isCommentsLoading)
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 16),
+                            child: Center(
+                              child: CupertinoActivityIndicator(radius: 10),
+                            ),
+                          ),
+                        if (_comments.isEmpty && !_isCommentsLoading)
                           const AppEmptyState(
                             icon: CupertinoIcons.chat_bubble,
                             title: '暂无评论',

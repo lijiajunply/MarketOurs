@@ -45,8 +45,8 @@ export const postService = {
   dislikePost: (id: string) =>
     apiClient.post<LikeToggleResult>(`/Post/${id}/dislike`),
 
-  getPostComments: (id: string, type: string) =>
-    apiClient.get<CommentDto[]>(`/Post/${id}/comments/${type}`),
+  getPostComments: (id: string, type: string, options?: RequestInit) =>
+    apiClient.get<CommentDto[]>(`/Post/${id}/comments/${type}`, options),
 
   searchPosts: (pageIndex?: number, pageSize?: number, keyword?: string) => {
     const params = new URLSearchParams();

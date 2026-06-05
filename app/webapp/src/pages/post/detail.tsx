@@ -247,6 +247,7 @@ export default function PostDetailPage() {
   const [comments, setComments] = useState<CommentDto[]>([])
   const [commentContent, setCommentContent] = useState("")
   const [loading, setLoading] = useState(true)
+  const [commentsLoading, setCommentsLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [commentSort, setCommentSort] = useState<"recent" | "hot">("recent")
   const [postLiked, setPostLiked] = useState(false)
@@ -264,14 +265,10 @@ export default function PostDetailPage() {
     const fetchPostData = async () => {
       setLoading(true)
       try {
-        const [postRes, commentsRes] = await Promise.all([
-          postService.getPost(id, { signal: controller.signal }),
-          postService.getPostComments(id, commentSort).catch(() => ({ data: [] }))
-        ])
+        const postRes = await postService.getPost(id, { signal: controller.signal })
         setPost(postRes.data)
         setEditTitle(postRes.data.title)
         setEditContent(postRes.data.content)
-        setComments(Array.isArray(commentsRes.data) ? commentsRes.data : [])
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') return;
         console.error(err)
@@ -280,6 +277,25 @@ export default function PostDetailPage() {
       }
     }
     fetchPostData()
+    return () => controller.abort()
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return;
+    const controller = new AbortController();
+    const fetchComments = async () => {
+      setCommentsLoading(true)
+      try {
+        const commentsRes = await postService.getPostComments(id, commentSort, { signal: controller.signal })
+        setComments(Array.isArray(commentsRes.data) ? commentsRes.data : [])
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        console.error("Failed to fetch comments", err)
+      } finally {
+        if (!controller.signal.aborted) setCommentsLoading(false)
+      }
+    }
+    fetchComments()
     return () => controller.abort()
   }, [id, commentSort])
 
@@ -618,12 +634,16 @@ export default function PostDetailPage() {
 
       <section className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
         <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-bold tracking-tight">{t("post.comments_count", { count: comments.length })}</h3>
+          <h3 className="flex items-center gap-3 text-2xl font-bold tracking-tight">
+            {t("post.comments_count", { count: comments.length })}
+            {commentsLoading ? <Loader2 className="animate-spin text-primary" size={18} /> : null}
+          </h3>
           <div className="flex items-center gap-2 p-1 rounded-xl bg-muted/50 border border-border/50">
             <button
               onClick={() => setCommentSort("recent")}
+              disabled={commentsLoading && commentSort === "recent"}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-70",
                 commentSort === "recent" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -631,8 +651,9 @@ export default function PostDetailPage() {
             </button>
             <button
               onClick={() => setCommentSort("hot")}
+              disabled={commentsLoading && commentSort === "hot"}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                "px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-70",
                 commentSort === "hot" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -680,7 +701,7 @@ export default function PostDetailPage() {
               likedComments={likedComments}
             />
           ))}
-          {comments.length === 0 && (
+          {comments.length === 0 && !commentsLoading && (
             <p className="text-center text-muted-foreground py-8">{t("post.no_comments")}</p>
           )}
         </div>
