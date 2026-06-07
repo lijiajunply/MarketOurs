@@ -11,4 +11,5 @@ public class AIConfig
     public string? DeploymentName { get; set; } // For Azure OpenAI
     public string? ContentSafetyEndpoint { get; set; } // For Azure AI Content Safety
     public string? ContentSafetyApiKey { get; set; } // For Azure AI Content Safety
+    public bool ReviewFailOpen { get; set; } = true;
 }

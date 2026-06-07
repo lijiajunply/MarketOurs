@@ -3,6 +3,9 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace MarketOurs.DataAPI.Services;
 
+public class AIReviewUnavailableException(string message, Exception innerException)
+    : Exception(message, innerException);
+
 /// <summary>
 /// AI 服务接口，封装了基于 Semantic Kernel 的大模型交互能力
 /// </summary>
@@ -58,9 +61,17 @@ public class AIService(
                                      "如果内容合规，请仅回复“Pass”。如果不合规，请回复违规的具体原因，不要包含任何多余的解释性文字。");
         chatHistory.AddUserMessage(message);
 
-        var result = await chatCompletionService.GetChatMessageContentAsync(
-            chatHistory,
-            kernel: kernel);
+        ChatMessageContent result;
+        try
+        {
+            result = await chatCompletionService.GetChatMessageContentAsync(
+                chatHistory,
+                kernel: kernel);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            throw new AIReviewUnavailableException("AI review service is unavailable.", ex);
+        }
 
         var content = result.Content?.Trim() ?? string.Empty;
         if (content.Equals("Pass", StringComparison.OrdinalIgnoreCase))

@@ -147,7 +147,10 @@ public static class ServiceCollectionExtensions
             ContentSafetyEndpoint =
                 Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_ENDPOINT", EnvironmentVariableTarget.Process),
             ContentSafetyApiKey =
-                Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_API_KEY", EnvironmentVariableTarget.Process)
+                Environment.GetEnvironmentVariable("AI_CONTENT_SAFETY_API_KEY", EnvironmentVariableTarget.Process),
+            ReviewFailOpen = !bool.TryParse(
+                Environment.GetEnvironmentVariable("AI_REVIEW_FAIL_OPEN", EnvironmentVariableTarget.Process),
+                out var reviewFailOpen) || reviewFailOpen
         };
 
         var smsConfig = new SmsConfig()

@@ -67,7 +67,7 @@ REDIS=localhost:6379
 
 # Vercel Blob 图床配置
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
-BLOB_STORE_ID=store_xxx # 可选，通常可从 token 自动解析
+BLOB_STORE_ID=store_xxx # 可选，通常可从 token 自动解析；也支持不带 store_ 前缀
 BLOB_ACCESS=public
 BLOB_BASE_PATH=uploads
 
@@ -99,7 +99,7 @@ dotnet run
 当前图片上传默认走 **Vercel Blob**。后端仍然保留原有的 `/File/upload/image` 和 `/File/upload/images` 接口，但存储实现已经从本地 `wwwroot/uploads` 切换为远端 Blob。
 
 - `BLOB_READ_WRITE_TOKEN`: Vercel Blob 的读写令牌，必填。
-- `BLOB_STORE_ID`: 可选；如果 token 解析失败，可以显式指定。
+- `BLOB_STORE_ID`: 可选；如果 token 解析失败，可以显式指定，`store_xxx` 和 `xxx` 两种格式都支持。
 - `BLOB_ACCESS`: 默认 `public`，适合作为公开图床。
 - `BLOB_BASE_PATH`: Blob 内的目录前缀，默认 `uploads`。
 

@@ -80,12 +80,12 @@ public class VercelBlobStorageService(
     LocalStorageService localStorageService,
     ILogger<VercelBlobStorageService> logger) : IStorageService
 {
-    private const string BlobUploadBaseUrl = "https://blob.vercel-storage.com";
     private const string BlobApiBaseUrl = "https://vercel.com/api/blob";
     private readonly string _token = GetRequiredEnv("BLOB_READ_WRITE_TOKEN");
     private readonly string _storeId =
-        Environment.GetEnvironmentVariable("BLOB_STORE_ID", EnvironmentVariableTarget.Process)
-        ?? ParseStoreId(GetRequiredEnv("BLOB_READ_WRITE_TOKEN"));
+        NormalizeStoreId(
+            Environment.GetEnvironmentVariable("BLOB_STORE_ID", EnvironmentVariableTarget.Process)
+            ?? ParseStoreId(GetRequiredEnv("BLOB_READ_WRITE_TOKEN")));
     private readonly string _access =
         Environment.GetEnvironmentVariable("BLOB_ACCESS", EnvironmentVariableTarget.Process) ?? "public";
     private readonly string _basePath =
@@ -105,14 +105,14 @@ public class VercelBlobStorageService(
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         var fileName = $"{Guid.NewGuid():N}{extension}";
         var pathname = BuildPathname(subFolder, fileName);
-        var requestUri = $"{BlobUploadBaseUrl}/{pathname}";
+        var requestUri = $"{BlobApiBaseUrl}/?pathname={Uri.EscapeDataString(pathname)}";
 
         using var request = new HttpRequestMessage(HttpMethod.Put, requestUri);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
         request.Headers.Add("x-api-version", "12");
         request.Headers.Add("x-api-blob-request-id", Guid.NewGuid().ToString("N"));
         request.Headers.Add("x-vercel-blob-store-id", _storeId);
-        request.Headers.Add("access", _access);
+        request.Headers.Add("x-vercel-blob-access", _access);
         request.Headers.Add("x-add-random-suffix", "0");
         request.Headers.Add("x-allow-overwrite", "0");
         request.Headers.Add("x-cache-control-max-age", _cacheControlMaxAgeSeconds.ToString());
@@ -129,7 +129,7 @@ public class VercelBlobStorageService(
         if (!response.IsSuccessStatusCode)
         {
             logger.LogError("Vercel Blob 上传失败: {StatusCode} {Body}", response.StatusCode, responseBody);
-            throw new InvalidOperationException("上传到 Vercel Blob 失败。");
+            throw new InvalidOperationException($"上传到 Vercel Blob 失败: {(int)response.StatusCode} {response.ReasonPhrase}");
         }
 
         using var document = JsonDocument.Parse(responseBody);
@@ -195,11 +195,18 @@ public class VercelBlobStorageService(
         var parts = token.Split('_', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length >= 4 && !string.IsNullOrWhiteSpace(parts[3]))
         {
-            return parts[3];
+            return NormalizeStoreId(parts[3]);
         }
 
         throw new InvalidOperationException(
             "无法从 BLOB_READ_WRITE_TOKEN 解析 store id，请显式配置 BLOB_STORE_ID。");
+    }
+
+    private static string NormalizeStoreId(string storeId)
+    {
+        return storeId.StartsWith("store_", StringComparison.OrdinalIgnoreCase)
+            ? storeId["store_".Length..]
+            : storeId;
     }
 
     private static string GetRequiredEnv(string key)
