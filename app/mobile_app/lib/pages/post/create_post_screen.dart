@@ -107,9 +107,17 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       backgroundColor: AppColors.background,
       navigationBar: CupertinoNavigationBar(
         middle: const Text('发布帖子'),
-        backgroundColor: AppColors.background.withValues(alpha: 0.94),
+        backgroundColor: CupertinoDynamicColor.resolve(
+          AppColors.background,
+          context,
+        ).withValues(alpha: 0.94),
         border: Border(
-          bottom: BorderSide(color: AppColors.border.withValues(alpha: 0.3)),
+          bottom: BorderSide(
+            color: CupertinoDynamicColor.resolve(
+              AppColors.border,
+              context,
+            ).withValues(alpha: 0.3),
+          ),
         ),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,

@@ -66,7 +66,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           slivers: [
             CupertinoSliverNavigationBar(
               largeTitle: const Text('首页'),
-              backgroundColor: AppColors.background.withValues(alpha: 0.94),
+              backgroundColor: CupertinoDynamicColor.resolve(
+                AppColors.background,
+                context,
+              ).withValues(alpha: 0.94),
               border: null,
               trailing: CupertinoButton(
                 padding: EdgeInsets.zero,

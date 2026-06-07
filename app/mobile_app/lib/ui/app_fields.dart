@@ -61,8 +61,11 @@ class _AppTextFieldState extends State<AppTextField> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       builder: (field) {
         final borderColor = field.hasError
-            ? AppColors.destructive
-            : AppColors.input.withValues(alpha: 0.55);
+            ? CupertinoDynamicColor.resolve(AppColors.destructive, context)
+            : CupertinoDynamicColor.resolve(
+                AppColors.input,
+                context,
+              ).withValues(alpha: 0.55);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +76,7 @@ class _AppTextFieldState extends State<AppTextField> {
                     .withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(AppRadii.lg),
                 border: Border.all(
-                  color: CupertinoDynamicColor.resolve(borderColor, context),
+                  color: borderColor,
                 ),
               ),
               child: CupertinoTextField(

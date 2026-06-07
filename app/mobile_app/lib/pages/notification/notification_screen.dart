@@ -84,7 +84,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
         slivers: [
           CupertinoSliverNavigationBar(
             largeTitle: const Text('通知'),
-            backgroundColor: AppColors.background.withValues(alpha: 0.94),
+            backgroundColor: CupertinoDynamicColor.resolve(
+              AppColors.background,
+              context,
+            ).withValues(alpha: 0.94),
             border: null,
             trailing: CupertinoButton(
               padding: EdgeInsets.zero,
