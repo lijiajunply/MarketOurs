@@ -12,7 +12,7 @@ class ApiService {
   late final Dio dio;
   static final ApiService _instance = ApiService._internal();
   static const String _apiBaseUrlOverride =
-      ''; // https://lumalisapi.luckyfishes.site
+      'https://lumalisapi.luckyfishes.site';
   static const String _skipAuthExtraKey = 'skipAuth';
   static const String _skipUnauthorizedHandlerExtraKey =
       'skipUnauthorizedHandler';

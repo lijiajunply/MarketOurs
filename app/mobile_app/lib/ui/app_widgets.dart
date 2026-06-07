@@ -475,45 +475,48 @@ class AppEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppSectionCard(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: CupertinoDynamicColor.resolve(
-                  AppColors.secondary,
-                  context,
+    return SizedBox(
+      width: double.infinity,
+      child: AppSectionCard(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: CupertinoDynamicColor.resolve(
+                    AppColors.secondary,
+                    context,
+                  ),
+                  shape: BoxShape.circle,
                 ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: CupertinoDynamicColor.resolve(
-                  AppColors.mutedForeground,
-                  context,
+                child: Icon(
+                  icon,
+                  color: CupertinoDynamicColor.resolve(
+                    AppColors.mutedForeground,
+                    context,
+                  ),
+                  size: 28,
                 ),
-                size: 28,
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: AppTextStyles.sectionTitle(context),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: AppTextStyles.muted(context),
-              textAlign: TextAlign.center,
-            ),
-            if (action != null) ...[const SizedBox(height: 18), action!],
-          ],
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: AppTextStyles.sectionTitle(context),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: AppTextStyles.muted(context),
+                textAlign: TextAlign.center,
+              ),
+              if (action != null) ...[const SizedBox(height: 18), action!],
+            ],
+          ),
         ),
       ),
     );

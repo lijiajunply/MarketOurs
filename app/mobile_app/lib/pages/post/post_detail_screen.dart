@@ -156,16 +156,21 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     final content = _commentController.text.trim();
     if (content.isEmpty) return;
 
-    await _runAction(() async {
-      await _commentService.createComment(
-        CommentCreateDto(
-          content: content,
-          userId: user.id,
-          postId: widget.postId,
-        ),
-      );
-      _commentController.clear();
-    }, successMessage: '评论已发布', reloadAll: false, reloadComments: true);
+    await _runAction(
+      () async {
+        await _commentService.createComment(
+          CommentCreateDto(
+            content: content,
+            userId: user.id,
+            postId: widget.postId,
+          ),
+        );
+        _commentController.clear();
+      },
+      successMessage: '评论已发布',
+      reloadAll: false,
+      reloadComments: true,
+    );
   }
 
   Future<void> _shareCurrentPost() async {
@@ -196,17 +201,22 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     );
     if (content == null || content.trim().isEmpty) return;
 
-    await _runAction(() async {
-      await _commentService.replyToComment(
-        comment.id,
-        CommentCreateDto(
-          content: content.trim(),
-          userId: user.id,
-          postId: widget.postId,
-          parentCommentId: comment.id,
-        ),
-      );
-    }, successMessage: '回复已发送', reloadAll: false, reloadComments: true);
+    await _runAction(
+      () async {
+        await _commentService.replyToComment(
+          comment.id,
+          CommentCreateDto(
+            content: content.trim(),
+            userId: user.id,
+            postId: widget.postId,
+            parentCommentId: comment.id,
+          ),
+        );
+      },
+      successMessage: '回复已发送',
+      reloadAll: false,
+      reloadComments: true,
+    );
   }
 
   Future<void> _editComment(CommentDto comment) async {
@@ -217,21 +227,31 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     );
     if (content == null || content.trim().isEmpty) return;
 
-    await _runAction(() async {
-      await _commentService.updateComment(
-        comment.id,
-        CommentUpdateDto(content: content.trim()),
-      );
-    }, successMessage: '评论已更新', reloadAll: false, reloadComments: true);
+    await _runAction(
+      () async {
+        await _commentService.updateComment(
+          comment.id,
+          CommentUpdateDto(content: content.trim()),
+        );
+      },
+      successMessage: '评论已更新',
+      reloadAll: false,
+      reloadComments: true,
+    );
   }
 
   Future<void> _deleteComment(CommentDto comment) async {
     final confirmed = await _confirm('确定删除这条评论吗？');
     if (confirmed != true) return;
 
-    await _runAction(() async {
-      await _commentService.deleteComment(comment.id);
-    }, successMessage: '评论已删除', reloadAll: false, reloadComments: true);
+    await _runAction(
+      () async {
+        await _commentService.deleteComment(comment.id);
+      },
+      successMessage: '评论已删除',
+      reloadAll: false,
+      reloadComments: true,
+    );
   }
 
   Future<void> _editPost() async {
@@ -371,7 +391,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     return result;
   }
 
-  Widget _buildActionBar(BuildContext context, PostDto post, bool isAuthenticated) {
+  Widget _buildActionBar(
+    BuildContext context,
+    PostDto post,
+    bool isAuthenticated,
+  ) {
     return _ActionBar(
       likes: post.likes ?? 0,
       dislikes: post.dislikes ?? 0,
@@ -499,12 +523,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   ) {
     final replies = comment.repliedComments
         ?.map(
-          (reply) => _replaceCommentCounts(
-            reply,
-            commentId,
-            likeCount,
-            dislikeCount,
-          ),
+          (reply) =>
+              _replaceCommentCounts(reply, commentId, likeCount, dislikeCount),
         )
         .toList();
 
@@ -601,196 +621,203 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                           user != null,
                         );
                         final content = Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _PostHero(
-                          post: post,
-                          onAuthorTap: post.userId == null
-                              ? null
-                              : () => context.push(
-                                  buildPublicProfileLocation(post.userId!),
-                                ),
-                        ),
-                        if (!isWide) ...[
-                          const SizedBox(height: 24),
-                          actionBar,
-                        ],
-                        const SizedBox(height: 32),
-                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(
-                                '评论 ${_comments.length}',
-                                style: AppTextStyles.sectionTitle(context),
-                              ),
+                            _PostHero(
+                              post: post,
+                              onAuthorTap: post.userId == null
+                                  ? null
+                                  : () => context.push(
+                                      buildPublicProfileLocation(post.userId!),
+                                    ),
                             ),
-                            CupertinoSlidingSegmentedControl<String>(
-                              groupValue: _commentSort,
-                              backgroundColor: CupertinoDynamicColor.resolve(
-                                AppColors.secondary,
-                                context,
-                              ),
-                              children: const {
-                                'recent': Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 10),
+                            if (!isWide) ...[
+                              const SizedBox(height: 24),
+                              actionBar,
+                            ],
+                            const SizedBox(height: 32),
+                            Row(
+                              children: [
+                                Expanded(
                                   child: Text(
-                                    '最新',
-                                    style: TextStyle(fontSize: 13),
+                                    '评论 ${_comments.length}',
+                                    style: AppTextStyles.sectionTitle(context),
                                   ),
                                 ),
-                                'hot': Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 10),
-                                  child: Text(
-                                    '最热',
-                                    style: TextStyle(fontSize: 13),
+                                CupertinoSlidingSegmentedControl<String>(
+                                  groupValue: _commentSort,
+                                  backgroundColor:
+                                      CupertinoDynamicColor.resolve(
+                                        AppColors.secondary,
+                                        context,
+                                      ),
+                                  children: const {
+                                    'recent': Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      child: Text(
+                                        '最新',
+                                        style: TextStyle(fontSize: 13),
+                                      ),
+                                    ),
+                                    'hot': Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      child: Text(
+                                        '最热',
+                                        style: TextStyle(fontSize: 13),
+                                      ),
+                                    ),
+                                  },
+                                  onValueChanged: (v) {
+                                    if (v != null && v != _commentSort) {
+                                      setState(() => _commentSort = v);
+                                      _loadComments();
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            if (_isCommentsLoading)
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 16),
+                                child: Center(
+                                  child: CupertinoActivityIndicator(radius: 10),
+                                ),
+                              ),
+                            if (_comments.isEmpty && !_isCommentsLoading)
+                              const AppEmptyState(
+                                icon: CupertinoIcons.chat_bubble,
+                                title: '暂无评论',
+                                description: '分享你的见解，成为第一个评论的人。',
+                              )
+                            else
+                              ..._comments.map(
+                                (c) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _CommentThread(
+                                    comment: c,
+                                    currentUserId: user?.id,
+                                    onAuthorTapForUser: (id) => context.push(
+                                      buildPublicProfileLocation(id),
+                                    ),
+                                    onReply: () => _replyComment(c),
+                                    onEdit: user?.id == c.userId
+                                        ? () => _editComment(c)
+                                        : null,
+                                    onDelete: user?.id == c.userId
+                                        ? () => _deleteComment(c)
+                                        : null,
+                                    likedComments: _likedComments,
+                                    dislikedComments: _dislikedComments,
+                                    onLike: () {
+                                      if (user == null) {
+                                        context.go(AppRoutePaths.login);
+                                        return;
+                                      }
+                                      _runAction(() async {
+                                        final res = await _commentService
+                                            .likeComment(c.id);
+                                        final data = res.data;
+                                        if (data != null) {
+                                          setState(() {
+                                            _applyCommentReaction(
+                                              c.id,
+                                              isLiked: data.isLiked,
+                                              isDisliked: data.isDisliked,
+                                              likeCount: data.likeCount,
+                                              dislikeCount: data.dislikeCount,
+                                            );
+                                          });
+                                        }
+                                      }, reloadAll: false);
+                                    },
+                                    onDislike: () {
+                                      if (user == null) {
+                                        context.go(AppRoutePaths.login);
+                                        return;
+                                      }
+                                      _runAction(() async {
+                                        final res = await _commentService
+                                            .dislikeComment(c.id);
+                                        final data = res.data;
+                                        if (data != null) {
+                                          setState(() {
+                                            _applyCommentReaction(
+                                              c.id,
+                                              isLiked: data.isLiked,
+                                              isDisliked: data.isDisliked,
+                                              likeCount: data.likeCount,
+                                              dislikeCount: data.dislikeCount,
+                                            );
+                                          });
+                                        }
+                                      }, reloadAll: false);
+                                    },
+                                    onReplyChild: _replyComment,
+                                    onEditChild: _editComment,
+                                    onDeleteChild: _deleteComment,
+                                    onLikeChild: (child) {
+                                      if (user == null) {
+                                        context.go(AppRoutePaths.login);
+                                        return;
+                                      }
+                                      _runAction(() async {
+                                        final res = await _commentService
+                                            .likeComment(child.id);
+                                        final data = res.data;
+                                        if (data != null) {
+                                          setState(() {
+                                            _applyCommentReaction(
+                                              child.id,
+                                              isLiked: data.isLiked,
+                                              isDisliked: data.isDisliked,
+                                              likeCount: data.likeCount,
+                                              dislikeCount: data.dislikeCount,
+                                            );
+                                          });
+                                        }
+                                      }, reloadAll: false);
+                                    },
+                                    onDislikeChild: (child) {
+                                      if (user == null) {
+                                        context.go(AppRoutePaths.login);
+                                        return;
+                                      }
+                                      _runAction(() async {
+                                        final res = await _commentService
+                                            .dislikeComment(child.id);
+                                        final data = res.data;
+                                        if (data != null) {
+                                          setState(() {
+                                            _applyCommentReaction(
+                                              child.id,
+                                              isLiked: data.isLiked,
+                                              isDisliked: data.isDisliked,
+                                              likeCount: data.likeCount,
+                                              dislikeCount: data.dislikeCount,
+                                            );
+                                          });
+                                        }
+                                      }, reloadAll: false);
+                                    },
                                   ),
                                 ),
-                              },
-                              onValueChanged: (v) {
-                                if (v != null && v != _commentSort) {
-                                  setState(() => _commentSort = v);
-                                  _loadComments();
-                                }
-                              },
-                            ),
+                              ),
                           ],
-                        ),
-                        const SizedBox(height: 16),
-                        if (_isCommentsLoading)
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 16),
-                            child: Center(
-                              child: CupertinoActivityIndicator(radius: 10),
-                            ),
-                          ),
-                        if (_comments.isEmpty && !_isCommentsLoading)
-                          const AppEmptyState(
-                            icon: CupertinoIcons.chat_bubble,
-                            title: '暂无评论',
-                            description: '分享你的见解，成为第一个评论的人。',
-                          )
-                        else
-                          ..._comments.map(
-                            (c) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _CommentThread(
-                                comment: c,
-                                currentUserId: user?.id,
-                                onAuthorTapForUser: (id) => context.push(
-                                  buildPublicProfileLocation(id),
-                                ),
-                                onReply: () => _replyComment(c),
-                                onEdit: user?.id == c.userId
-                                    ? () => _editComment(c)
-                                    : null,
-                                onDelete: user?.id == c.userId
-                                    ? () => _deleteComment(c)
-                                    : null,
-                                likedComments: _likedComments,
-                                dislikedComments: _dislikedComments,
-                                onLike: () {
-                                  if (user == null) {
-                                    context.go(AppRoutePaths.login);
-                                    return;
-                                  }
-                                  _runAction(() async {
-                                    final res = await _commentService
-                                        .likeComment(c.id);
-                                    final data = res.data;
-                                    if (data != null) {
-                                      setState(() {
-                                        _applyCommentReaction(
-                                          c.id,
-                                          isLiked: data.isLiked,
-                                          isDisliked: data.isDisliked,
-                                          likeCount: data.likeCount,
-                                          dislikeCount: data.dislikeCount,
-                                        );
-                                      });
-                                    }
-                                  }, reloadAll: false);
-                                },
-                                onDislike: () {
-                                  if (user == null) {
-                                    context.go(AppRoutePaths.login);
-                                    return;
-                                  }
-                                  _runAction(() async {
-                                    final res = await _commentService
-                                        .dislikeComment(c.id);
-                                    final data = res.data;
-                                    if (data != null) {
-                                      setState(() {
-                                        _applyCommentReaction(
-                                          c.id,
-                                          isLiked: data.isLiked,
-                                          isDisliked: data.isDisliked,
-                                          likeCount: data.likeCount,
-                                          dislikeCount: data.dislikeCount,
-                                        );
-                                      });
-                                    }
-                                  }, reloadAll: false);
-                                },
-                                onReplyChild: _replyComment,
-                                onEditChild: _editComment,
-                                onDeleteChild: _deleteComment,
-                                onLikeChild: (child) {
-                                  if (user == null) {
-                                    context.go(AppRoutePaths.login);
-                                    return;
-                                  }
-                                  _runAction(() async {
-                                    final res = await _commentService
-                                        .likeComment(child.id);
-                                    final data = res.data;
-                                    if (data != null) {
-                                      setState(() {
-                                        _applyCommentReaction(
-                                          child.id,
-                                          isLiked: data.isLiked,
-                                          isDisliked: data.isDisliked,
-                                          likeCount: data.likeCount,
-                                          dislikeCount: data.dislikeCount,
-                                        );
-                                      });
-                                    }
-                                  }, reloadAll: false);
-                                },
-                                onDislikeChild: (child) {
-                                  if (user == null) {
-                                    context.go(AppRoutePaths.login);
-                                    return;
-                                  }
-                                  _runAction(() async {
-                                    final res = await _commentService
-                                        .dislikeComment(child.id);
-                                    final data = res.data;
-                                    if (data != null) {
-                                      setState(() {
-                                        _applyCommentReaction(
-                                          child.id,
-                                          isLiked: data.isLiked,
-                                          isDisliked: data.isDisliked,
-                                          likeCount: data.likeCount,
-                                          dislikeCount: data.dislikeCount,
-                                        );
-                                      });
-                                    }
-                                  }, reloadAll: false);
-                                },
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
+                        );
 
                         if (!isWide) {
                           return content;
                         }
 
                         return AppTwoPane(
-                          key: const ValueKey('post-detail-responsive-two-pane'),
+                          key: const ValueKey(
+                            'post-detail-responsive-two-pane',
+                          ),
                           primary: content,
                           secondary: actionBar,
                         );
@@ -813,65 +840,67 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppRadii.xl),
           child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          decoration: BoxDecoration(
-            color: CupertinoDynamicColor.resolve(
-              AppColors.background,
-              context,
-            ).withValues(alpha: 0.8),
-            border: Border.all(
-              color: CupertinoDynamicColor.resolve(
-                AppColors.border,
-                context,
-              ).withValues(alpha: 0.3),
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              decoration: BoxDecoration(
+                color: CupertinoDynamicColor.resolve(
+                  AppColors.background,
+                  context,
+                ).withValues(alpha: 0.8),
+                border: Border.all(
+                  color: CupertinoDynamicColor.resolve(
+                    AppColors.border,
+                    context,
+                  ).withValues(alpha: 0.3),
+                ),
+                borderRadius: BorderRadius.circular(AppRadii.xl),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: CupertinoDynamicColor.resolve(
+                          AppColors.secondary,
+                          context,
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadii.pill),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      alignment: Alignment.centerLeft,
+                      child: CupertinoTextField(
+                        controller: _commentController,
+                        placeholder: '写下你的评论...',
+                        placeholderStyle: AppTextStyles.muted(context),
+                        decoration: null,
+                        style: AppTextStyles.body(
+                          context,
+                        ).copyWith(fontSize: 15),
+                        cursorColor: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: _isWorking ? null : _submitComment,
+                    child: Text(
+                      '发布',
+                      style: TextStyle(
+                        color: AppColors.primary.withValues(
+                          alpha: _isWorking ? 0.5 : 1.0,
+                        ),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            borderRadius: BorderRadius.circular(AppRadii.xl),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: CupertinoDynamicColor.resolve(
-                      AppColors.secondary,
-                      context,
-                    ),
-                    borderRadius: BorderRadius.circular(AppRadii.pill),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  alignment: Alignment.centerLeft,
-                  child: CupertinoTextField(
-                    controller: _commentController,
-                    placeholder: '写下你的评论...',
-                    placeholderStyle: AppTextStyles.muted(context),
-                    decoration: null,
-                    style: AppTextStyles.body(context).copyWith(fontSize: 15),
-                    cursorColor: AppColors.primary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: _isWorking ? null : _submitComment,
-                child: Text(
-                  '发布',
-                  style: TextStyle(
-                    color: AppColors.primary.withValues(
-                      alpha: _isWorking ? 0.5 : 1.0,
-                    ),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
           ),
         ),
       ),
@@ -881,6 +910,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 
 class _PostHero extends StatelessWidget {
   const _PostHero({required this.post, this.onAuthorTap});
+
   final PostDto post;
   final VoidCallback? onAuthorTap;
 
@@ -997,6 +1027,7 @@ class _ActionBar extends StatelessWidget {
     required this.onLike,
     required this.onDislike,
   });
+
   final int likes;
   final int dislikes;
   final int watch;
@@ -1076,6 +1107,7 @@ class _ActionChip extends StatelessWidget {
     required this.color,
     this.active = false,
   });
+
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
@@ -1250,6 +1282,7 @@ class _CommentCard extends StatelessWidget {
     this.isDisliked = false,
     this.isReply = false,
   });
+
   final CommentDto comment;
   final VoidCallback? onAuthorTap;
   final VoidCallback onReply;
@@ -1364,6 +1397,7 @@ class _CommentActionIcon extends StatelessWidget {
     this.active = false,
     this.activeColor,
   });
+
   final IconData icon;
   final String? label;
   final VoidCallback onTap;
@@ -1409,6 +1443,7 @@ class _TextAction extends StatelessWidget {
     this.active = false,
     this.activeColor = AppColors.primary,
   });
+
   final String label;
   final VoidCallback onTap;
   final bool active;
@@ -1440,6 +1475,7 @@ class _TextAction extends StatelessWidget {
 
 class _PostDetailErrorView extends StatelessWidget {
   const _PostDetailErrorView({required this.message, required this.onRetry});
+
   final String message;
   final Future<void> Function() onRetry;
 

@@ -61,7 +61,11 @@ class HomeFeedNotifier extends AsyncNotifier<HomeFeedState> {
   Future<HomeFeedState> build() => _fetchPage(pageIndex: 1);
 
   Future<void> refresh() async {
-    state = const AsyncLoading();
+    final currentState = state.asData?.value;
+    if (currentState == null) {
+      state = const AsyncLoading();
+    }
+
     state = await AsyncValue.guard(() => _fetchPage(pageIndex: 1));
   }
 

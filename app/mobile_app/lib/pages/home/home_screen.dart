@@ -333,11 +333,6 @@ class _PostCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 24),
                 _StatItem(
-                  icon: CupertinoIcons.bubble_left,
-                  label: '${post.commentsCount ?? 0}',
-                ),
-                const SizedBox(width: 24),
-                _StatItem(
                   icon: CupertinoIcons.eye,
                   label: '${post.watch ?? 0}',
                 ),
