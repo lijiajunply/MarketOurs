@@ -20,6 +20,7 @@ import CreatePostPage from "./pages/post/create"
 import NotificationsPage from "./pages/notifications"
 import ProfilePage from "./pages/profile"
 import PublicProfilePage from "./pages/profile/public"
+import FollowingPage from "./pages/profile/following"
 import ForgotPasswordPage from "./pages/forgot-password"
 import ResetPasswordPage from "./pages/profile/reset-password"
 import { useEffect } from "react"
@@ -81,6 +82,7 @@ export function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/following" element={<FollowingPage />} />
             <Route path="/user/:id" element={<PublicProfilePage />} />
             <Route path="/profile/reset-password" element={<ResetPasswordPage />} />
           </Route>

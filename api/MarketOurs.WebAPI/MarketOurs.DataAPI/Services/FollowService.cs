@@ -50,6 +50,11 @@ public interface IFollowService
     /// 获取被屏蔽的用户ID列表（包括双向屏蔽）
     /// </summary>
     Task<List<string>> GetBlockedUserIdsAsync(string userId);
+
+    /// <summary>
+    /// 获取当前用户屏蔽的用户列表（分页）
+    /// </summary>
+    Task<PagedResultDto<UserSimpleDto>> GetBlockedUsersAsync(string userId, PaginationParams @params);
 }
 
 public class FollowService(
@@ -300,6 +305,19 @@ public class FollowService(
     public async Task<List<string>> GetBlockedUserIdsAsync(string userId)
     {
         return await userRepo.GetBlockedUserIdsAsync(userId);
+    }
+
+    public async Task<PagedResultDto<UserSimpleDto>> GetBlockedUsersAsync(string userId, PaginationParams @params)
+    {
+        var blocked = await userRepo.GetBlockedUsersAsync(userId);
+        var total = blocked?.Count ?? 0;
+        var items = (blocked ?? [])
+            .Skip((@params.PageIndex - 1) * @params.PageSize)
+            .Take(@params.PageSize)
+            .Select(MapToSimpleDto)
+            .ToList();
+
+        return PagedResultDto<UserSimpleDto>.Success(items, total, @params.PageIndex, @params.PageSize);
     }
 
     // 私有辅助方法

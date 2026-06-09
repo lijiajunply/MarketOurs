@@ -65,4 +65,18 @@ class FollowService {
       (json) => json,
     );
   }
+
+  Future<ApiResponse<dynamic>> getBlocked({
+    int pageIndex = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _api.get(
+      '/Follow/block',
+      queryParameters: {'PageIndex': pageIndex, 'PageSize': pageSize},
+    );
+    return ApiResponse<dynamic>.fromJson(
+      _asMap(response.data),
+      (json) => json,
+    );
+  }
 }

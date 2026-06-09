@@ -28,4 +28,11 @@ export const followService = {
 
   unblockUser: (userId: string) =>
     apiClient.delete(`/Follow/block/${userId}`),
+
+  getBlocked: (pageIndex?: number, pageSize?: number) => {
+    const params = new URLSearchParams();
+    if (pageIndex !== undefined) params.append('PageIndex', pageIndex.toString());
+    if (pageSize !== undefined) params.append('PageSize', pageSize.toString());
+    return apiClient.get<PagedResult<UserSimpleDto>>(`/Follow/block?${params.toString()}`);
+  },
 };

@@ -124,6 +124,18 @@ class ProfileScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    _ProfileSection(
+                      title: '社交管理',
+                      children: [
+                        _NavRow(
+                          icon: CupertinoIcons.person_2,
+                          title: '关注与屏蔽',
+                          subtitle: '管理关注的用户和屏蔽列表',
+                          onTap: () => context.push(AppRoutePaths.following),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     const _ThemeModeSection(),
                     const SizedBox(height: 16),
                     _ProfileSection(

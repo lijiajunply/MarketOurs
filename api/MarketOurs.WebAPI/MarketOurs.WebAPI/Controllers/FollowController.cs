@@ -120,4 +120,23 @@ public class FollowController(
 
         return ApiResponse.Success("已取消屏蔽");
     }
+
+    /// <summary>
+    /// 获取当前用户的屏蔽列表
+    /// </summary>
+    /// <param name="params">分页参数</param>
+    /// <returns>屏蔽用户列表</returns>
+    [HttpGet("block")]
+    [Authorize]
+    public async Task<ApiResponse<PagedResultDto<UserSimpleDto>>> GetBlockedUsers(
+        [FromQuery] PaginationParams @params)
+    {
+        var userId = this.GetRequiredUserId();
+
+        logger.LogInformation("Fetching blocked users for {UserId}", userId);
+
+        var blocked = await followService.GetBlockedUsersAsync(userId, @params);
+
+        return ApiResponse<PagedResultDto<UserSimpleDto>>.Success(blocked, "获取屏蔽列表成功");
+    }
 }

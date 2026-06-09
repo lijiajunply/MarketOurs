@@ -14,7 +14,9 @@ import '../../providers/auth_provider.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
 import '../../services/comment_service.dart';
+import '../../services/follow_service.dart';
 import '../../services/share_service.dart';
+import '../../services/user_service.dart';
 import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_responsive.dart';
@@ -34,6 +36,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   final _commentService = CommentService();
   final _commentController = TextEditingController();
   final _shareService = const ShareService();
+  final _followService = FollowService();
+  final _userService = UserService();
   PostDto? _post;
   List<CommentDto> _comments = const [];
   bool _isLoading = true;
@@ -46,6 +50,9 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   int _commentsRequestId = 0;
   final Set<String> _likedComments = {};
   final Set<String> _dislikedComments = {};
+
+  bool _isFollowingAuthor = false;
+  bool _followLoading = false;
 
   @override
   void initState() {
@@ -87,6 +94,9 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         _postDisliked = post.isDisliked ?? false;
         _syncCommentReactionState(_comments);
       });
+
+      // 获取对帖子作者的关注状态
+      _loadAuthorFollowState(post.userId);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -95,6 +105,40 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _loadAuthorFollowState(String? authorId) async {
+    if (authorId == null || authorId.isEmpty) return;
+    final user = ref.read(authControllerProvider).asData?.value.user;
+    if (user == null || user.id == authorId) return;
+
+    try {
+      final response = await _userService.getPublicProfile(authorId);
+      final status = response.data?.relationshipStatus;
+      if (mounted && status != null) {
+        setState(() => _isFollowingAuthor = status.isFollowing);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFollowAuthor() async {
+    final authorId = _post?.userId;
+    if (authorId == null || authorId.isEmpty || _followLoading) return;
+
+    final user = ref.read(authControllerProvider).asData?.value.user;
+    if (user == null) {
+      context.go(AppRoutePaths.login);
+      return;
+    }
+
+    setState(() => _followLoading = true);
+    try {
+      final result = await _followService.toggleFollow(authorId);
+      if (mounted && result.data != null) {
+        setState(() => _isFollowingAuthor = result.data!.isFollowing);
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _followLoading = false);
   }
 
   Future<void> _loadComments() async {
@@ -629,6 +673,9 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                           children: [
                             _PostHero(
                               post: post,
+                              isFollowingAuthor: _isFollowingAuthor,
+                              isMe: isOwner,
+                              onFollowToggle: _toggleFollowAuthor,
                               onAuthorTap: post.userId == null
                                   ? null
                                   : () => context.push(
@@ -913,10 +960,19 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 }
 
 class _PostHero extends StatelessWidget {
-  const _PostHero({required this.post, this.onAuthorTap});
+  const _PostHero({
+    required this.post,
+    this.onAuthorTap,
+    this.isFollowingAuthor = false,
+    this.isMe = false,
+    this.onFollowToggle,
+  });
 
   final PostDto post;
   final VoidCallback? onAuthorTap;
+  final bool isFollowingAuthor;
+  final bool isMe;
+  final VoidCallback? onFollowToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -966,12 +1022,24 @@ class _PostHero extends StatelessWidget {
                   ),
                 ),
                 AppSecondaryButton(
-                  onPressed: onAuthorTap,
+                  onPressed: isMe ? onAuthorTap : onFollowToggle,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 6,
                   ),
-                  child: const Text('关注', style: TextStyle(fontSize: 13)),
+                  child: Text(
+                    isMe
+                        ? '我的主页'
+                        : isFollowingAuthor
+                            ? '已关注'
+                            : '关注',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isFollowingAuthor && !isMe
+                          ? AppColors.mutedForeground
+                          : null,
+                    ),
+                  ),
                 ),
               ],
             ),
