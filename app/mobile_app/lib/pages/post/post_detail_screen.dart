@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -208,8 +207,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       if (newComment != null) {
         _insertCommentLocally(newComment);
         _commentController.clear();
-        if (mounted)
-          await AppFeedback.showSuccess(context, message: '评论已发布');
+        if (mounted) await AppFeedback.showSuccess(context, message: '评论已发布');
       }
     } catch (error) {
       if (!mounted) return;
@@ -264,8 +262,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       final newReply = response.data;
       if (newReply != null) {
         _insertReplyLocally(comment.id, newReply);
-        if (mounted)
-          await AppFeedback.showSuccess(context, message: '回复已发送');
+        if (mounted) await AppFeedback.showSuccess(context, message: '回复已发送');
       }
     } catch (error) {
       if (!mounted) return;
@@ -293,8 +290,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         CommentUpdateDto(content: content.trim()),
       );
       _updateCommentLocally(comment.id, content.trim());
-      if (mounted)
-        await AppFeedback.showSuccess(context, message: '评论已更新');
+      if (mounted) await AppFeedback.showSuccess(context, message: '评论已更新');
     } catch (error) {
       if (!mounted) return;
       await AppFeedback.showError(
@@ -314,8 +310,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     try {
       await _commentService.deleteComment(comment.id);
       _removeCommentLocally(comment.id);
-      if (mounted)
-        await AppFeedback.showSuccess(context, message: '评论已删除');
+      if (mounted) await AppFeedback.showSuccess(context, message: '评论已删除');
     } catch (error) {
       if (!mounted) return;
       await AppFeedback.showError(
@@ -353,8 +348,9 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         repliedComments: [...(comment.repliedComments ?? const []), reply],
       );
     }
-    if (comment.repliedComments == null ||
-        comment.repliedComments!.isEmpty) return comment;
+    if (comment.repliedComments == null || comment.repliedComments!.isEmpty) {
+      return comment;
+    }
     return _copyComment(
       comment,
       repliedComments: comment.repliedComments!
@@ -376,9 +372,12 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     String commentId,
     String newContent,
   ) {
-    if (comment.id == commentId) return _copyComment(comment, content: newContent);
-    if (comment.repliedComments == null ||
-        comment.repliedComments!.isEmpty) return comment;
+    if (comment.id == commentId) {
+      return _copyComment(comment, content: newContent);
+    }
+    if (comment.repliedComments == null || comment.repliedComments!.isEmpty) {
+      return comment;
+    }
     return _copyComment(
       comment,
       repliedComments: comment.repliedComments!
@@ -399,8 +398,9 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   }
 
   CommentDto _removeCommentInTree(CommentDto comment, String commentId) {
-    if (comment.repliedComments == null ||
-        comment.repliedComments!.isEmpty) return comment;
+    if (comment.repliedComments == null || comment.repliedComments!.isEmpty) {
+      return comment;
+    }
     return _copyComment(
       comment,
       repliedComments: comment.repliedComments!
@@ -446,7 +446,9 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 
     setState(() => _isWorking = true);
     try {
-      final result = await ref.read(postServiceProvider).updatePost(
+      final result = await ref
+          .read(postServiceProvider)
+          .updatePost(
             post.id,
             PostUpdateDto(
               title: values.$1,
@@ -1174,8 +1176,8 @@ class _PostHero extends StatelessWidget {
                     isMe
                         ? '我的主页'
                         : isFollowingAuthor
-                            ? '已关注'
-                            : '关注',
+                        ? '已关注'
+                        : '关注',
                     style: TextStyle(
                       fontSize: 13,
                       color: isFollowingAuthor && !isMe

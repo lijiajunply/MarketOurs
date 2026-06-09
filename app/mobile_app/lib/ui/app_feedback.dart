@@ -99,7 +99,7 @@ abstract final class AppFeedback {
     final entry = OverlayEntry(
       builder: (context) => _FeedbackToast(
         message: message,
-        title: hasTitle ? title!.trim() : null,
+        title: hasTitle ? title.trim() : null,
         icon: icon,
         tint: tint,
         bottomOffset: bottomInset + bottomPadding + 28,
@@ -215,47 +215,54 @@ class _FeedbackDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPopupSurface(
-      isSurfacePainted: false,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadii.xl),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            width: 320,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: CupertinoDynamicColor.resolve(
-                AppColors.background,
-                context,
-              ).withValues(alpha: 0.98),
+    return SafeArea(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: CupertinoPopupSurface(
+            isSurfacePainted: false,
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(AppRadii.xl),
-              boxShadow: AppShadows.none,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.sectionTitle(context),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  message,
-                  style: AppTextStyles.muted(context),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    for (final (index, action) in actions.indexed) ...[
-                      if (index > 0) const SizedBox(width: 10),
-                      Expanded(child: action),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  width: 320,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: CupertinoDynamicColor.resolve(
+                      AppColors.background,
+                      context,
+                    ).withValues(alpha: 0.98),
+                    borderRadius: BorderRadius.circular(AppRadii.xl),
+                    boxShadow: AppShadows.none,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTextStyles.sectionTitle(context),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        message,
+                        style: AppTextStyles.muted(context),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          for (final (index, action) in actions.indexed) ...[
+                            if (index > 0) const SizedBox(width: 10),
+                            Expanded(child: action),
+                          ],
+                        ],
+                      ),
                     ],
-                  ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
         ),

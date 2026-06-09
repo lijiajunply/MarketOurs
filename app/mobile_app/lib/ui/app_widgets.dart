@@ -539,30 +539,32 @@ Future<T?> showAppBottomSheet<T>({
         alignment: isPhone ? Alignment.bottomCenter : Alignment.center,
         child: SafeArea(
           top: false,
-          child: ClipRRect(
-            borderRadius: borderRadius,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                child: Container(
-                  margin: isPhone
-                      ? const EdgeInsets.only(top: 40)
-                      : const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: CupertinoDynamicColor.resolve(
-                      AppColors.background,
-                      context,
-                    ).withValues(alpha: 0.94),
-                    borderRadius: borderRadius,
-                    border: Border.all(
+          child: Padding(
+            padding: isPhone
+                ? const EdgeInsets.only(top: 40)
+                : const EdgeInsets.symmetric(horizontal: 20),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: ClipRRect(
+                borderRadius: borderRadius,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                  child: Container(
+                    decoration: BoxDecoration(
                       color: CupertinoDynamicColor.resolve(
-                        AppColors.border,
+                        AppColors.background,
                         context,
-                      ).withValues(alpha: 0.35),
+                      ).withValues(alpha: 0.94),
+                      borderRadius: borderRadius,
+                      border: Border.all(
+                        color: CupertinoDynamicColor.resolve(
+                          AppColors.border,
+                          context,
+                        ).withValues(alpha: 0.35),
+                      ),
                     ),
+                    child: builder(sheetContext),
                   ),
-                  child: builder(sheetContext),
                 ),
               ),
             ),
