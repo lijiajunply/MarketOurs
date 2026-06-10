@@ -74,6 +74,19 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
         modelBuilder.Entity<SensitiveWordModel>()
             .HasIndex(x => x.Word)
             .IsUnique();
+
+        // 帖子列表查询：WHERE IsReview ORDER BY CreatedAt DESC
+        // 复合索引覆盖筛选 + 排序，避免全表扫描与排序
+        modelBuilder.Entity<PostModel>()
+            .HasIndex(x => new { x.IsReview, x.CreatedAt });
+
+        // 评论查询：WHERE PostId（详情页加载评论的热路径）
+        modelBuilder.Entity<CommentModel>()
+            .HasIndex(x => x.PostId);
+
+        // 评论审核 + 排序辅助
+        modelBuilder.Entity<CommentModel>()
+            .HasIndex(x => new { x.IsReview, x.CreatedAt });
     }
 }
 

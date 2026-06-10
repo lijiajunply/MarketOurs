@@ -45,6 +45,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
+            .AsNoTracking()
             .Include(x => x.User)
             .Where(x => x.IsReview)
             .OrderByDescending(x => x.CreatedAt)
@@ -63,6 +64,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
+            .AsNoTracking()
             .Include(x => x.User)
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
@@ -81,6 +83,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
+            .AsNoTracking()
             .Include(x => x.User)
             .Where(x => x.IsReview)
             .OrderByDescending(x => x.Watch + (x.Likes * 3) - (x.Dislikes * 2))
@@ -101,6 +104,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
+            .AsNoTracking()
             .Include(x => x.User)
             .Where(x => x.Id == id && x.IsReview)
             .FirstOrDefaultAsync();
@@ -118,6 +122,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
+            .AsNoTracking()
             .Include(x => x.LikeUsers)
             .Where(x => x.Id == id)
             .Select(x => x.LikeUsers)
@@ -138,6 +143,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
+            .AsNoTracking()
             .Include(x => x.DislikeUsers)
             .Where(x => x.Id == id)
             .Select(x => x.DislikeUsers)
@@ -171,6 +177,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         // 无论何种排序，都先获取贴子的所有评论（包含子评论）
         // 在该方案中，我们选择获取属于该 PostId 的所有评论，让 Service 层负责构建树
         return await context.Commits
+            .AsNoTracking()
             .Include(x => x.User)
             .Where(x => x.PostId == id)
             .ToListAsync();

@@ -170,9 +170,13 @@ public class LikeManager(
         try
         {
             var db = _redis.GetDatabase();
-            if (await db.KeyExistsAsync(key))
+            // 将存在性检查与计数合并为单次 pipeline 往返（StackExchange.Redis 会自动批量发送）
+            var existsTask = db.KeyExistsAsync(key);
+            var lengthTask = db.SetLengthAsync(key);
+            await Task.WhenAll(existsTask, lengthTask);
+            if (existsTask.Result)
             {
-                return (int)await db.SetLengthAsync(key);
+                return (int)lengthTask.Result;
             }
         }
         catch (Exception ex)
@@ -189,6 +193,18 @@ public class LikeManager(
             try
             {
                 var db = _redis.GetDatabase();
+                // 缓存命中的常见路径：将存在性检查、成员判断、TTL 续期合并为单次 pipeline 往返
+                var existsTask = db.KeyExistsAsync(key);
+                var memberTask = db.SetContainsAsync(key, userId);
+                var expireTask = db.KeyExpireAsync(key, CacheTtl);
+                await Task.WhenAll(existsTask, memberTask, expireTask);
+
+                if (existsTask.Result)
+                {
+                    return memberTask.Result;
+                }
+
+                // 缓存未命中：从 DB 回填后再判断
                 await EnsureCacheAsync(db, key, dbFetcher);
                 return await db.SetContainsAsync(key, userId);
             }

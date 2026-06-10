@@ -140,6 +140,7 @@ public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRep
         await using var context = await factory.CreateDbContextAsync();
 
         return await context.Commits
+            .AsNoTracking()
             .Include(x => x.LikeUsers)
             .Where(x => x.Id == id)
             .Select(x => x.LikeUsers)
@@ -162,6 +163,7 @@ public class CommentRepo(IDbContextFactory<MarketContext> factory) : ICommentRep
         await using var context = await factory.CreateDbContextAsync();
 
         return await context.Commits
+            .AsNoTracking()
             .Include(x => x.DislikeUsers)
             .Where(x => x.Id == id)
             .Select(x => x.DislikeUsers)

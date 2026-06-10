@@ -146,10 +146,7 @@ public class PostService(
         var totalCount = await postRepo.CountAsync();
         var posts = await postRepo.GetAllAsync(@params.PageIndex, @params.PageSize);
         var dtos = posts.Select(MapToDto).ToList();
-        foreach (var dto in dtos)
-        {
-            await FillDynamicData(dto);
-        }
+        await Task.WhenAll(dtos.Select(dto => FillDynamicData(dto)));
 
         return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
@@ -160,8 +157,7 @@ public class PostService(
         var memCacheKey = CacheKeys.HotPostsMem(count);
         if (memoryCache.TryGetValue<List<PostDto>>(memCacheKey, out var memCachedList) && memCachedList != null)
         {
-            foreach (var dto in memCachedList) await FillDynamicData(dto);
-            return memCachedList;
+            return await FillListAsync(memCachedList);
         }
 
         await CacheLock.WaitAsync();
@@ -170,8 +166,7 @@ public class PostService(
             if (memoryCache.TryGetValue<List<PostDto>>(memCacheKey, out var retryMemCachedList) &&
                 retryMemCachedList != null)
             {
-                foreach (var dto in retryMemCachedList) await FillDynamicData(dto);
-                return retryMemCachedList;
+                return await FillListAsync(retryMemCachedList);
             }
 
             var distCacheKey = CacheKeys.HotPostsDist(count);
@@ -214,13 +209,23 @@ public class PostService(
                 Size = 1
             });
 
-            foreach (var dto in dtos) await FillDynamicData(dto);
-            return dtos;
+            return await FillListAsync(dtos);
         }
         finally
         {
             CacheLock.Release();
         }
+    }
+
+    /// <summary>
+    /// 并行填充列表的动态数据。为避免污染缓存中的共享 DTO 对象，
+    /// 先克隆每个 DTO 再填充（与 GetByIdAsync 中 ClonePostDto 的做法一致）。
+    /// </summary>
+    private async Task<List<PostDto>> FillListAsync(List<PostDto> source, string? requesterUserId = null)
+    {
+        var clones = source.Select(ClonePostDto).ToList();
+        await Task.WhenAll(clones.Select(dto => FillDynamicData(dto, requesterUserId)));
+        return clones;
     }
 
     /// <inheritdoc/>
@@ -230,10 +235,7 @@ public class PostService(
         var posts = await postRepo.GetByUserIdAsync(userId, @params.PageIndex, @params.PageSize);
         var dtos = posts.Select(MapToDto).ToList();
 
-        foreach (var dto in dtos)
-        {
-            await FillDynamicData(dto);
-        }
+        await Task.WhenAll(dtos.Select(dto => FillDynamicData(dto)));
 
         return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
@@ -320,19 +322,25 @@ public class PostService(
 
     private async Task<PostDto> FillDynamicData(PostDto dto, string? requesterUserId = null)
     {
-        dto.Likes = await likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
-        dto.Dislikes = await likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
-        dto.Watch = await GetPostWatchAsync(dto.Id, dto.Watch);
+        // 并发发起所有独立的 Redis 读取，借助 StackExchange.Redis 的自动 pipelining
+        // 将原本逐个 await 的串行往返合并为少量并发波次，显著降低延迟
+        var likesTask = likeManager.GetPostLikesAsync(dto.Id, dto.Likes);
+        var dislikesTask = likeManager.GetPostDislikesAsync(dto.Id, dto.Dislikes);
+        var watchTask = GetPostWatchAsync(dto.Id, dto.Watch);
+
+        Task<bool>? likedTask = null;
+        Task<bool>? dislikedTask = null;
         if (!string.IsNullOrWhiteSpace(requesterUserId))
         {
-            dto.IsLiked = await likeManager.IsPostLikedAsync(dto.Id, requesterUserId);
-            dto.IsDisliked = await likeManager.IsPostDislikedAsync(dto.Id, requesterUserId);
+            likedTask = likeManager.IsPostLikedAsync(dto.Id, requesterUserId);
+            dislikedTask = likeManager.IsPostDislikedAsync(dto.Id, requesterUserId);
         }
-        else
-        {
-            dto.IsLiked = false;
-            dto.IsDisliked = false;
-        }
+
+        dto.Likes = await likesTask;
+        dto.Dislikes = await dislikesTask;
+        dto.Watch = await watchTask;
+        dto.IsLiked = likedTask != null && await likedTask;
+        dto.IsDisliked = dislikedTask != null && await dislikedTask;
         return dto;
     }
 
@@ -559,10 +567,7 @@ public class PostService(
         var results = await postRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize);
         var dtos = results.Select(MapToDto).ToList();
 
-        foreach (var dto in dtos)
-        {
-            await FillDynamicData(dto);
-        }
+        await Task.WhenAll(dtos.Select(dto => FillDynamicData(dto)));
 
         return PagedResultDto<PostDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
