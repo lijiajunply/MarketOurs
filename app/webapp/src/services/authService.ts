@@ -12,6 +12,7 @@ import type {
   ResetPasswordRequest,
   SendCodeRequest,
   LoginByCodeRequest,
+  UnbindThirdPartyRequest,
 } from '../types';
 
 export const authService = {
@@ -43,11 +44,14 @@ export const authService = {
 
   resendVerification: (data: ForgotPasswordRequest) => apiClient.post<void>('/Auth/resend-verification', data),
 
-  sendEmailCode: () => apiClient.post<void>('/Auth/send-email-code'),
+  sendEmailCode: (purpose: 'verification' | 'unbind-third-party' | 'third-party-unbind' = 'verification') =>
+    apiClient.post<void>(`/Auth/send-email-code?purpose=${encodeURIComponent(purpose)}`),
 
   sendPhoneCode: () => apiClient.post<void>('/Auth/send-phone-code'),
 
   verifyEmailCode: (data: VerifyCodeRequest) => apiClient.post<void>('/Auth/verify-email-code', data),
+
+  unbindThirdParty: (data: UnbindThirdPartyRequest) => apiClient.post<void>('/Auth/unbind-third-party', data),
 
   getExternalLoginUrl: (provider: string, returnUrl: string, purpose: 'login' | 'bind' = 'login') => {
     let url = `${BASE_URL}/Auth/external-login?provider=${provider}&returnUrl=${encodeURIComponent(returnUrl)}&purpose=${purpose}`;

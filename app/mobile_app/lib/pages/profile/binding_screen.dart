@@ -326,7 +326,7 @@ class _UnbindThirdPartyDialogState
     try {
       final notifier = ref.read(authControllerProvider.notifier);
       if (channel.id == 'email') {
-        await notifier.sendEmailCode();
+        await notifier.sendEmailCode(purpose: 'unbind-third-party');
       } else {
         await notifier.sendPhoneCode();
       }

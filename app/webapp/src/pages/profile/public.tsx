@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { ArrowRight, Calendar, FileText, Loader2, Shield, Sparkles, UserPlus, UserMinus, Ban } from "lucide-react";
+import { ArrowRight, Calendar, FileText, Loader2, Sparkles, UserPlus, UserMinus, Ban } from "lucide-react";
 import { userService } from "../../services/userService";
 import { postService } from "../../services/postService";
 import { followService } from "../../services/followService";

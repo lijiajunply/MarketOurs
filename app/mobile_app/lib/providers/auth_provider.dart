@@ -420,8 +420,10 @@ class AuthController extends AsyncNotifier<AuthState> {
     }
   }
 
-  Future<void> sendEmailCode() async {
-    await _runAuthenticatedAction(() => _authService.sendEmailCode());
+  Future<void> sendEmailCode({String purpose = 'verification'}) async {
+    await _runAuthenticatedAction(
+      () => _authService.sendEmailCode(purpose: purpose),
+    );
   }
 
   Future<void> sendPhoneCode() async {

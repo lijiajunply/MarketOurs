@@ -43,6 +43,12 @@ export interface VerifyCodeRequest {
   code: string;
 }
 
+export interface UnbindThirdPartyRequest {
+  provider: string;
+  channel: string;
+  code: string;
+}
+
 export interface SendCodeRequest {
   account: string;
 }

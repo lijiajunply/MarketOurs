@@ -149,8 +149,11 @@ class AuthService {
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 
-  Future<ApiResponse> sendEmailCode() async {
-    final response = await _api.post('/Auth/send-email-code');
+  Future<ApiResponse> sendEmailCode({String purpose = 'verification'}) async {
+    final encodedPurpose = Uri.encodeQueryComponent(purpose);
+    final response = await _api.post(
+      '/Auth/send-email-code?purpose=$encodedPurpose',
+    );
     return ApiResponse.fromJson(response.data, (json) => json);
   }
 

@@ -140,7 +140,13 @@
     "public_empty_title": "公开主页暂时不可用",
     "third_party_bindings": "第三方账号绑定",
     "bound": "已绑定",
-    "bind_now": "立即绑定"
+    "bind_now": "立即绑定",
+    "unbind": "解绑",
+    "unbind_title": "解绑 {{provider}}",
+    "unbind_hint": "解绑前需要使用当前账号的邮箱或手机验证码确认本次操作。",
+    "confirm_unbind": "确认解绑",
+    "unbind_success": "{{provider}} 已解绑",
+    "unbind_need_contact": "请先绑定邮箱或手机号后再解绑"
   },
   "notifications": {
     "title": "通知中心",

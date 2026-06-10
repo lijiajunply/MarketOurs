@@ -140,7 +140,13 @@
     "public_empty_title": "Public profile unavailable",
     "third_party_bindings": "Third-party Bindings",
     "bound": "Bound",
-    "bind_now": "Bind Now"
+    "bind_now": "Bind Now",
+    "unbind": "Unbind",
+    "unbind_title": "Unbind {{provider}}",
+    "unbind_hint": "Use a verification code from your current email or phone before unbinding this account.",
+    "confirm_unbind": "Confirm Unbind",
+    "unbind_success": "{{provider}} has been unbound",
+    "unbind_need_contact": "Bind an email or phone before unbinding"
   },
   "notifications": {
     "title": "Notifications",

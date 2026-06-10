@@ -27,6 +27,9 @@ import {
 } from "lucide-react";
 import type { UserDto } from "../../types";
 
+type ThirdPartyProvider = 'Ours' | 'Github' | 'Google' | 'Weixin';
+type VerificationChannel = 'email' | 'phone';
+
 export default function ProfilePage() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -44,6 +47,12 @@ export default function ProfilePage() {
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [unbindProvider, setUnbindProvider] = useState<ThirdPartyProvider | null>(null);
+  const [unbindChannel, setUnbindChannel] = useState<VerificationChannel>('email');
+  const [unbindCode, setUnbindCode] = useState("");
+  const [isSendingUnbindCode, setIsSendingUnbindCode] = useState(false);
+  const [isUnbinding, setIsUnbinding] = useState(false);
+  const [unbindCountdown, setUnbindCountdown] = useState(0);
 
   // Form states
   const [name, setName] = useState(currentUser?.name || "");
@@ -65,6 +74,14 @@ export default function ProfilePage() {
   }, [countdown]);
 
   useEffect(() => {
+    let timer: any;
+    if (unbindCountdown > 0) {
+      timer = setInterval(() => setUnbindCountdown(c => c - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [unbindCountdown]);
+
+  useEffect(() => {
     fetchProfile();
   }, []);
 
@@ -73,6 +90,7 @@ export default function ProfilePage() {
       const response = await userService.getProfile();
       if (response.data) {
         setUserState(response.data);
+        dispatch(setReduxUser(response.data));
         setName(response.data.name);
         setInfo(response.data.info || "");
         setAvatar(response.data.avatar);
@@ -179,6 +197,61 @@ export default function ProfilePage() {
       setMessage({ type: 'error', text: err.message || t("common.error") });
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleOpenUnbind = (provider: ThirdPartyProvider) => {
+    if (!user || (!user.email && !user.phone)) {
+      setMessage({ type: 'error', text: t("profile.unbind_need_contact") });
+      return;
+    }
+
+    setUnbindProvider(provider);
+    setUnbindChannel(user.email ? 'email' : 'phone');
+    setUnbindCode("");
+    setUnbindCountdown(0);
+    setMessage(null);
+  };
+
+  const handleSendUnbindCode = async () => {
+    if (!unbindProvider) return;
+
+    setIsSendingUnbindCode(true);
+    setMessage(null);
+    try {
+      if (unbindChannel === 'email') {
+        await authService.sendEmailCode('unbind-third-party');
+      } else {
+        await authService.sendPhoneCode();
+      }
+      setUnbindCountdown(60);
+      setMessage({ type: 'success', text: t("profile.verification_sent") });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || t("common.error") });
+    } finally {
+      setIsSendingUnbindCode(false);
+    }
+  };
+
+  const handleConfirmUnbind = async () => {
+    if (!unbindProvider || !unbindCode) return;
+
+    setIsUnbinding(true);
+    setMessage(null);
+    try {
+      await authService.unbindThirdParty({
+        provider: unbindProvider,
+        channel: unbindChannel,
+        code: unbindCode,
+      });
+      setMessage({ type: 'success', text: t("profile.unbind_success", { provider: unbindProvider }) });
+      setUnbindProvider(null);
+      setUnbindCode("");
+      await fetchProfile();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || t("common.error") });
+    } finally {
+      setIsUnbinding(false);
     }
   };
 
@@ -455,9 +528,18 @@ export default function ProfilePage() {
                         <span className="text-sm font-medium">{platform.name}</span>
                       </div>
                       {platform.id ? (
-                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">
-                          {t("profile.bound")}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">
+                            {t("profile.bound")}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenUnbind(platform.name as ThirdPartyProvider)}
+                            className="text-xs font-bold text-destructive hover:text-destructive/80 transition-colors"
+                          >
+                            {t("profile.unbind")}
+                          </button>
+                        </div>
                       ) : (
                         <button 
                           onClick={() => {
@@ -577,6 +659,87 @@ export default function ProfilePage() {
                 className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isVerifying ? <RefreshCw className="animate-spin" size={20} /> : t("profile.confirm_change")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {unbindProvider && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setUnbindProvider(null)} />
+            <div className="relative w-full max-w-md glass-card rounded-[2.5rem] p-8 space-y-6 animate-in zoom-in duration-300">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold">{t("profile.unbind_title", { provider: unbindProvider })}</h3>
+                <button onClick={() => setUnbindProvider(null)} className="p-2 hover:bg-muted rounded-full transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {t("profile.unbind_hint")}
+              </p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setUnbindChannel('email')}
+                  disabled={!user.email || isSendingUnbindCode || isUnbinding}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border text-sm font-bold transition-all disabled:opacity-40 ${
+                    unbindChannel === 'email'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Mail size={16} />
+                  {t("auth.email")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUnbindChannel('phone')}
+                  disabled={!user.phone || isSendingUnbindCode || isUnbinding}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border text-sm font-bold transition-all disabled:opacity-40 ${
+                    unbindChannel === 'phone'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Phone size={16} />
+                  {t("auth.phone")}
+                </button>
+              </div>
+
+              <div className="rounded-2xl bg-muted/40 border border-border/50 px-4 py-3 text-sm font-semibold truncate">
+                {unbindChannel === 'email' ? user.email : user.phone}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold ml-1">{t("auth.verification_code")}</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={unbindCode}
+                    onChange={(e) => setUnbindCode(e.target.value.trim())}
+                    className="w-full px-4 py-3 pr-28 rounded-2xl bg-muted/50 border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder="6-digit code"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendUnbindCode}
+                    disabled={unbindCountdown > 0 || isSendingUnbindCode || isUnbinding}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all disabled:opacity-50"
+                  >
+                    {unbindCountdown > 0 ? t("auth.resend_code", { count: unbindCountdown }) : t("auth.send_code")}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleConfirmUnbind}
+                disabled={isUnbinding || !unbindCode}
+                className="w-full py-4 rounded-2xl bg-destructive text-destructive-foreground font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-destructive/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isUnbinding ? <RefreshCw className="animate-spin" size={20} /> : t("profile.confirm_unbind")}
               </button>
             </div>
           </div>
