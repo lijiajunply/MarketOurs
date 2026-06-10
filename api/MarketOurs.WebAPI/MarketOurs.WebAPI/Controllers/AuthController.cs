@@ -347,6 +347,11 @@ public class AuthController(ILoginService loginService, IUserService userService
             return Redirect($"{returnUrl}?error={Uri.EscapeDataString("无法获取第三方用户信息")}");
         }
 
+        if (string.Equals(provider, "GitHub", StringComparison.OrdinalIgnoreCase) && string.IsNullOrEmpty(email))
+        {
+            return Redirect($"{returnUrl}?error={Uri.EscapeDataString("无法获取 GitHub 已验证邮箱，请确认 GitHub 账号至少有一个已验证邮箱并重新授权。")}");
+        }
+
         if (string.IsNullOrEmpty(phone))
         {
             phone = $"+test {providerId}";

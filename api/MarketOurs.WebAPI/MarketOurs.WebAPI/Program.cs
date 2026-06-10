@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using MarketOurs.Data;
@@ -162,6 +163,7 @@ builder.Services.AddAuthentication(options =>
         options.CallbackPath = "/Auth/signin-github";
         options.SignInScheme = "OAuth2";
         options.SaveTokens = true;
+        options.Scope.Add("user:email");
         options.Events.OnCreatingTicket = async context =>
         {
             var identity = context.Identity;
@@ -190,7 +192,8 @@ builder.Services.AddAuthentication(options =>
                 if (response.IsSuccessStatusCode)
                 {
                     var emails = await response.Content.ReadFromJsonAsync<List<GitHubEmailItem>>();
-                    var primary = emails?.FirstOrDefault(e => e.Primary) ?? emails?.FirstOrDefault(e => e.Verified);
+                    var primary = emails?.FirstOrDefault(e => e.Primary && e.Verified)
+                                  ?? emails?.FirstOrDefault(e => e.Verified);
                     if (primary != null && !string.IsNullOrEmpty(primary.Email))
                     {
                         identity.AddClaim(new Claim(ClaimTypes.Email, primary.Email));
@@ -592,4 +595,7 @@ app.MapHealthChecks("/api/health");
 app.Run();
 
 [Serializable]
-internal record GitHubEmailItem(string Email, bool Primary, bool Verified);
+internal record GitHubEmailItem(
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("primary")] bool Primary,
+    [property: JsonPropertyName("verified")] bool Verified);
