@@ -199,4 +199,19 @@ class AuthService {
 
   static String get oauthCallbackUrl =>
       '${ApiService.baseUrl}$oauthCallbackPath';
+
+  static String get mobileOAuthCallbackScheme => 'marketours';
+
+  static String get mobileOAuthCallbackHost => 'oauth-callback';
+
+  static String get mobileOAuthCallbackUrl =>
+      '$mobileOAuthCallbackScheme://$mobileOAuthCallbackHost';
+
+  static bool isOAuthCallback(Uri uri) {
+    final isMobileCallback =
+        uri.scheme == mobileOAuthCallbackScheme &&
+        uri.host == mobileOAuthCallbackHost;
+    final isWebCallback = uri.toString().startsWith(oauthCallbackUrl);
+    return isMobileCallback || isWebCallback;
+  }
 }
