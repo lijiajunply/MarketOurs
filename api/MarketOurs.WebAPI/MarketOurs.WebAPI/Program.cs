@@ -161,27 +161,56 @@ builder.Services.AddAuthentication(options =>
             Environment.GetEnvironmentVariable("GITHUB_CLIENTSECRET", EnvironmentVariableTarget.Process) ?? "default";
         options.CallbackPath = "/Auth/signin-github";
         options.SignInScheme = "OAuth2";
+        options.SaveTokens = true;
         options.Events.OnCreatingTicket = async context =>
         {
-            // GitHub /user endpoint 的 email 字段在用户设为私密时返回 null
-            // 需要额外调用 /user/emails 获取主邮箱
-            var email = context.Identity?.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email))
+            var identity = context.Identity;
+            if (identity == null) return;
+
+            // 删除 GitHub /user endpoint 返回的空邮箱声明
+            var existingEmailClaims = identity.FindAll(ClaimTypes.Email).ToList();
+            foreach (var c in existingEmailClaims.Where(c => string.IsNullOrEmpty(c.Value)))
+            {
+                identity.RemoveClaim(c);
+            }
+
+            // 如果已有有效邮箱则跳过
+            if (!string.IsNullOrEmpty(identity.FindFirst(ClaimTypes.Email)?.Value))
+                return;
+
+            try
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/user/emails");
                 request.Headers.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
                 request.Headers.UserAgent.TryParseAdd("MarketOurs");
                 var response = await context.Backchannel.SendAsync(request);
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("GitHubOAuth");
                 if (response.IsSuccessStatusCode)
                 {
                     var emails = await response.Content.ReadFromJsonAsync<List<GitHubEmailItem>>();
                     var primary = emails?.FirstOrDefault(e => e.Primary) ?? emails?.FirstOrDefault(e => e.Verified);
                     if (primary != null && !string.IsNullOrEmpty(primary.Email))
                     {
-                        context.Identity?.AddClaim(new Claim(ClaimTypes.Email, primary.Email));
+                        identity.AddClaim(new Claim(ClaimTypes.Email, primary.Email));
+                    }
+                    else
+                    {
+                        logger.LogWarning("GitHub /user/emails 返回列表为空或无可用的已验证邮箱，数量={Count}", emails?.Count ?? 0);
                     }
                 }
+                else
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    logger.LogWarning("GitHub /user/emails 请求失败: {Status}, Body={Body}", response.StatusCode, body);
+                }
+            }
+            catch (Exception ex)
+            {
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("GitHubOAuth");
+                logger.LogError(ex, "GitHub /user/emails 调用异常");
             }
         };
     })
@@ -562,4 +591,5 @@ app.MapHealthChecks("/api/health");
 
 app.Run();
 
+[Serializable]
 internal record GitHubEmailItem(string Email, bool Primary, bool Verified);
