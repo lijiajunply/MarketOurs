@@ -90,9 +90,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _handleOAuthLogin(String provider) {
-    context.push(
-      '${AppRoutePaths.oauthWebView}?provider=$provider',
-    );
+    final location = Uri(
+      path: AppRoutePaths.oauthWebView,
+      queryParameters: {
+        'provider': provider,
+        '_ts': DateTime.now().microsecondsSinceEpoch.toString(),
+      },
+    ).toString();
+    context.push(location);
   }
 
   Future<void> _submit() async {

@@ -83,6 +83,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authAsync = ref.read(authControllerProvider);
       final path = state.uri.path;
+      final isOAuthRoute = path == AppRoutePaths.oauthWebView;
+      final isOAuthBindRoute =
+          isOAuthRoute && state.uri.queryParameters['purpose'] == 'bind';
       final isAuthRoute = _authRoutes.contains(path);
       final isSplashRoute = path == AppRoutePaths.splash;
       final isPublicRoute = _isPublicRoute(path);
@@ -97,8 +100,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState.status == AuthStatus.authenticated;
 
       if (isAuthenticated) {
-        // 已登录：如果当前在启动页或认证页（登录/注册等），跳到主页
-        if (isSplashRoute || isAuthRoute) {
+        // 已登录：如果当前在启动页或认证页（登录/注册等），跳到主页。
+        // 第三方绑定也使用 OAuth WebView，但它是已登录后的受保护流程。
+        if (isSplashRoute || (isAuthRoute && !isOAuthBindRoute)) {
           return AppRoutePaths.home;
         }
         // 其他情况保持当前路径
@@ -106,6 +110,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // 未登录：
+      // 绑定流程必须依赖当前账号，未登录时不能直接进入绑定 WebView。
+      if (isOAuthBindRoute) {
+        return AppRoutePaths.login;
+      }
+
       // 如果当前就在认证页或公开内容页，不需要跳转
       if (isAuthRoute || isPublicRoute) {
         return null;
@@ -166,11 +175,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final provider = state.uri.queryParameters['provider'] ?? 'Github';
           final purpose = state.uri.queryParameters['purpose'] ?? 'login';
           return CupertinoPage<void>(
-            key: state.pageKey,
-            child: OAuthWebViewScreen(
-              provider: provider,
-              purpose: purpose,
-            ),
+            key: ValueKey('oauth-webview:${state.uri}'),
+            child: OAuthWebViewScreen(provider: provider, purpose: purpose),
           );
         },
       ),

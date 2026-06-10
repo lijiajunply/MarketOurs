@@ -108,9 +108,15 @@ class _BindingSection extends StatelessWidget {
   }
 
   static void _handleBind(BuildContext context, String provider) {
-    context.push(
-      '${AppRoutePaths.oauthWebView}?provider=$provider&purpose=bind',
-    );
+    final location = Uri(
+      path: AppRoutePaths.oauthWebView,
+      queryParameters: {
+        'provider': provider,
+        'purpose': 'bind',
+        '_ts': DateTime.now().microsecondsSinceEpoch.toString(),
+      },
+    ).toString();
+    context.push(location);
   }
 }
 
