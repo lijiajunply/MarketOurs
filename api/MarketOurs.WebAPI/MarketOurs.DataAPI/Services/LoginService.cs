@@ -121,13 +121,13 @@ public class LoginService(
         // 1. 优先通过第三方 ID 查找
         var user = await userService.GetByThirdPartyIdAsync(provider, providerId);
 
-        // 2. 如果没找到，且是 OURS，则尝试通过账号查找（自动注册逻辑）
-        if (user == null && provider.Equals("Ours", StringComparison.OrdinalIgnoreCase))
+        // 2. 如果没找到，尝试通过邮箱匹配已有账户，或自动注册新账户
+        if (user == null)
         {
             user = await userService.GetByAccountAsync(account);
             if (user == null)
             {
-                // OURS 自动注册
+                // 自动注册新用户
                 var randomPassword = Guid.NewGuid().ToString("N");
                 user = await userService.CreateAsync(new UserCreateDto
                 {
@@ -139,11 +139,11 @@ public class LoginService(
                 });
             }
 
-            // 绑定 OURS ID
+            // 绑定第三方 ID
             await BindThirdPartyAsync(user.Id, provider, providerId);
         }
 
-        // 3. 如果还是没有用户（对于 GitHub/Google/Weixin），且用户不存在
+        // 3. 安全检查：此时 user 一定不为 null
         if (user == null)
         {
             throw new AuthException(ErrorCode.UserNotFound, "未找到关联账户，请先登录并绑定。");
