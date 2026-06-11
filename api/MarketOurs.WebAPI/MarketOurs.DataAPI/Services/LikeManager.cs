@@ -232,7 +232,7 @@ public class LikeManager(
         if (!await lockService.AcquireAsync(lockKey, lockValue, TimeSpan.FromSeconds(5)))
         {
             logger.LogWarning("Failed to acquire lock for user {UserId} on {Target} {TargetId}", userId, target, targetId);
-            throw new ResourceAccessException(ErrorCode.TooManyRequests, "操作过于频繁，请稍后再试");
+            throw new ResourceAccessException(ErrorCode.LikeTooFrequent, "操作过于频繁，请稍后再试");
         }
 
         try

@@ -127,7 +127,7 @@ public class CommentController(ICommentService commentService, ILogger<CommentCo
         var isAdmin = User.IsInRole("Admin");
         if (existingComment.UserId != userId && !isAdmin)
         {
-            throw new AuthException(ErrorCode.InsufficientPermission, "无权修改他人的评论", 403);
+            throw new AuthException(ErrorCode.CommentEditDenied, "无权修改他人的评论", 403);
         }
 
         var updatedComment = await commentService.UpdateAsync(id, request, isAdmin);

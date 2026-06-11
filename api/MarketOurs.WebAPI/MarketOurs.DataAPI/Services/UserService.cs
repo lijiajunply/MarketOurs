@@ -204,7 +204,7 @@ public class UserService(
         // 只有激活的用户可以登录
         if (!user.IsActive)
         {
-            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用，请先完成验证", 403);
+            throw new AuthException(ErrorCode.AccountNotActive, "您的账号尚未激活或已被禁用，请先完成验证", 403);
         }
 
         return MapToDto(user);

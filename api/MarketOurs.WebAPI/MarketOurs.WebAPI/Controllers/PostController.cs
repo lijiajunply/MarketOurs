@@ -106,7 +106,7 @@ public class PostController(IPostService postService) : ControllerBase
         var isAdmin = User.IsInRole("Admin");
         if (existingPost.UserId != userId && !isAdmin)
         {
-            throw new AuthException(ErrorCode.InsufficientPermission, "无权修改他人的帖子", 403);
+            throw new AuthException(ErrorCode.PostEditDenied, "无权修改他人的帖子", 403);
         }
 
         var post = await postService.UpdateAsync(id, request, isAdmin);

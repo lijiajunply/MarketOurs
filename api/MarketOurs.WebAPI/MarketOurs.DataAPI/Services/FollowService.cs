@@ -77,7 +77,7 @@ public class FollowService(
 
         if (isBlocked || isBlockedBy)
         {
-            throw new BusinessException(ErrorCode.OperationFailed, "无法关注已屏蔽或屏蔽您的用户");
+            throw new BusinessException(ErrorCode.CannotFollowBlockedUser, "无法关注已屏蔽或屏蔽您的用户");
         }
 
         // 使用分布式锁防止并发
@@ -87,7 +87,7 @@ public class FollowService(
 
         if (!acquired)
         {
-            throw new BusinessException(ErrorCode.OperationFailed, "操作过于频繁，请稍后重试");
+            throw new BusinessException(ErrorCode.FollowTooFrequent, "操作过于频繁，请稍后重试");
         }
 
         try
@@ -210,7 +210,7 @@ public class FollowService(
 
         if (!acquired)
         {
-            throw new BusinessException(ErrorCode.OperationFailed, "操作过于频繁，请稍后重试");
+            throw new BusinessException(ErrorCode.BlockTooFrequent, "操作过于频繁，请稍后重试");
         }
 
         try

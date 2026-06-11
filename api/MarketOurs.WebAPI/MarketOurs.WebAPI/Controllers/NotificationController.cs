@@ -1,4 +1,5 @@
 using MarketOurs.Data.DTOs;
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,7 @@ public class NotificationController(INotificationService notificationService) : 
     public async Task<ApiResponse<PagedResultDto<NotificationDto>>> GetNotifications([FromQuery] PaginationParams @params)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse<PagedResultDto<NotificationDto>>.Fail(401, "未授权");
+        if (string.IsNullOrEmpty(userId)) return ApiResponse<PagedResultDto<NotificationDto>>.Fail(ErrorCode.Unauthorized);
 
         var result = await notificationService.GetUserNotificationsAsync(userId, @params);
         return ApiResponse<PagedResultDto<NotificationDto>>.Success(result, "获取通知成功");
@@ -37,7 +38,7 @@ public class NotificationController(INotificationService notificationService) : 
     public async Task<ApiResponse<int>> GetUnreadCount()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse<int>.Fail(401, "未授权");
+        if (string.IsNullOrEmpty(userId)) return ApiResponse<int>.Fail(ErrorCode.Unauthorized);
 
         var count = await notificationService.GetUnreadCountAsync(userId);
         return ApiResponse<int>.Success(count, "获取未读数成功");
@@ -63,7 +64,7 @@ public class NotificationController(INotificationService notificationService) : 
     public async Task<ApiResponse> MarkAllAsRead()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
+        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(ErrorCode.Unauthorized);
 
         await notificationService.MarkAllAsReadAsync(userId);
         return ApiResponse.Success("操作成功");
@@ -77,7 +78,7 @@ public class NotificationController(INotificationService notificationService) : 
     public async Task<ApiResponse<PushSettingsDto>> GetSettings()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse<PushSettingsDto>.Fail(401, "未授权");
+        if (string.IsNullOrEmpty(userId)) return ApiResponse<PushSettingsDto>.Fail(ErrorCode.Unauthorized);
 
         var settings = await notificationService.GetPushSettingsAsync(userId);
         return ApiResponse<PushSettingsDto>.Success(settings, "获取设置成功");
@@ -92,7 +93,7 @@ public class NotificationController(INotificationService notificationService) : 
     public async Task<ApiResponse> UpdateSettings([FromBody] PushSettingsDto settings)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(401, "未授权");
+        if (string.IsNullOrEmpty(userId)) return ApiResponse.Fail(ErrorCode.Unauthorized);
 
         await notificationService.UpdatePushSettingsAsync(userId, settings);
         return ApiResponse.Success("更新成功");

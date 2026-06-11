@@ -29,7 +29,7 @@ public class FollowController(
 
         if (followerId == userId)
         {
-            throw new BusinessException(ErrorCode.OperationFailed, "不能关注自己");
+            throw new BusinessException(ErrorCode.CannotFollowSelf, "不能关注自己");
         }
 
         logger.LogInformation("User {FollowerId} toggling follow for user {UserId}", followerId, userId);
@@ -93,7 +93,7 @@ public class FollowController(
 
         if (blockerId == userId)
         {
-            throw new BusinessException(ErrorCode.OperationFailed, "不能屏蔽自己");
+            throw new BusinessException(ErrorCode.CannotBlockSelf, "不能屏蔽自己");
         }
 
         logger.LogInformation("User {BlockerId} blocking user {UserId}", blockerId, userId);

@@ -350,7 +350,7 @@ public class MiddlewareIntegrationTests : IntegrationTestBase
         var response = JsonSerializer.Deserialize<ApiResponse<object>>(await new StreamReader(context.Response.Body).ReadToEndAsync(),
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         Assert.That(response, Is.Not.Null);
-        Assert.That(response!.ErrorCode, Is.EqualTo(ErrorCode.ResourceNotFound));
+        Assert.That(response!.ErrorCode, Is.EqualTo(ErrorCode.PostNotFound));
         return;
 
         Task Next(HttpContext ctx) => throw new KeyNotFoundException("Resource not found");

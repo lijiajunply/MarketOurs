@@ -1,3 +1,4 @@
+using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,13 +25,13 @@ public class FileController(IStorageService storageService, ILogger<FileControll
     {
         if (file == null || file.Length == 0)
         {
-            return ApiResponse<string>.Fail(400, "文件未找到");
+            return ApiResponse<string>.Fail(ErrorCode.FileNotFound);
         }
 
         var extension = Path.GetExtension(file.FileName).ToLower();
         if (!AllowedExtensions.Contains(extension))
         {
-            return ApiResponse<string>.Fail(400, "不支持的文件类型，仅限图片 (jpg, png, gif, webp)");
+            return ApiResponse<string>.Fail(ErrorCode.UnsupportedFileType);
         }
 
         try
@@ -43,7 +44,7 @@ public class FileController(IStorageService storageService, ILogger<FileControll
         catch (Exception ex)
         {
             logger.LogError(ex, "文件上传过程中发生错误");
-            return ApiResponse<string>.Fail(500, "文件上传失败");
+            return ApiResponse<string>.Fail(ErrorCode.FileUploadFailed);
         }
     }
 
@@ -59,13 +60,13 @@ public class FileController(IStorageService storageService, ILogger<FileControll
     {
         if (file == null || file.Length == 0)
         {
-            return ApiResponse<string>.Fail(400, "文件未找到");
+            return ApiResponse<string>.Fail(ErrorCode.FileNotFound);
         }
 
         var extension = Path.GetExtension(file.FileName).ToLower();
         if (!AllowedExtensions.Contains(extension))
         {
-            return ApiResponse<string>.Fail(400, "不支持的文件类型，仅限图片 (jpg, png, gif, webp)");
+            return ApiResponse<string>.Fail(ErrorCode.UnsupportedFileType);
         }
 
         try
@@ -77,7 +78,7 @@ public class FileController(IStorageService storageService, ILogger<FileControll
         catch (Exception ex)
         {
             logger.LogError(ex, "头像上传过程中发生错误");
-            return ApiResponse<string>.Fail(500, "文件上传失败");
+            return ApiResponse<string>.Fail(ErrorCode.FileUploadFailed);
         }
     }
 
@@ -92,7 +93,7 @@ public class FileController(IStorageService storageService, ILogger<FileControll
     {
         if (files == null || files.Count == 0)
         {
-            return ApiResponse<List<string>>.Fail(400, "未找到文件");
+            return ApiResponse<List<string>>.Fail(ErrorCode.FileNotFound);
         }
 
         var urls = new List<string>();

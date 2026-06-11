@@ -113,7 +113,7 @@ public class LoginService(
         var user = await userService.LoginAsync(account, password);
         if (user == null)
         {
-            throw new AuthException(ErrorCode.UserNotFound, "用户不存在或密码错误");
+            throw new AuthException(ErrorCode.InvalidCredentials, "用户不存在或密码错误");
         }
 
         return await GenerateTokenForUser(user, deviceType);
@@ -151,12 +151,12 @@ public class LoginService(
         // 3. 安全检查：此时 user 一定不为 null
         if (user == null)
         {
-            throw new AuthException(ErrorCode.UserNotFound, "未找到关联账户，请先登录并绑定。");
+            throw new AuthException(ErrorCode.LinkedAccountNotFound, "未找到关联账户，请先登录并绑定。");
         }
 
         if (!user.IsActive)
         {
-            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用", 403);
+            throw new AuthException(ErrorCode.AccountNotActive, "您的账号尚未激活或已被禁用", 403);
         }
 
         return await GenerateTokenForUser(user, deviceType);
@@ -172,7 +172,7 @@ public class LoginService(
         var existingUser = await userService.GetByThirdPartyIdAsync(provider, providerId);
         if (existingUser != null && existingUser.Id != userId)
         {
-            throw new BusinessException(ErrorCode.ResourceAlreadyExists, "该第三方账号已被其他账户绑定");
+            throw new BusinessException(ErrorCode.OAuthAccountAlreadyLinked, "该第三方账号已被其他账户绑定");
         }
 
         var updateDto = new UserUpdateDto
@@ -197,7 +197,7 @@ public class LoginService(
                 updateDto.OursId = providerId;
                 break;
             default:
-                throw new BusinessException(ErrorCode.ParameterFormatError, "不支持的第三方平台");
+                throw new BusinessException(ErrorCode.UnsupportedOAuthPlatform, "不支持的第三方平台");
         }
 
         await userService.UpdateAsync(userId, updateDto);
@@ -267,12 +267,12 @@ public class LoginService(
 
         if (db == null) throw new BusinessException(ErrorCode.CacheOperationFailed, "Redis服务未找到");
         var idRedis = await db.StringGetAsync(CacheKeys.UserRefreshToken(token));
-        if (!idRedis.HasValue) throw new AuthException(ErrorCode.InvalidToken, "刷新令牌无效或已过期");
+        if (!idRedis.HasValue) throw new AuthException(ErrorCode.RefreshTokenInvalid, "刷新令牌无效或已过期");
 
         var user = await userService.GetByIdAsync(idRedis.ToString());
         if (user is not { IsActive: true })
         {
-            throw new AuthException(ErrorCode.InvalidToken, "刷新令牌无效或已过期");
+            throw new AuthException(ErrorCode.RefreshTokenInvalid, "刷新令牌无效或已过期");
         }
 
         // 刷新 Token 时重新生成一对令牌
@@ -345,7 +345,7 @@ public class LoginService(
         var json = await db.StringGetAsync(CacheKeys.PreRegisterData(regToken));
         if (!json.HasValue)
         {
-            throw new AuthException(ErrorCode.InvalidToken, "注册会话已过期，请重新开始");
+            throw new AuthException(ErrorCode.RegistrationSessionExpired, "注册会话已过期，请重新开始");
         }
 
         var request = JsonSerializer.Deserialize<UserCreateDto>(json.ToString());
@@ -367,7 +367,7 @@ public class LoginService(
             var subject = "欢迎加入 MarketOurs - 验证您的注册信息";
             var sent = await emailService.SendEmailWithTemplateAsync(request.Account, subject, EmailTemplates.RegistrationCode,
                 new { token = code });
-            if (!sent) throw new BusinessException(ErrorCode.ExternalServiceFailed, "注册验证码发送失败");
+            if (!sent) throw new BusinessException(ErrorCode.EmailSendFailed, "注册验证码发送失败");
             return true;
         }
 
@@ -388,7 +388,7 @@ public class LoginService(
 
             if (response is not UniResponse { Code: "0" })
             {
-                throw new BusinessException(ErrorCode.ExternalServiceFailed, "注册验证码发送失败");
+                throw new BusinessException(ErrorCode.SmsSendFailed, "注册验证码发送失败");
             }
 
             return true;
@@ -396,7 +396,7 @@ public class LoginService(
         catch (Exception ex)
         {
             logger.LogError(ex, "发送注册短信验证码失败: {Account}", request.Account);
-            throw new BusinessException(ErrorCode.ExternalServiceFailed, "注册验证码发送失败", innerException: ex);
+            throw new BusinessException(ErrorCode.SmsSendFailed, "注册验证码发送失败", innerException: ex);
         }
     }
 
@@ -410,14 +410,14 @@ public class LoginService(
         var cachedCode = await db.StringGetAsync(CacheKeys.RegistrationCode(regToken));
         if (!cachedCode.HasValue || cachedCode.ToString() != code)
         {
-            throw new AuthException(ErrorCode.InvalidToken, "验证码无效或已过期");
+            throw new AuthException(ErrorCode.VerificationCodeInvalid, "验证码无效或已过期");
         }
 
         // 2. 获取预注册数据
         var json = await db.StringGetAsync(CacheKeys.PreRegisterData(regToken));
         if (!json.HasValue)
         {
-            throw new AuthException(ErrorCode.InvalidToken, "注册信息已过期");
+            throw new AuthException(ErrorCode.RegistrationSessionExpired, "注册信息已过期");
         }
 
         var request = JsonSerializer.Deserialize<UserCreateDto>(json.ToString());
@@ -455,7 +455,7 @@ public class LoginService(
             var subject = "MarketOurs - 登录验证码";
             var sent = await emailService.SendEmailWithTemplateAsync(account, subject, EmailTemplates.LoginCode,
                 new { token = code });
-            if (!sent) throw new BusinessException(ErrorCode.ExternalServiceFailed, "登录验证码发送失败");
+            if (!sent) throw new BusinessException(ErrorCode.EmailSendFailed, "登录验证码发送失败");
             return true;
         }
 
@@ -475,7 +475,7 @@ public class LoginService(
 
             if (response is not UniResponse { Code: "0" })
             {
-                throw new BusinessException(ErrorCode.ExternalServiceFailed, "登录验证码发送失败");
+                throw new BusinessException(ErrorCode.SmsSendFailed, "登录验证码发送失败");
             }
 
             return true;
@@ -483,7 +483,7 @@ public class LoginService(
         catch (Exception ex)
         {
             logger.LogError(ex, "发送登录验证码失败: {Account}", account);
-            throw new BusinessException(ErrorCode.ExternalServiceFailed, "登录验证码发送失败", innerException: ex);
+            throw new BusinessException(ErrorCode.SmsSendFailed, "登录验证码发送失败", innerException: ex);
         }
     }
 
@@ -497,7 +497,7 @@ public class LoginService(
         var cachedCode = await db.StringGetAsync(CacheKeys.LoginCode(account));
         if (!cachedCode.HasValue || cachedCode.ToString() != code)
         {
-            throw new AuthException(ErrorCode.InvalidToken, "验证码无效或已过期");
+            throw new AuthException(ErrorCode.VerificationCodeInvalid, "验证码无效或已过期");
         }
 
         // 2. 获取用户，如果不存在则注册
@@ -515,7 +515,7 @@ public class LoginService(
         }
         else if (!user.IsActive)
         {
-            throw new AuthException(ErrorCode.UserNotActive, "您的账号尚未激活或已被禁用", 403);
+            throw new AuthException(ErrorCode.AccountNotActive, "您的账号尚未激活或已被禁用", 403);
         }
 
         // 3. 清理验证码
