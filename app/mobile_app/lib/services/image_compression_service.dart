@@ -26,7 +26,7 @@ class ImageCompressionService {
 
   /// Images smaller than this are uploaded as-is to avoid spending CPU time
   /// on compression that rarely improves the upload enough to justify it.
-  static const int minCompressBytes = 3072 * 1024;
+  static const int minCompressBytes = 1024 * 1024;
 
   /// File extensions that should NOT be converted to WebP.
   static const _skipExtensions = {'.gif'};
