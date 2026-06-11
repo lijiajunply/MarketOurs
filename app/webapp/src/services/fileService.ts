@@ -23,4 +23,15 @@ export const fileService = {
     const endpoint = key ? `/File/upload/images?key=${encodeURIComponent(key)}` : '/File/upload/images';
     return apiClient.post<string[]>(endpoint, formData);
   },
+
+  uploadStream: (
+    files: File[],
+    key?: string,
+    onProgress?: (fraction: number) => void,
+  ) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    const endpoint = key ? `/File/upload/stream?key=${encodeURIComponent(key)}` : '/File/upload/stream';
+    return apiClient.postStream<string[]>(endpoint, formData, onProgress);
+  },
 };

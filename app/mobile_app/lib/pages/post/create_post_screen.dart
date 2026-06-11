@@ -33,6 +33,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   final _fileService = FileService();
   final List<XFile> _images = [];
   bool _isSubmitting = false;
+  double? _uploadProgress;
 
   @override
   void dispose() {
@@ -92,9 +93,12 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
       final uploadedImages = compressed.isEmpty
           ? <String>[]
-          : (await _fileService.uploadImages(
+          : (await _fileService.uploadStream(
                   compressed.map(ImageCompressionService.toXFile).toList(),
                   key: uploadKey,
+                  onProgress: (fraction) {
+                    if (mounted) setState(() => _uploadProgress = fraction);
+                  },
                 )).data ??
                 <String>[];
 
@@ -127,8 +131,59 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     } finally {
       // Clean up temp compressed files regardless of outcome
       ImageCompressionService.cleanup(compressed);
-      if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+          _uploadProgress = null;
+        });
+      }
     }
+  }
+
+  Widget _buildUploadProgress() {
+    final fraction = _uploadProgress ?? 0;
+    final percent = (fraction * 100).round();
+    return AppTappableCard(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      radius: AppRadii.lg,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '正在上传图片',
+                style: TextStyle(fontSize: 14, color: AppColors.mutedForeground),
+              ),
+              Text(
+                '$percent%',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadii.sm),
+            child: Container(
+              height: 6,
+              color: AppColors.secondary,
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: fraction,
+                child: Container(
+                  height: 6,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -173,6 +228,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildImageCard(),
+                      if (_uploadProgress != null) ...[
+                        const SizedBox(height: 12),
+                        _buildUploadProgress(),
+                      ],
                       const SizedBox(height: 20),
                       AppPrimaryButton(
                         onPressed: _isSubmitting ? null : _submit,

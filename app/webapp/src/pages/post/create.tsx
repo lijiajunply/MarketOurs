@@ -19,6 +19,7 @@ export default function CreatePostPage() {
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // If not authenticated, redirect to login
@@ -69,7 +70,7 @@ export default function CreatePostPage() {
         maxHeight: 1920,
       });
       const uploadedImageUrls = compressed.length > 0
-        ? (await fileService.uploadImages(compressed, uploadKey)).data ?? []
+        ? (await fileService.uploadStream(compressed, uploadKey, setUploadProgress)).data ?? []
         : [];
 
       // 3. Create post with image URLs and upload key
@@ -86,6 +87,7 @@ export default function CreatePostPage() {
       setError(extractUserMessage(err, t('post.error_create_failed')));
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(null);
     }
   };
 
@@ -155,6 +157,21 @@ export default function CreatePostPage() {
               </label>
             </div>
           </div>
+
+          {uploadProgress !== null && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{t('post.uploading')}</span>
+                <span className="font-medium tabular-nums">{Math.round(uploadProgress * 100)}%</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="p-4 rounded-2xl bg-destructive/10 text-destructive text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-200">

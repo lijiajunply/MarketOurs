@@ -72,4 +72,31 @@ class FileService {
       (json) => (json as List<Object?>).cast<String>(),
     );
   }
+
+  Future<ApiResponse<List<String>>> uploadStream(
+    List<XFile> files, {
+    String? key,
+    void Function(double fraction)? onProgress,
+  }) async {
+    final payload = await Future.wait(
+      files.map((f) => MultipartFile.fromFile(f.path, filename: f.name)),
+    );
+
+    final formData = FormData.fromMap({'files': payload});
+
+    final queryParams = key != null ? {'key': key} : null;
+    final response = await _api.post(
+      '/File/upload/stream',
+      data: formData,
+      queryParameters: queryParams,
+      options: ApiService.uploadOptions(),
+      onSendProgress: onProgress != null
+          ? (count, total) => onProgress(total > 0 ? count / total : 0)
+          : null,
+    );
+    return ApiResponse<List<String>>.fromJson(
+      response.data,
+      (json) => (json as List<Object?>).cast<String>(),
+    );
+  }
 }

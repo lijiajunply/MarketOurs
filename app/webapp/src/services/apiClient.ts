@@ -125,9 +125,77 @@ async function request<T>(
   return parseResponse<T>(response);
 }
 
+async function requestWithProgress<T>(
+  path: string,
+  body: FormData,
+  onProgress?: (fraction: number) => void,
+  allowRetry: boolean = true
+): Promise<ApiResponse<T>> {
+  const token = getAccessToken();
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${BASE_URL}${path}`);
+
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(e.loaded / e.total);
+      }
+    });
+
+    xhr.onload = async () => {
+      if (xhr.status === 401 && allowRetry && path !== '/Auth/refresh') {
+        const refreshedToken = await refreshAccessToken();
+        if (refreshedToken) {
+          try {
+            const result = await requestWithProgress<T>(path, body, onProgress, false);
+            resolve(result);
+          } catch (e) {
+            reject(e);
+          }
+          return;
+        }
+      }
+
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (!String(xhr.status).startsWith('2')) {
+          const userMessage = getErrorMessage(data.errorCode, data.message);
+          const error = new Error(userMessage) as Error & {
+            userMessage: string;
+            errorCode: number;
+            errorName: string;
+            detail: string | null;
+            rawResponse: typeof data;
+          };
+          error.userMessage = userMessage;
+          error.errorCode = data.errorCode ?? 0;
+          error.errorName = data.errorName ?? '';
+          error.detail = data.detail;
+          error.rawResponse = data;
+          reject(error);
+          return;
+        }
+        resolve(data as ApiResponse<T>);
+      } catch (e) {
+        reject(e);
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.send(body);
+  });
+}
+
 export const apiClient = {
   get: <T>(path: string, options?: RequestInit) => request<T>(path, 'GET', undefined, options),
   post: <T>(path: string, body?: any, options?: RequestInit) => request<T>(path, 'post', body, options),
   put: <T>(path: string, body?: any, options?: RequestInit) => request<T>(path, 'PUT', body, options),
   delete: <T>(path: string, options?: RequestInit) => request<T>(path, 'DELETE', undefined, options),
+  postStream: <T>(path: string, body: FormData, onProgress?: (fraction: number) => void) =>
+    requestWithProgress<T>(path, body, onProgress),
 };
