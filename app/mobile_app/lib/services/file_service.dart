@@ -25,6 +25,7 @@ class FileService {
       '/File/upload/image',
       data: formData,
       queryParameters: queryParams,
+      options: ApiService.uploadOptions(),
     );
     return ApiResponse<String>.fromJson(
       response.data,
@@ -40,7 +41,7 @@ class FileService {
     final response = await _api.post(
       '/File/upload/avatar',
       data: formData,
-      options: ApiService.anonymousOptions(),
+      options: ApiService.uploadOptions(anonymous: true),
     );
     return ApiResponse<String>.fromJson(
       response.data,
@@ -48,11 +49,14 @@ class FileService {
     );
   }
 
-  Future<ApiResponse<List<String>>> uploadImages(List<XFile> files, {String? key}) async {
-    final payload = <MultipartFile>[];
-    for (final file in files) {
-      payload.add(await MultipartFile.fromFile(file.path, filename: file.name));
-    }
+  Future<ApiResponse<List<String>>> uploadImages(
+    List<XFile> files, {
+    String? key,
+  }) async {
+    // Read all files from disk in parallel instead of serially
+    final payload = await Future.wait(
+      files.map((f) => MultipartFile.fromFile(f.path, filename: f.name)),
+    );
 
     final formData = FormData.fromMap({'files': payload});
 
@@ -61,6 +65,7 @@ class FileService {
       '/File/upload/images',
       data: formData,
       queryParameters: queryParams,
+      options: ApiService.uploadOptions(),
     );
     return ApiResponse<List<String>>.fromJson(
       response.data,

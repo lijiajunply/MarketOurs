@@ -13,6 +13,8 @@ class ApiService {
   static final ApiService _instance = ApiService._internal();
   static const String _apiBaseUrlOverride =
       'https://lumalisapi.luckyfishes.site';
+  static const Duration _defaultTimeout = Duration(seconds: 15);
+  static const Duration _uploadTimeout = Duration(minutes: 2);
 
   static String get baseUrl => _resolveBaseUrl();
   static const String _skipAuthExtraKey = 'skipAuth';
@@ -31,8 +33,8 @@ class ApiService {
     dio = Dio(
       BaseOptions(
         baseUrl: _resolveBaseUrl(),
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: _defaultTimeout,
+        receiveTimeout: _defaultTimeout,
       ),
     );
 
@@ -160,6 +162,16 @@ class ApiService {
   static Options anonymousOptions() {
     return Options(
       extra: {_skipAuthExtraKey: true, _skipUnauthorizedHandlerExtraKey: true},
+    );
+  }
+
+  static Options uploadOptions({bool anonymous = false}) {
+    return Options(
+      sendTimeout: _uploadTimeout,
+      receiveTimeout: _uploadTimeout,
+      extra: anonymous
+          ? {_skipAuthExtraKey: true, _skipUnauthorizedHandlerExtraKey: true}
+          : null,
     );
   }
 

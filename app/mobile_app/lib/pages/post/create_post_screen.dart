@@ -71,22 +71,21 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
     // Compress images to WebP before upload to reduce file size
     final compressed = <CompressedImage>[];
     try {
-      // Request an upload key to bind images to the post
+      // Fetch upload key and compress images in parallel — they are independent.
+      // This saves one network round-trip worth of latency.
       String? uploadKey;
       if (_images.isNotEmpty) {
-        final keyResponse = await _fileService.getUploadKey();
-        uploadKey = (keyResponse.data?['key'] as String?) ?? '';
-      }
-
-      if (_images.isNotEmpty) {
-        compressed.addAll(
-          await ImageCompressionService.compressAll(
+        final results = await Future.wait([
+          _fileService.getUploadKey().then((r) => (r.data?['key'] as String?) ?? ''),
+          ImageCompressionService.compressAll(
             _images,
             quality: ImageCompressionService.postImageQuality,
             maxWidth: ImageCompressionService.postMaxWidth,
             maxHeight: ImageCompressionService.postMaxHeight,
           ),
-        );
+        ]);
+        uploadKey = results[0] as String?;
+        compressed.addAll(results[1] as List<CompressedImage>);
       }
 
       final uploadedImages = compressed.isEmpty

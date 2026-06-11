@@ -142,6 +142,23 @@ String errorMessageFromCode(int? code, {String? fallback}) {
 /// 从异常对象（DioException 或其他）提取用户可读错误消息。
 String extractErrorFromException(Object error) {
   if (error is DioException) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+        return '连接服务器超时，请检查网络后重试';
+      case DioExceptionType.sendTimeout:
+        return '图片上传超时，请换个网络或减少图片数量后重试';
+      case DioExceptionType.receiveTimeout:
+        return '服务器处理时间较长，请稍后重试或减少图片数量';
+      case DioExceptionType.connectionError:
+        return '网络连接失败，请检查网络后重试';
+      case DioExceptionType.cancel:
+        return '请求已取消';
+      case DioExceptionType.badCertificate:
+      case DioExceptionType.badResponse:
+      case DioExceptionType.unknown:
+        break;
+    }
+
     final data = error.response?.data;
     if (data is Map<String, dynamic>) {
       final errorCode = data['errorCode'];

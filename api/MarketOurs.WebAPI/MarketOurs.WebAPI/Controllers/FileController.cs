@@ -132,27 +132,27 @@ public class FileController(
             return ApiResponse<List<string>>.Fail(ErrorCode.FileNotFound);
         }
 
-        var urls = new List<string>();
-        foreach (var file in from file in files
-                 let extension = Path.GetExtension(file.FileName).ToLower()
-                 where AllowedExtensions.Contains(extension)
-                 select file)
+        // 并行处理所有图片：GIF 转换 + 存储保存
+        // 原先串行 foreach 导致 N 张图片 = N 次串行 S3/存储网络往返
+        var validFiles = (from file in files
+            let extension = Path.GetExtension(file.FileName).ToLower()
+            where AllowedExtensions.Contains(extension)
+            select file).ToList();
+
+        var uploadTasks = validFiles.Select(async file =>
         {
             var processed = await imageProcessingService.ProcessAsync(file);
-
             var url = await storageService.SaveFileAsync(processed ?? file, "images");
-            urls.Add(url);
-
             (processed as IDisposable)?.Dispose();
-        }
+            return url;
+        });
 
-        // 如果提供了上传密钥，将文件 URL 关联到该密钥
+        var urls = (await Task.WhenAll(uploadTasks)).ToList();
+
+        // 如果提供了上传密钥，并行追踪所有文件 URL 到 Redis
         if (!string.IsNullOrWhiteSpace(key))
         {
-            foreach (var url in urls)
-            {
-                await uploadKeyService.TrackFileAsync(key, url);
-            }
+            await Task.WhenAll(urls.Select(url => uploadKeyService.TrackFileAsync(key, url)));
         }
 
         return ApiResponse<List<string>>.Success(urls, $"成功上传 {urls.Count} 张图片");
