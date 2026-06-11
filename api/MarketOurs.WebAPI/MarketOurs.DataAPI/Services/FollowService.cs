@@ -66,8 +66,11 @@ public class FollowService(
     ILogger<FollowService> logger) : IFollowService
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
-    private static readonly TimeSpan RelationshipTtl = TimeSpan.FromDays(7);
-    private static readonly TimeSpan StatsTtl = TimeSpan.FromHours(1);
+
+    // 关系集合从数据库重建后的过期时间。
+    // 取较短值是为了给 cache-aside 的并发竞态兜底：万一“读重建”与“写删除”交错导致集合短暂残缺，
+    // 也会在该时间内自动失效并重新从数据库重建，而不会长期脏读。
+    private static readonly TimeSpan SetRebuildTtl = TimeSpan.FromMinutes(30);
 
     public async Task<FollowToggleResult> ToggleFollowAsync(string followerId, string followingId)
     {
@@ -122,26 +125,14 @@ public class FollowService(
 
             await context.SaveChangesAsync();
 
-            // 更新 Redis 缓存
+            // 缓存失效（cache-aside）：删除受影响的关系集合，下次读取时从数据库全量重建。
+            // 不在这里做增量 SetAdd/SetRemove —— 增量维护要求集合始终等于数据库全集，
+            // 但冷启动 / TTL 过期 / 屏蔽路径都会打破该前提，导致集合残缺、计数错乱。
             if (_redis != null)
             {
                 var db = _redis.GetDatabase();
-                var followingKey = CacheKeys.UserFollowing(followerId);
-                var followersKey = CacheKeys.UserFollowers(followingId);
-
-                if (isFollowing)
-                {
-                    await db.SetAddAsync(followingKey, followingId);
-                    await db.SetAddAsync(followersKey, followerId);
-                }
-                else
-                {
-                    await db.SetRemoveAsync(followingKey, followingId);
-                    await db.SetRemoveAsync(followersKey, followerId);
-                }
-
-                await db.KeyExpireAsync(followingKey, RelationshipTtl);
-                await db.KeyExpireAsync(followersKey, RelationshipTtl);
+                await db.KeyDeleteAsync(CacheKeys.UserFollowing(followerId));
+                await db.KeyDeleteAsync(CacheKeys.UserFollowers(followingId));
             }
 
             // 清除统计缓存
@@ -252,12 +243,16 @@ public class FollowService(
             if (_redis != null)
             {
                 var db = _redis.GetDatabase();
-                await db.SetAddAsync(CacheKeys.UserBlocked(blockerId), blockedId);
-                await db.KeyExpireAsync(CacheKeys.UserBlocked(blockerId), RelationshipTtl);
 
-                // 清除关注缓存
-                await db.SetRemoveAsync(CacheKeys.UserFollowing(blockerId), blockedId);
-                await db.SetRemoveAsync(CacheKeys.UserFollowing(blockedId), blockerId);
+                // cache-aside：删除受影响的关系集合，下次读取时从数据库全量重建。
+                // 屏蔽会在数据库层解除双向关注，因此必须失效双方的 following 和 followers 集合，
+                // 以及屏蔽者的 blocked 集合。旧实现对 followers 漏清、对 blocked 做增量 SetAdd，
+                // 都会留下与数据库不一致的残缺集合。
+                await db.KeyDeleteAsync(CacheKeys.UserBlocked(blockerId));
+                await db.KeyDeleteAsync(CacheKeys.UserFollowing(blockerId));
+                await db.KeyDeleteAsync(CacheKeys.UserFollowing(blockedId));
+                await db.KeyDeleteAsync(CacheKeys.UserFollowers(blockerId));
+                await db.KeyDeleteAsync(CacheKeys.UserFollowers(blockedId));
             }
 
             // 清除统计缓存
@@ -292,11 +287,11 @@ public class FollowService(
             await context.SaveChangesAsync();
         }
 
-        // 更新 Redis 缓存
+        // 缓存失效（cache-aside）：删除整个屏蔽集合，下次读取时从数据库全量重建。
         if (_redis != null)
         {
             var db = _redis.GetDatabase();
-            await db.SetRemoveAsync(CacheKeys.UserBlocked(blockerId), blockedId);
+            await db.KeyDeleteAsync(CacheKeys.UserBlocked(blockerId));
         }
 
         return true;
@@ -325,10 +320,10 @@ public class FollowService(
     {
         if (_redis != null)
         {
-            var db = _redis.GetDatabase();
-            var key = CacheKeys.UserFollowers(userId);
-            var count = await db.SetLengthAsync(key);
-            if (count > 0) return (int)count;
+            var members = await GetRelationSetAsync(
+                CacheKeys.UserFollowers(userId),
+                () => userRepo.GetFollowerIdsAsync(userId));
+            return members.Length;
         }
 
         return await userRepo.GetFollowerCountAsync(userId);
@@ -338,10 +333,10 @@ public class FollowService(
     {
         if (_redis != null)
         {
-            var db = _redis.GetDatabase();
-            var key = CacheKeys.UserFollowing(userId);
-            var count = await db.SetLengthAsync(key);
-            if (count > 0) return (int)count;
+            var members = await GetRelationSetAsync(
+                CacheKeys.UserFollowing(userId),
+                () => userRepo.GetFollowingIdsAsync(userId));
+            return members.Length;
         }
 
         return await userRepo.GetFollowingCountAsync(userId);
@@ -351,27 +346,50 @@ public class FollowService(
     {
         if (_redis != null)
         {
-            var db = _redis.GetDatabase();
-            var key = CacheKeys.UserFollowing(followerId);
-            if (await db.KeyExistsAsync(key))
-            {
-                return await db.SetContainsAsync(key, followingId);
-            }
+            var members = await GetRelationSetAsync(
+                CacheKeys.UserFollowing(followerId),
+                () => userRepo.GetFollowingIdsAsync(followerId));
+            return members.Any(m => m == followingId);
         }
 
         return await userRepo.IsFollowingAsync(followerId, followingId);
+    }
+
+    /// <summary>
+    /// 读取关系集合（cache-aside）。命中则直接返回；未命中则从数据库全量加载、写回 Redis 并设置较短 TTL。
+    /// 关键不变量：Redis 中的关系集合要么是数据库的“完整镜像”，要么不存在 —— 绝不允许存在“残缺集合”，
+    /// 因此 SetLength / 成员判断才可信。写操作（关注/取关/屏蔽）只删除受影响的 key，不做增量修改。
+    /// </summary>
+    private async Task<RedisValue[]> GetRelationSetAsync(string key, Func<Task<List<string>>> loadFromDb)
+    {
+        var db = _redis!.GetDatabase();
+
+        if (await db.KeyExistsAsync(key))
+        {
+            return await db.SetMembersAsync(key);
+        }
+
+        var ids = await loadFromDb();
+        if (ids.Count == 0)
+        {
+            // 数据库中也没有任何关系：不缓存空集合（避免占用 key），直接返回空。
+            return [];
+        }
+
+        var values = ids.Select(id => (RedisValue)id).ToArray();
+        await db.SetAddAsync(key, values);
+        await db.KeyExpireAsync(key, SetRebuildTtl);
+        return values;
     }
 
     private async Task<bool> IsBlockedAsync(string blockerId, string blockedId)
     {
         if (_redis != null)
         {
-            var db = _redis.GetDatabase();
-            var key = CacheKeys.UserBlocked(blockerId);
-            if (await db.KeyExistsAsync(key))
-            {
-                return await db.SetContainsAsync(key, blockedId);
-            }
+            var members = await GetRelationSetAsync(
+                CacheKeys.UserBlocked(blockerId),
+                () => userRepo.GetBlockedUserIdsByMeAsync(blockerId));
+            return members.Any(m => m == blockedId);
         }
 
         return await userRepo.IsBlockedAsync(blockerId, blockedId);

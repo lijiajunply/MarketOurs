@@ -28,11 +28,14 @@ public interface IUserRepo
     Task<int> GetFollowerCountAsync(string userId);
     Task<int> GetFollowingCountAsync(string userId);
     Task<bool> IsFollowingAsync(string followerId, string followingId);
+    Task<List<string>> GetFollowerIdsAsync(string userId);
+    Task<List<string>> GetFollowingIdsAsync(string userId);
 
     // 屏蔽操作
     Task<List<UserModel>?> GetBlockedUsersAsync(string userId);
     Task<bool> IsBlockedAsync(string blockerId, string blockedId);
     Task<List<string>> GetBlockedUserIdsAsync(string userId);
+    Task<List<string>> GetBlockedUserIdsByMeAsync(string userId);
 
     Task CreateAsync(UserModel user);
     Task UpdateAsync(UserModel user);
@@ -266,6 +269,26 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
             .AnyAsync(u => u.Id == followingId);
     }
 
+    public async Task<List<string>> GetFollowerIdsAsync(string userId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Users
+            .Where(x => x.Id == userId)
+            .SelectMany(x => x.Followers)
+            .Select(u => u.Id)
+            .ToListAsync();
+    }
+
+    public async Task<List<string>> GetFollowingIdsAsync(string userId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Users
+            .Where(x => x.Id == userId)
+            .SelectMany(x => x.Following)
+            .Select(u => u.Id)
+            .ToListAsync();
+    }
+
     // 屏蔽相关方法
     public async Task<List<UserModel>?> GetBlockedUsersAsync(string userId)
     {
@@ -303,5 +326,15 @@ public class UserRepo(IDbContextFactory<MarketContext> factory) : IUserRepo
             .ToListAsync();
 
         return blockedByMe.Union(blockedMe).Distinct().ToList();
+    }
+
+    public async Task<List<string>> GetBlockedUserIdsByMeAsync(string userId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Users
+            .Where(x => x.Id == userId)
+            .SelectMany(x => x.BlockedUsers)
+            .Select(u => u.Id)
+            .ToListAsync();
     }
 }
