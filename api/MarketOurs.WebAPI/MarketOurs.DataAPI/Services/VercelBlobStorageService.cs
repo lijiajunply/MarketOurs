@@ -68,6 +68,56 @@ public class VercelBlobStorageService(
         return url;
     }
 
+    public async Task<string> SaveStreamAsync(Stream stream, string fileName, string contentType, string subFolder = "uploads")
+    {
+        if (stream == null)
+            throw new ArgumentException("流为空");
+
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var blobFileName = $"{Guid.NewGuid():N}{extension}";
+        var pathname = BuildPathname(subFolder, blobFileName);
+        var requestUri = $"{BlobApiBaseUrl}/?pathname={Uri.EscapeDataString(pathname)}";
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, requestUri);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.Token);
+        request.Headers.Add("x-api-version", "12");
+        request.Headers.Add("x-api-blob-request-id", Guid.NewGuid().ToString("N"));
+        request.Headers.Add("x-vercel-blob-store-id", config.StoreId);
+        request.Headers.Add("x-vercel-blob-access", config.Access);
+        request.Headers.Add("x-add-random-suffix", "0");
+        request.Headers.Add("x-allow-overwrite", "0");
+        request.Headers.Add("x-cache-control-max-age", config.CacheControlMaxAgeSeconds.ToString());
+        request.Content = new StreamContent(stream);
+        request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+        request.Headers.Add("x-content-type", request.Content.Headers.ContentType.MediaType);
+
+        using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            logger.LogError("Vercel Blob 流式上传失败: {StatusCode} {Body}", response.StatusCode, responseBody);
+            throw new InvalidOperationException(
+                $"上传到 Vercel Blob 失败: {(int)response.StatusCode} {response.ReasonPhrase}");
+        }
+
+        using var document = JsonDocument.Parse(responseBody);
+        if (!document.RootElement.TryGetProperty("url", out var urlElement))
+        {
+            logger.LogError("Vercel Blob 上传响应缺少 url 字段: {Body}", responseBody);
+            throw new InvalidOperationException("Vercel Blob 返回了无效响应。");
+        }
+
+        var url = urlElement.GetString();
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            throw new InvalidOperationException("Vercel Blob 返回了空 URL。");
+        }
+
+        logger.LogInformation("流式上传到 Vercel Blob: {Url}", url);
+        return url;
+    }
+
     public async Task<bool> DeleteFileAsync(string fileUrl)
     {
         if (string.IsNullOrWhiteSpace(fileUrl))

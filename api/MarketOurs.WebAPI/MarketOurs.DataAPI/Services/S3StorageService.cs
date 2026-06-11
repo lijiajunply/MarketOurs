@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using Amazon.S3;
 using Amazon.S3.Model;
+using Amazon.S3.Transfer;
 using MarketOurs.DataAPI.Configs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -14,38 +16,103 @@ public class S3StorageService(
 {
     private const int MaxBatchDeleteSize = 1000;
 
+    /// <summary>
+    /// TransferUtility 分片大小 (5MB)，超过此大小的文件自动走分片并行上传。
+    /// </summary>
+    private const int PartSize = 5 * 1024 * 1024;
+
     public async Task<string> SaveFileAsync(IFormFile file, string subFolder = "uploads")
     {
         if (file == null || file.Length == 0)
             throw new ArgumentException("文件为空");
 
+        var sw = Stopwatch.StartNew();
+
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         var fileName = $"{Guid.NewGuid():N}{extension}";
         var key = BuildKey(subFolder, fileName);
+        var contentType = string.IsNullOrWhiteSpace(file.ContentType)
+            ? "application/octet-stream"
+            : file.ContentType;
 
         await using var stream = file.OpenReadStream();
-        var request = new PutObjectRequest
-        {
-            BucketName = config.BucketName,
-            Key = key,
-            InputStream = stream,
-            ContentType = string.IsNullOrWhiteSpace(file.ContentType)
-                ? "application/octet-stream"
-                : file.ContentType,
-            AutoCloseStream = false
-        };
 
-        var response = await s3Client.PutObjectAsync(request);
-
-        if ((int)response.HttpStatusCode < 200 || (int)response.HttpStatusCode >= 300)
-        {
-            logger.LogError("S3 上传失败: {StatusCode}", response.HttpStatusCode);
-            throw new InvalidOperationException($"上传到 S3 失败: {(int)response.HttpStatusCode}");
-        }
+        await UploadStreamToS3Async(stream, key, contentType, file.Length);
 
         var url = BuildAccessUrl(key);
-        logger.LogInformation("文件已上传到 S3: {Url}", url);
+        logger.LogInformation("[Perf] S3 SaveFile 总={TotalMs}ms size={Size}KB key={Key}",
+            sw.ElapsedMilliseconds, file.Length / 1024, key);
         return url;
+    }
+
+    public async Task<string> SaveStreamAsync(
+        Stream stream, string fileName, string contentType, string subFolder = "uploads")
+    {
+        if (stream == null)
+            throw new ArgumentException("流为空");
+
+        var sw = Stopwatch.StartNew();
+
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var keyName = $"{Guid.NewGuid():N}{extension}";
+        var key = BuildKey(subFolder, keyName);
+
+        await UploadStreamToS3Async(stream, key, contentType, stream.CanSeek ? stream.Length : -1);
+
+        var url = BuildAccessUrl(key);
+        logger.LogInformation("[Perf] S3 SaveStream 总={TotalMs}ms key={Key}", sw.ElapsedMilliseconds, key);
+        return url;
+    }
+
+    /// <summary>
+    /// 将流上传到 S3/COS。
+    /// 已知长度的流：自动分片并行上传（TransferUtility）。
+    /// 未知长度的流：单次 PutObject。
+    /// </summary>
+    private async Task UploadStreamToS3Async(Stream stream, string key, string contentType, long contentLength)
+    {
+        // 已知长度且大于分片上限：使用 TransferUtility 分片并行上传
+        if (contentLength > PartSize)
+        {
+            var putSw = Stopwatch.StartNew();
+            using var transferUtility = new TransferUtility(s3Client);
+
+            var request = new TransferUtilityUploadRequest
+            {
+                BucketName = config.BucketName,
+                Key = key,
+                InputStream = stream,
+                ContentType = contentType,
+                PartSize = PartSize,
+                AutoCloseStream = false,
+            };
+
+            await transferUtility.UploadAsync(request);
+            logger.LogInformation("[Perf] S3 TransferUtility(分片) 耗时={PutMs}ms size={Size}KB key={Key}",
+                putSw.ElapsedMilliseconds, contentLength / 1024, key);
+        }
+        else
+        {
+            var putSw = Stopwatch.StartNew();
+            var request = new PutObjectRequest
+            {
+                BucketName = config.BucketName,
+                Key = key,
+                InputStream = stream,
+                ContentType = contentType,
+                AutoCloseStream = false,
+            };
+
+            var response = await s3Client.PutObjectAsync(request);
+            logger.LogInformation("[Perf] S3 PutObject(普通) 耗时={PutMs}ms size={Size}KB key={Key}",
+                putSw.ElapsedMilliseconds, contentLength / 1024, key);
+
+            if ((int)response.HttpStatusCode < 200 || (int)response.HttpStatusCode >= 300)
+            {
+                logger.LogError("S3 上传失败: {StatusCode}", response.HttpStatusCode);
+                throw new InvalidOperationException($"上传到 S3 失败: {(int)response.HttpStatusCode}");
+            }
+        }
     }
 
     public async Task<bool> DeleteFileAsync(string fileUrl)

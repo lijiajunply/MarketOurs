@@ -1,7 +1,12 @@
+using System.Diagnostics;
 using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Net.Http.Headers;
 
 namespace MarketOurs.WebAPI.Controllers;
 
@@ -26,7 +31,9 @@ public class FileController(
     [Authorize]
     public async Task<ApiResponse<object>> GenerateUploadKey()
     {
+        var sw = Stopwatch.StartNew();
         var (key, expiresIn) = await uploadKeyService.GenerateKeyAsync();
+        logger.LogInformation("[Perf] GenerateUploadKey 总耗时: {Elapsed}ms, key={Key}", sw.ElapsedMilliseconds, key);
         return ApiResponse<object>.Success(new { key, expiresIn }, "上传密钥已生成");
     }
 
@@ -51,29 +58,36 @@ public class FileController(
             return ApiResponse<string>.Fail(ErrorCode.UnsupportedFileType);
         }
 
+        var totalSw = Stopwatch.StartNew();
+
         try
         {
-            // GIF → Animated WebP 转换（非 GIF 原样放行）
+            var processSw = Stopwatch.StartNew();
             var processed = await imageProcessingService.ProcessAsync(file);
+            logger.LogInformation("[Perf] ImageProcessingService.ProcessAsync 耗时: {Elapsed}ms, ext={Ext}, size={Size}",
+                processSw.ElapsedMilliseconds, extension, file.Length);
 
-            // 保存到 images 子目录
+            var saveSw = Stopwatch.StartNew();
             var url = await storageService.SaveFileAsync(processed ?? file, "images");
-            logger.LogInformation("用户上传图片成功: {Url}", url);
+            logger.LogInformation("[Perf] StorageService.SaveFileAsync 耗时: {Elapsed}ms, url={Url}",
+                saveSw.ElapsedMilliseconds, url);
 
-            // 释放处理后的临时内存流
             (processed as IDisposable)?.Dispose();
 
-            // 如果提供了上传密钥，将文件 URL 关联到该密钥
             if (!string.IsNullOrWhiteSpace(key))
             {
+                var trackSw = Stopwatch.StartNew();
                 await uploadKeyService.TrackFileAsync(key, url);
+                logger.LogInformation("[Perf] TrackFileAsync 耗时: {Elapsed}ms", trackSw.ElapsedMilliseconds);
             }
 
+            logger.LogInformation("[Perf] UploadImage 总耗时: {Elapsed}ms, ext={Ext}, size={Size}KB, url={Url}",
+                totalSw.ElapsedMilliseconds, extension, file.Length / 1024, url);
             return ApiResponse<string>.Success(url, "上传成功");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "文件上传过程中发生错误");
+            logger.LogError(ex, "[Perf] UploadImage 失败, 已耗时: {Elapsed}ms", totalSw.ElapsedMilliseconds);
             return ApiResponse<string>.Fail(ErrorCode.FileUploadFailed);
         }
     }
@@ -99,20 +113,29 @@ public class FileController(
             return ApiResponse<string>.Fail(ErrorCode.UnsupportedFileType);
         }
 
+        var totalSw = Stopwatch.StartNew();
+
         try
         {
+            var processSw = Stopwatch.StartNew();
             var processed = await imageProcessingService.ProcessAsync(file);
+            logger.LogInformation("[Perf] Avatar ImageProcessingService.ProcessAsync 耗时: {Elapsed}ms",
+                processSw.ElapsedMilliseconds);
 
+            var saveSw = Stopwatch.StartNew();
             var url = await storageService.SaveFileAsync(processed ?? file, "avatars");
-            logger.LogInformation("匿名上传头像成功: {Url}", url);
+            logger.LogInformation("[Perf] Avatar StorageService.SaveFileAsync 耗时: {Elapsed}ms, url={Url}",
+                saveSw.ElapsedMilliseconds, url);
 
             (processed as IDisposable)?.Dispose();
 
+            logger.LogInformation("[Perf] UploadAvatar 总耗时: {Elapsed}ms, size={Size}KB, url={Url}",
+                totalSw.ElapsedMilliseconds, file.Length / 1024, url);
             return ApiResponse<string>.Success(url, "上传成功");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "头像上传过程中发生错误");
+            logger.LogError(ex, "[Perf] UploadAvatar 失败, 已耗时: {Elapsed}ms", totalSw.ElapsedMilliseconds);
             return ApiResponse<string>.Fail(ErrorCode.FileUploadFailed);
         }
     }
@@ -133,28 +156,152 @@ public class FileController(
         }
 
         // 并行处理所有图片：GIF 转换 + 存储保存
-        // 原先串行 foreach 导致 N 张图片 = N 次串行 S3/存储网络往返
         var validFiles = (from file in files
             let extension = Path.GetExtension(file.FileName).ToLower()
             where AllowedExtensions.Contains(extension)
             select file).ToList();
 
+        var totalSw = Stopwatch.StartNew();
+
         var uploadTasks = validFiles.Select(async file =>
         {
+            var ext = Path.GetExtension(file.FileName).ToLower();
+            var fileSw = Stopwatch.StartNew();
+
+            var processSw = Stopwatch.StartNew();
             var processed = await imageProcessingService.ProcessAsync(file);
+            var processMs = processSw.ElapsedMilliseconds;
+
+            var saveSw = Stopwatch.StartNew();
             var url = await storageService.SaveFileAsync(processed ?? file, "images");
+            var saveMs = saveSw.ElapsedMilliseconds;
+
             (processed as IDisposable)?.Dispose();
+            logger.LogInformation("[Perf] 批量上传单文件 处理={ProcessMs}ms 存储={SaveMs}ms 总={TotalMs}ms ext={Ext} size={Size}KB",
+                processMs, saveMs, fileSw.ElapsedMilliseconds, ext, file.Length / 1024);
             return url;
         });
 
         var urls = (await Task.WhenAll(uploadTasks)).ToList();
 
-        // 如果提供了上传密钥，一次性追踪所有文件 URL 到 Redis
         if (!string.IsNullOrWhiteSpace(key))
         {
+            var trackSw = Stopwatch.StartNew();
             await uploadKeyService.TrackFilesAsync(key, urls);
+            logger.LogInformation("[Perf] 批量TrackFilesAsync 耗时: {Elapsed}ms, count={Count}",
+                trackSw.ElapsedMilliseconds, urls.Count);
         }
 
+        logger.LogInformation("[Perf] UploadImages 总耗时: {Elapsed}ms, count={Count}",
+            totalSw.ElapsedMilliseconds, urls.Count);
         return ApiResponse<List<string>>.Success(urls, $"成功上传 {urls.Count} 张图片");
     }
+
+    /// <summary>
+    /// 流式上传图片 — 绕过 IFormFile 缓冲，请求体直接流式写入 COS/S3。
+    /// Content-Type 必须是 multipart/form-data，文件字段名统一为 "file"。
+    /// </summary>
+    [HttpPost("upload/stream")]
+    [Authorize]
+    [DisableFormModelBinding]
+    public async Task<ApiResponse<List<string>>> UploadStream([FromQuery] string? key = null)
+    {
+        var contentType = Request.ContentType;
+        if (string.IsNullOrWhiteSpace(contentType) ||
+            !contentType.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase))
+        {
+            return ApiResponse<List<string>>.Fail(ErrorCode.UnsupportedFileType, "需要 multipart/form-data");
+        }
+
+        var boundary = HeaderUtilities.RemoveQuotes(
+            MediaTypeHeaderValue.Parse(contentType).Boundary).Value;
+        if (string.IsNullOrWhiteSpace(boundary))
+        {
+            return ApiResponse<List<string>>.Fail(ErrorCode.UnsupportedFileType, "无法获取 multipart boundary");
+        }
+
+        var totalSw = Stopwatch.StartNew();
+        var urls = new List<string>();
+        var reader = new MultipartReader(boundary, Request.Body);
+
+        try
+        {
+            MultipartSection? section;
+            while ((section = await reader.ReadNextSectionAsync()) != null)
+            {
+                var fileSw = Stopwatch.StartNew();
+
+                if (!ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var disposition))
+                    continue;
+
+                if (!disposition.DispositionType.Equals("form-data") ||
+                    string.IsNullOrWhiteSpace(disposition.FileName.Value))
+                    continue;
+
+                var fileName = Path.GetFileName(disposition.FileName.Value.Trim('"'));
+                var ext = Path.GetExtension(fileName).ToLower();
+
+                if (!AllowedExtensions.Contains(ext))
+                    continue;
+
+                string url;
+
+                if (ext is ".gif")
+                {
+                    // GIF 需要先完整读取再转 WebP（ImageSharp 不支持流式解码 GIF）
+                    var processed = await imageProcessingService.ProcessStreamAsync(
+                        section.Body, fileName, section.ContentType);
+                    url = await storageService.SaveStreamAsync(
+                        processed.stream, processed.fileName, processed.contentType, "images");
+                }
+                else
+                {
+                    // 非 GIF：流式直写 COS，不经过服务端缓冲
+                    url = await storageService.SaveStreamAsync(
+                        section.Body, fileName,
+                        section.ContentType ?? "application/octet-stream",
+                        "images");
+                }
+
+                urls.Add(url);
+                logger.LogInformation("[Perf] 流式上传单文件 总={TotalMs}ms ext={Ext}",
+                    fileSw.ElapsedMilliseconds, ext);
+            }
+
+            if (!string.IsNullOrWhiteSpace(key) && urls.Count > 0)
+            {
+                var trackSw = Stopwatch.StartNew();
+                await uploadKeyService.TrackFilesAsync(key, urls);
+                logger.LogInformation("[Perf] 流式TrackFiles 耗时: {Elapsed}ms", trackSw.ElapsedMilliseconds);
+            }
+
+            logger.LogInformation("[Perf] UploadStream 总耗时: {Elapsed}ms, count={Count}",
+                totalSw.ElapsedMilliseconds, urls.Count);
+            return ApiResponse<List<string>>.Success(urls, $"成功上传 {urls.Count} 张图片");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "[Perf] UploadStream 失败, 已耗时: {Elapsed}ms, 已上传: {Count}",
+                totalSw.ElapsedMilliseconds, urls.Count);
+            return ApiResponse<List<string>>.Fail(ErrorCode.FileUploadFailed);
+        }
+    }
+}
+
+/// <summary>
+/// [DisableFormModelBinding] 属性 — 阻止 ASP.NET Core 自动解析 multipart/form-data，
+/// 从而绕开 IFormFile 缓冲。
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+internal sealed class DisableFormModelBindingAttribute : Attribute, IResourceFilter
+{
+    public void OnResourceExecuting(ResourceExecutingContext context)
+    {
+        var factories = context.ValueProviderFactories;
+        factories.RemoveType<FormValueProviderFactory>();
+        factories.RemoveType<FormFileValueProviderFactory>();
+        factories.RemoveType<JQueryFormValueProviderFactory>();
+    }
+
+    public void OnResourceExecuted(ResourceExecutedContext context) { }
 }

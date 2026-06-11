@@ -10,6 +10,11 @@ public interface IStorageService
     Task<string> SaveFileAsync(IFormFile file, string subFolder = "uploads");
 
     /// <summary>
+    /// 直接从流保存文件，绕过 IFormFile 缓冲。用于流式上传。
+    /// </summary>
+    Task<string> SaveStreamAsync(Stream stream, string fileName, string contentType, string subFolder = "uploads");
+
+    /// <summary>
     /// 删除文件
     /// </summary>
     Task<bool> DeleteFileAsync(string fileUrl);

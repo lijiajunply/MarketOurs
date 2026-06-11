@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
@@ -23,50 +24,104 @@ public class ImageProcessingService(ILogger<ImageProcessingService> logger)
     /// </summary>
     public async Task<IFormFile?> ProcessAsync(IFormFile file)
     {
+        var sw = Stopwatch.StartNew();
+
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (ext is not ".gif") return null;
+        if (ext is not ".gif")
+        {
+            logger.LogInformation("[Perf] ImageProcessing skip (非GIF): {Elapsed}ms, ext={Ext}", sw.ElapsedMilliseconds, ext);
+            return null;
+        }
 
         try
         {
+            var loadSw = Stopwatch.StartNew();
             using var image = await Image.LoadAsync(file.OpenReadStream());
+            var loadMs = loadSw.ElapsedMilliseconds;
 
-            // 注意：即使是单帧 GIF，也转为 WebP — WebP 在单帧场景下仍然比
-            // GIF 体积更小。多帧时自动编码为 Animated WebP。
             var encoder = new WebpEncoder
             {
                 Quality = _webpQuality,
-                // NearLossless 对动画 WebP 无效，所以只在单帧时启用微量 lossless 以提升文字清晰度
                 NearLossless = image.Frames.Count <= 1,
                 NearLosslessQuality = _webpQuality,
             };
 
+            var encodeSw = Stopwatch.StartNew();
             var ms = new MemoryStream();
             await image.SaveAsWebpAsync(ms, encoder);
             ms.Position = 0;
+            var encodeMs = encodeSw.ElapsedMilliseconds;
 
             var originalSize = file.Length;
             var compressedSize = ms.Length;
 
             if (compressedSize >= originalSize)
             {
-                // 压缩后体积更大（极少见），保留原始文件
                 logger.LogDebug(
                     "GIF → WebP 转换后体积未减小 ({Original} → {Compressed})，保留原始文件",
                     originalSize, compressedSize);
                 return null;
             }
 
-            logger.LogInformation(
-                "GIF → Animated WebP 转换完成: {Original} bytes → {Compressed} bytes ({Ratio:P0} 减小), frames={Frames}",
-                originalSize, compressedSize, 1.0 - (double)compressedSize / originalSize, image.Frames.Count);
+            logger.LogInformation("[Perf] GIF→WebP Load={LoadMs}ms Encode={EncodeMs}ms 总={TotalMs}ms {OrigSize}→{NewSize} frames={Frames}",
+                loadMs, encodeMs, sw.ElapsedMilliseconds, originalSize, compressedSize, image.Frames.Count);
 
             var newFileName = Path.ChangeExtension(file.FileName, ".webp");
             return new ProcessedFormFile(ms, newFileName, "image/webp");
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "GIF → WebP 转换失败，降级使用原始文件");
+            logger.LogWarning(ex, "[Perf] GIF→WebP 转换失败, 已耗时: {Elapsed}ms", sw.ElapsedMilliseconds);
             return null;
+        }
+    }
+
+    /// <summary>
+    /// 流式处理 GIF → WebP。接收原始流，返回转换后的 MemoryStream。
+    /// 非 GIF 文件调用此方法时直接返回原始流（不做转换）。
+    /// </summary>
+    /// <returns>(转换后的流, 新文件名, 新 ContentType)</returns>
+    public async Task<(Stream stream, string fileName, string contentType)> ProcessStreamAsync(
+        Stream inputStream, string fileName, string? contentType)
+    {
+        var ext = Path.GetExtension(fileName).ToLowerInvariant();
+        if (ext is not ".gif")
+        {
+            return (inputStream, fileName, contentType ?? "application/octet-stream");
+        }
+
+        var sw = Stopwatch.StartNew();
+
+        try
+        {
+            var loadSw = Stopwatch.StartNew();
+            using var image = await Image.LoadAsync(inputStream);
+            var loadMs = loadSw.ElapsedMilliseconds;
+
+            var encoder = new WebpEncoder
+            {
+                Quality = _webpQuality,
+                NearLossless = image.Frames.Count <= 1,
+                NearLosslessQuality = _webpQuality,
+            };
+
+            var encodeSw = Stopwatch.StartNew();
+            var ms = new MemoryStream();
+            await image.SaveAsWebpAsync(ms, encoder);
+            ms.Position = 0;
+            var encodeMs = encodeSw.ElapsedMilliseconds;
+
+            logger.LogInformation("[Perf] Stream GIF→WebP Load={LoadMs}ms Encode={EncodeMs}ms 总={TotalMs}ms size={NewSize}",
+                loadMs, encodeMs, sw.ElapsedMilliseconds, ms.Length);
+
+            var newFileName = Path.ChangeExtension(fileName, ".webp");
+            return (ms, newFileName, "image/webp");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "[Perf] Stream GIF→WebP 转换失败, 已耗时: {Elapsed}ms", sw.ElapsedMilliseconds);
+            inputStream.Position = 0;
+            return (inputStream, fileName, contentType ?? "application/octet-stream");
         }
     }
 

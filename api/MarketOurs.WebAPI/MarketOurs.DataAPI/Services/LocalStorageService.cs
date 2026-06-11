@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -13,28 +14,57 @@ public class LocalStorageService(IWebHostEnvironment environment, ILogger<LocalS
         if (file == null || file.Length == 0)
             throw new ArgumentException("文件为空");
 
-        if (!Directory.Exists(_uploadRoot))
-        {
-            Directory.CreateDirectory(_uploadRoot);
-        }
+        var sw = Stopwatch.StartNew();
+
+        EnsureDirectory(_uploadRoot);
 
         var targetFolder = Path.Combine(_uploadRoot, subFolder);
-        if (!Directory.Exists(targetFolder))
-        {
-            Directory.CreateDirectory(targetFolder);
-        }
+        EnsureDirectory(targetFolder);
 
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         var fileName = $"{Guid.NewGuid():N}{extension}";
         var filePath = Path.Combine(targetFolder, fileName);
 
-        await using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
+        await using var stream = file.OpenReadStream();
+        await WriteToFileAsync(stream, filePath);
 
-        logger.LogInformation("文件已保存到本地: {FilePath}", filePath);
+        logger.LogInformation("[Perf] LocalStorage SaveFile 总={TotalMs}ms path={Path}",
+            sw.ElapsedMilliseconds, filePath);
         return $"/uploads/{subFolder}/{fileName}".Replace("\\", "/");
+    }
+
+    public async Task<string> SaveStreamAsync(Stream stream, string fileName, string contentType, string subFolder = "uploads")
+    {
+        if (stream == null)
+            throw new ArgumentException("流为空");
+
+        var sw = Stopwatch.StartNew();
+
+        EnsureDirectory(_uploadRoot);
+        var targetFolder = Path.Combine(_uploadRoot, subFolder);
+        EnsureDirectory(targetFolder);
+
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var diskFileName = $"{Guid.NewGuid():N}{extension}";
+        var filePath = Path.Combine(targetFolder, diskFileName);
+
+        await WriteToFileAsync(stream, filePath);
+
+        logger.LogInformation("[Perf] LocalStorage SaveStream 总={TotalMs}ms path={Path}",
+            sw.ElapsedMilliseconds, filePath);
+        return $"/uploads/{subFolder}/{diskFileName}".Replace("\\", "/");
+    }
+
+    private static void EnsureDirectory(string path)
+    {
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
+    }
+
+    private static async Task WriteToFileAsync(Stream stream, string filePath)
+    {
+        await using var fs = new FileStream(filePath, FileMode.Create);
+        await stream.CopyToAsync(fs);
     }
 
     public Task<bool> DeleteFileAsync(string fileUrl)

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using MarketOurs.DataAPI.Configs;
 using Microsoft.Extensions.Caching.Distributed;
@@ -28,19 +29,24 @@ public class UploadKeyService(
     /// <returns>包含 key 和 expiresIn（秒）的元组</returns>
     public async Task<(string Key, int ExpiresIn)> GenerateKeyAsync(TimeSpan? ttl = null)
     {
+        var sw = Stopwatch.StartNew();
+
         var effectiveTtl = ttl ?? DefaultTtl;
         var key = Guid.NewGuid().ToString("N");
 
         var entry = new UploadKeyEntry([], DateTime.UtcNow);
         var json = JsonSerializer.Serialize(entry);
 
+        var redisSw = Stopwatch.StartNew();
         var cacheKey = CacheKeys.UploadKey(key);
         await distributedCache.SetStringAsync(cacheKey, json, new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = effectiveTtl
         });
+        var redisMs = redisSw.ElapsedMilliseconds;
 
-        logger.LogInformation("Generated upload key: {Key}, TTL: {Ttl}s", key, (int)effectiveTtl.TotalSeconds);
+        logger.LogInformation("[Perf] GenerateUploadKey Redis SET 耗时: {RedisMs}ms, 总耗时: {TotalMs}ms, key={Key}",
+            redisMs, sw.ElapsedMilliseconds, key);
         return (key, (int)effectiveTtl.TotalSeconds);
     }
 
@@ -58,11 +64,15 @@ public class UploadKeyService(
     /// </summary>
     public async Task TrackFilesAsync(string key, IEnumerable<string> urls)
     {
+        var sw = Stopwatch.StartNew();
+
         var cacheKey = CacheKeys.UploadKey(key);
         var urlList = urls.Where(url => !string.IsNullOrWhiteSpace(url)).ToList();
         if (urlList.Count == 0) return;
 
+        var getSw = Stopwatch.StartNew();
         var json = await distributedCache.GetStringAsync(cacheKey);
+        var getMs = getSw.ElapsedMilliseconds;
 
         UploadKeyEntry entry;
         if (string.IsNullOrWhiteSpace(json))
@@ -78,13 +88,15 @@ public class UploadKeyService(
         entry.Urls.AddRange(urlList);
         var updatedJson = JsonSerializer.Serialize(entry);
 
-        // 刷新 TTL：每次添加文件时重置过期时间
+        var setSw = Stopwatch.StartNew();
         await distributedCache.SetStringAsync(cacheKey, updatedJson, new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = DefaultTtl
         });
+        var setMs = setSw.ElapsedMilliseconds;
 
-        logger.LogDebug("Tracked {Count} files under upload key {Key}", urlList.Count, key);
+        logger.LogInformation("[Perf] TrackFilesAsync Redis GET={GetMs}ms SET={SetMs}ms 总={TotalMs}ms count={Count}",
+            getMs, setMs, sw.ElapsedMilliseconds, urlList.Count);
     }
 
     /// <summary>
