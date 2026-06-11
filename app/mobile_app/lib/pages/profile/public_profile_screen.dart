@@ -151,6 +151,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _ProfileHero(profile: _profile!, isMe: isMe),
+                          const SizedBox(height: 12),
                           _FollowStats(
                             followerCount: _followerCount,
                             followingCount: _followingCount,
@@ -362,7 +363,7 @@ class _FollowStats extends StatelessWidget {
       children: [
         Expanded(
           child: AppSectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             child: Column(
               children: [
                 Text(
@@ -388,7 +389,7 @@ class _FollowStats extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: AppSectionCard(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             child: Column(
               children: [
                 Text(

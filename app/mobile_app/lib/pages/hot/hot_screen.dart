@@ -203,26 +203,6 @@ class _HotPostCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(width: 16),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      CupertinoIcons.bubble_left,
-                      size: 14,
-                      color: AppColors.mutedForeground,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${post.commentsCount ?? 0} 讨论',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.mutedForeground,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
                 const Spacer(),
                 const Icon(
                   CupertinoIcons.chevron_right,
