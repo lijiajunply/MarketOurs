@@ -30,13 +30,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
-    final result = await widget.service.getNotifications();
-    if (result != null) {
-      setState(() {
-        _notifications = result.items;
-      });
+    try {
+      final result = await widget.service.getNotifications();
+      if (!mounted) return;
+      if (result != null) {
+        setState(() {
+          _notifications = result.items;
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-    setState(() => _isLoading = false);
   }
 
   IconData _getIcon(NotificationType type) {
@@ -99,11 +103,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     actions: [
                       CupertinoActionSheetAction(
                         onPressed: () async {
-                          await widget.service.markAllAsRead();
-                          await _loadNotifications();
-                          // if (context.mounted) {
-                          //   Navigator.of(context).pop();
-                          // }
+                          Navigator.of(context).pop();
+                          await _markAllAsReadOptimistically();
                         },
                         child: const Text('全部标为已读'),
                       ),
@@ -154,19 +155,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Future<void> _openNotification(int index) async {
     final n = _notifications[index];
     if (!n.isRead) {
-      await widget.service.markAsRead(n.id);
       setState(() {
-        _notifications[index] = NotificationDto(
-          id: n.id,
-          userId: n.userId,
-          title: n.title,
-          content: n.content,
-          type: n.type,
-          targetId: n.targetId,
-          isRead: true,
-          createdAt: n.createdAt,
-        );
+        _notifications[index] = _copyNotification(n, isRead: true);
       });
+      widget.service
+          .markAsRead(n.id)
+          .then((success) {
+            if (!success && mounted) _loadNotifications();
+          })
+          .catchError((_) {
+            if (mounted) _loadNotifications();
+          });
     }
 
     if (!mounted) {
@@ -176,6 +175,35 @@ class _NotificationScreenState extends State<NotificationScreen> {
     if (n.targetId?.isNotEmpty == true) {
       context.push(buildPostDetailLocation(n.targetId!));
     }
+  }
+
+  Future<void> _markAllAsReadOptimistically() async {
+    final previous = _notifications;
+    setState(() {
+      _notifications = [
+        for (final n in _notifications) _copyNotification(n, isRead: true),
+      ];
+    });
+
+    try {
+      final success = await widget.service.markAllAsRead();
+      if (!success && mounted) setState(() => _notifications = previous);
+    } catch (_) {
+      if (mounted) setState(() => _notifications = previous);
+    }
+  }
+
+  NotificationDto _copyNotification(NotificationDto n, {required bool isRead}) {
+    return NotificationDto(
+      id: n.id,
+      userId: n.userId,
+      title: n.title,
+      content: n.content,
+      type: n.type,
+      targetId: n.targetId,
+      isRead: isRead,
+      createdAt: n.createdAt,
+    );
   }
 
   Widget _buildEmptyState() {

@@ -69,19 +69,20 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
+      _isCommentsLoading = true;
       _errorMessage = null;
     });
 
-    // 详情与评论并行发起,评论不再等详情返回后才开始,缩短首屏到评论可见的总时长。
     final commentsRequestId = ++_commentsRequestId;
-    setState(() => _isCommentsLoading = true);
-    final commentsFuture = ref
-        .read(postServiceProvider)
-        .getPostComments(widget.postId, _commentSort);
+    final postService = ref.read(postServiceProvider);
+    final postFuture = postService.getPost(widget.postId);
+    final commentsFuture = postService.getPostComments(
+      widget.postId,
+      _commentSort,
+    );
 
     try {
-      final postService = ref.read(postServiceProvider);
-      final response = await postService.getPost(widget.postId);
+      final response = await postFuture;
       final post = response.data;
       if (post == null) {
         throw Exception('帖子不存在');
@@ -105,28 +106,23 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       });
     }
 
-    // 消费并行发起的评论结果(无论详情成功与否都处理,避免评论 loading 卡死)。
-    try {
-      final res = await commentsFuture;
-      final comments = res.data;
-      if (!mounted || commentsRequestId != _commentsRequestId) return;
-      setState(() {
-        _comments = comments ?? const [];
-        _syncCommentReactionState(_comments);
-        _isCommentsLoading = false;
-      });
-    } catch (error) {
-      if (!mounted || commentsRequestId != _commentsRequestId) return;
-      setState(() => _isCommentsLoading = false);
-    }
+    await _consumeCommentsFuture(commentsFuture, commentsRequestId);
   }
 
   Future<void> _loadCommentsInternal() async {
     final requestId = ++_commentsRequestId;
+    final commentsFuture = ref
+        .read(postServiceProvider)
+        .getPostComments(widget.postId, _commentSort);
+    await _consumeCommentsFuture(commentsFuture, requestId);
+  }
+
+  Future<void> _consumeCommentsFuture(
+    Future<dynamic> commentsFuture,
+    int requestId,
+  ) async {
     try {
-      final res = await ref
-          .read(postServiceProvider)
-          .getPostComments(widget.postId, _commentSort);
+      final res = await commentsFuture;
       final comments = res.data;
 
       if (!mounted || requestId != _commentsRequestId) return;
@@ -1459,7 +1455,9 @@ List<_FlatReply> _flattenReplies(CommentDto root) {
   void walk(List<CommentDto>? nodes, CommentDto parent, bool parentIsRoot) {
     if (nodes == null) return;
     for (final child in nodes) {
-      out.add(_FlatReply(comment: child, replyTo: parentIsRoot ? null : parent));
+      out.add(
+        _FlatReply(comment: child, replyTo: parentIsRoot ? null : parent),
+      );
       walk(child.repliedComments, child, false);
     }
   }

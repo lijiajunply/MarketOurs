@@ -88,6 +88,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
           ),
         ]);
         uploadKey = results[0] as String?;
+        if (uploadKey?.isEmpty == true) {
+          uploadKey = null;
+        }
         compressed.addAll(results[1] as List<CompressedImage>);
       }
 
@@ -154,7 +157,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             children: [
               const Text(
                 '正在上传图片',
-                style: TextStyle(fontSize: 14, color: AppColors.mutedForeground),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.mutedForeground,
+                ),
               ),
               Text(
                 '$percent%',
@@ -174,10 +180,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               alignment: Alignment.centerLeft,
               child: FractionallySizedBox(
                 widthFactor: fraction,
-                child: Container(
-                  height: 6,
-                  color: AppColors.primary,
-                ),
+                child: Container(height: 6, color: AppColors.primary),
               ),
             ),
           ),

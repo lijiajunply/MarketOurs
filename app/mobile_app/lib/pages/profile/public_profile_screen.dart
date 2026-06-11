@@ -51,14 +51,16 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
     });
 
     try {
-      final profileResponse = await _userService.getPublicProfile(
-        widget.userId,
-      );
-      final postsResponse = await ref
+      final profileFuture = _userService.getPublicProfile(widget.userId);
+      final postsFuture = ref
           .read(postServiceProvider)
-          .getUserPosts(widget.userId, pageIndex: 1, pageSize: 6);
+          .getUserPosts(widget.userId, pageIndex: 1, pageSize: 6)
+          .then((response) => response.data?.items ?? const <PostDto>[])
+          .catchError((_) => const <PostDto>[]);
+
+      final profileResponse = await profileFuture;
+      final posts = await postsFuture;
       final profile = profileResponse.data;
-      final posts = postsResponse.data?.items;
 
       if (profile == null) {
         throw Exception('用户不存在');
@@ -70,7 +72,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
 
       setState(() {
         _profile = profile;
-        _recentPosts = posts ?? const [];
+        _recentPosts = posts;
         _followerCount = profile.followerCount;
         _followingCount = profile.followingCount;
         _isFollowing = profile.relationshipStatus?.isFollowing ?? false;
@@ -157,7 +159,13 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                             followerCount: _followerCount,
                             followingCount: _followingCount,
                           ),
-                          if (!isMe && ref.watch(authControllerProvider).asData?.value.user != null) ...[
+                          if (!isMe &&
+                              ref
+                                      .watch(authControllerProvider)
+                                      .asData
+                                      ?.value
+                                      .user !=
+                                  null) ...[
                             const SizedBox(height: 12),
                             _FollowBlockButtons(
                               isFollowing: _isFollowing,
@@ -238,11 +246,7 @@ class _ProfileHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppAvatar(
-            url: profile.avatar,
-            name: profile.name,
-            size: 72,
-          ),
+          AppAvatar(url: profile.avatar, name: profile.name, size: 72),
           const SizedBox(height: 16),
           Text(
             profile.name?.trim().isNotEmpty == true
@@ -258,9 +262,7 @@ class _ProfileHero extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-              if (isMe) const _MetaChip(label: '这是你'),
-            ],
+            children: [if (isMe) const _MetaChip(label: '这是你')],
           ),
           const SizedBox(height: 14),
           Text(
@@ -353,7 +355,10 @@ class _PostPreview extends StatelessWidget {
 }
 
 class _FollowStats extends StatelessWidget {
-  const _FollowStats({required this.followerCount, required this.followingCount});
+  const _FollowStats({
+    required this.followerCount,
+    required this.followingCount,
+  });
 
   final int followerCount;
   final int followingCount;

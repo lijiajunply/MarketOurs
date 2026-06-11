@@ -38,40 +38,26 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen> {
 
   Future<void> _loadData() async {
     final user = ref.read(authControllerProvider).asData?.value.user;
-    if (user == null) return;
+    if (user == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
     setState(() => _isLoading = true);
     try {
-      if (_activeTab == 'following') {
-        final res = await _followService.getFollowing(
-          user.id,
-          pageIndex: 1,
-          pageSize: 50,
-        );
-        final data = res.data;
-        if (data is Map<String, dynamic>) {
-          final items =
-              (data['items'] as List?)
-                  ?.map(
-                    (e) => UserSimpleDto.fromJson(e as Map<String, dynamic>),
-                  )
-                  .toList() ??
-              [];
-          if (mounted) setState(() => _followingList = items);
-        }
-      } else {
-        final res = await _followService.getBlocked(pageIndex: 1, pageSize: 50);
-        final data = res.data;
-        if (data is Map<String, dynamic>) {
-          final items =
-              (data['items'] as List?)
-                  ?.map(
-                    (e) => UserSimpleDto.fromJson(e as Map<String, dynamic>),
-                  )
-                  .toList() ??
-              [];
-          if (mounted) setState(() => _blockedList = items);
-        }
+      final results = await Future.wait([
+        _followService
+            .getFollowing(user.id, pageIndex: 1, pageSize: 50)
+            .then((res) => _parseUsers(res.data)),
+        _followService
+            .getBlocked(pageIndex: 1, pageSize: 50)
+            .then((res) => _parseUsers(res.data)),
+      ]);
+      if (mounted) {
+        setState(() {
+          _followingList = results[0];
+          _blockedList = results[1];
+        });
       }
     } catch (error) {
       if (mounted) {
@@ -82,6 +68,17 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen> {
       }
     }
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  List<UserSimpleDto> _parseUsers(dynamic data) {
+    if (data is! Map<String, dynamic>) {
+      return const [];
+    }
+
+    return (data['items'] as List?)
+            ?.map((e) => UserSimpleDto.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        const [];
   }
 
   Future<void> _handleUnfollow(String userId) async {
@@ -160,7 +157,6 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen> {
                     onValueChanged: (v) {
                       if (v != null && v != _activeTab) {
                         setState(() => _activeTab = v);
-                        _loadData();
                       }
                     },
                   ),

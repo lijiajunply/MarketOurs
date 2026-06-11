@@ -150,7 +150,7 @@ class _TabletSideNavigationItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: CupertinoButton(
-        minSize: 0,
+        minimumSize: Size.zero,
         padding: EdgeInsets.zero,
         borderRadius: BorderRadius.circular(AppRadii.md),
         onPressed: onPressed,

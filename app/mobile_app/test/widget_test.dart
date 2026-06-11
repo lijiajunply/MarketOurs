@@ -331,14 +331,12 @@ class _FakeAuthService extends AuthService {
     this.loginToken,
     this.getInfoError,
     this.refreshTokenResult,
-    this.refreshError,
   });
 
   final UserDto? user;
   final TokenDto? loginToken;
   final Object? getInfoError;
   final TokenDto? refreshTokenResult;
-  final Object? refreshError;
   int _getInfoAttempts = 0;
 
   @override
@@ -363,14 +361,14 @@ class _FakeAuthService extends AuthService {
 
   @override
   Future<ApiResponse<TokenDto>> refresh(RefreshRequest request) async {
-    if (refreshError != null) {
-      throw refreshError!;
-    }
     return ApiResponse<TokenDto>(
       message: 'ok',
       data:
           refreshTokenResult ??
-          TokenDto(accessToken: 'refreshed-access', refreshToken: 'refreshed-refresh'),
+          TokenDto(
+            accessToken: 'refreshed-access',
+            refreshToken: 'refreshed-refresh',
+          ),
     );
   }
 
