@@ -24,6 +24,10 @@ class ImageCompressionService {
   static const int avatarMaxWidth = 512;
   static const int avatarMaxHeight = 512;
 
+  /// Images smaller than this are uploaded as-is to avoid spending CPU time
+  /// on compression that rarely improves the upload enough to justify it.
+  static const int minCompressBytes = 1024 * 1024;
+
   /// File extensions that should NOT be converted to WebP.
   static const _skipExtensions = {'.gif'};
 
@@ -48,9 +52,18 @@ class ImageCompressionService {
     }
 
     try {
+      final originalSize = await File(image.path).length();
+      if (originalSize < minCompressBytes) {
+        debugPrint(
+          '[ImageCompression] ${image.name}: smaller than 1MB, using original',
+        );
+        return CompressedImage(path: image.path, isCompressed: false);
+      }
+
+      final targetPath = _targetPath(image.path);
       final compressed = await FlutterImageCompress.compressAndGetFile(
         image.path,
-        _targetPath(image.path),
+        targetPath,
         format: CompressFormat.webp,
         quality: quality,
         minWidth: maxWidth,
@@ -58,7 +71,19 @@ class ImageCompressionService {
       );
 
       if (compressed != null && await File(compressed.path).exists()) {
-        return CompressedImage(path: compressed.path, isCompressed: true);
+        final compressedFile = File(compressed.path);
+        final compressedSize = await compressedFile.length();
+        if (compressedSize > 0 && compressedSize < originalSize) {
+          debugPrint(
+            '[ImageCompression] ${image.name}: $originalSize -> $compressedSize bytes',
+          );
+          return CompressedImage(path: compressed.path, isCompressed: true);
+        }
+
+        await compressedFile.delete();
+        debugPrint(
+          '[ImageCompression] ${image.name}: compressed file was not smaller, using original',
+        );
       }
     } catch (e) {
       debugPrint('[ImageCompression] failed: $e — falling back to original');
@@ -76,7 +101,14 @@ class ImageCompressionService {
     int maxHeight = postMaxHeight,
   }) async {
     final results = await Future.wait(
-      images.map((img) => compress(img, quality: quality, maxWidth: maxWidth, maxHeight: maxHeight)),
+      images.map(
+        (img) => compress(
+          img,
+          quality: quality,
+          maxWidth: maxWidth,
+          maxHeight: maxHeight,
+        ),
+      ),
     );
     return results;
   }
@@ -112,7 +144,7 @@ class ImageCompressionService {
     final stamp = DateTime.now().microsecondsSinceEpoch;
     // Keep a unique-enough filename to avoid collisions when compressing
     // multiple images in parallel.
-    final hash = originalPath.hashCode.toRadixString(36).substring(0, 4);
+    final hash = originalPath.hashCode.abs().toRadixString(36).padLeft(4, '0');
     return '${Directory.systemTemp.path}/img_${stamp}_$hash.webp';
   }
 }

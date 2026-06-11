@@ -68,13 +68,9 @@ export default function CreatePostPage() {
         maxWidth: 1920,
         maxHeight: 1920,
       });
-      const uploadedImageUrls: string[] = [];
-      for (const image of compressed) {
-        const response = await fileService.uploadImage(image, uploadKey);
-        if (response.data) {
-          uploadedImageUrls.push(response.data);
-        }
-      }
+      const uploadedImageUrls = compressed.length > 0
+        ? (await fileService.uploadImages(compressed, uploadKey)).data ?? []
+        : [];
 
       // 3. Create post with image URLs and upload key
       await postService.createPost({

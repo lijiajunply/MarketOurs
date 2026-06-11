@@ -76,7 +76,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       String? uploadKey;
       if (_images.isNotEmpty) {
         final results = await Future.wait([
-          _fileService.getUploadKey().then((r) => (r.data?['key'] as String?) ?? ''),
+          _fileService.getUploadKey().then(
+            (r) => (r.data?['key'] as String?) ?? '',
+          ),
           ImageCompressionService.compressAll(
             _images,
             quality: ImageCompressionService.postImageQuality,
@@ -91,10 +93,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       final uploadedImages = compressed.isEmpty
           ? <String>[]
           : (await _fileService.uploadImages(
-              compressed.map(ImageCompressionService.toXFile).toList(),
-              key: uploadKey,
-            )).data ??
-              <String>[];
+                  compressed.map(ImageCompressionService.toXFile).toList(),
+                  key: uploadKey,
+                )).data ??
+                <String>[];
 
       final response = await ref
           .read(postServiceProvider)

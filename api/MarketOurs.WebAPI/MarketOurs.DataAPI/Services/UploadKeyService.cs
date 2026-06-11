@@ -49,13 +49,25 @@ public class UploadKeyService(
     /// </summary>
     public async Task TrackFileAsync(string key, string url)
     {
+        await TrackFilesAsync(key, [url]);
+    }
+
+    /// <summary>
+    /// 将多个文件 URL 关联到指定的上传密钥。
+    /// 批量写入避免并行上传后多个 TrackFileAsync 读写同一个缓存项时互相覆盖。
+    /// </summary>
+    public async Task TrackFilesAsync(string key, IEnumerable<string> urls)
+    {
         var cacheKey = CacheKeys.UploadKey(key);
+        var urlList = urls.Where(url => !string.IsNullOrWhiteSpace(url)).ToList();
+        if (urlList.Count == 0) return;
+
         var json = await distributedCache.GetStringAsync(cacheKey);
 
         UploadKeyEntry entry;
         if (string.IsNullOrWhiteSpace(json))
         {
-            logger.LogWarning("Upload key {Key} not found or expired when tracking file {Url}", key, url);
+            logger.LogWarning("Upload key {Key} not found or expired when tracking {Count} files", key, urlList.Count);
             entry = new UploadKeyEntry([], DateTime.UtcNow);
         }
         else
@@ -63,7 +75,7 @@ public class UploadKeyService(
             entry = JsonSerializer.Deserialize<UploadKeyEntry>(json) ?? new UploadKeyEntry([], DateTime.UtcNow);
         }
 
-        entry.Urls.Add(url);
+        entry.Urls.AddRange(urlList);
         var updatedJson = JsonSerializer.Serialize(entry);
 
         // 刷新 TTL：每次添加文件时重置过期时间
@@ -72,7 +84,7 @@ public class UploadKeyService(
             AbsoluteExpirationRelativeToNow = DefaultTtl
         });
 
-        logger.LogDebug("Tracked file {Url} under upload key {Key}", url, key);
+        logger.LogDebug("Tracked {Count} files under upload key {Key}", urlList.Count, key);
     }
 
     /// <summary>

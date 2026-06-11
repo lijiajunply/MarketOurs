@@ -149,10 +149,10 @@ public class FileController(
 
         var urls = (await Task.WhenAll(uploadTasks)).ToList();
 
-        // 如果提供了上传密钥，并行追踪所有文件 URL 到 Redis
+        // 如果提供了上传密钥，一次性追踪所有文件 URL 到 Redis
         if (!string.IsNullOrWhiteSpace(key))
         {
-            await Task.WhenAll(urls.Select(url => uploadKeyService.TrackFileAsync(key, url)));
+            await uploadKeyService.TrackFilesAsync(key, urls);
         }
 
         return ApiResponse<List<string>>.Success(urls, $"成功上传 {urls.Count} 张图片");

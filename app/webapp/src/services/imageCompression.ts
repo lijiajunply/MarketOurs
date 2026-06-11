@@ -7,11 +7,8 @@
  */
 
 const DEFAULT_QUALITY = 0.75; // 0–1, maps to WebP quality
-const AVATAR_QUALITY = 0.85;
 const POST_MAX_WIDTH = 1920;
 const POST_MAX_HEIGHT = 1920;
-const AVATAR_MAX_WIDTH = 512;
-const AVATAR_MAX_HEIGHT = 512;
 
 const SKIP_EXTENSIONS = new Set(['.gif']);
 
