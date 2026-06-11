@@ -29,7 +29,9 @@ class ImageCompressionService {
   static const int minCompressBytes = 1024 * 1024;
 
   /// File extensions that should NOT be converted to WebP.
-  static const _skipExtensions = {'.gif'};
+  /// GIF preserves animation, WebP is already an optimized format —
+  /// re-compressing it wastes CPU and can even increase file size.
+  static const _skipExtensions = {'.gif', '.webp'};
 
   /// Compress a single [image] to WebP.
   ///
@@ -61,6 +63,7 @@ class ImageCompressionService {
       }
 
       final targetPath = _targetPath(image.path);
+      final compressSw = Stopwatch()..start();
       final compressed = await FlutterImageCompress.compressAndGetFile(
         image.path,
         targetPath,
@@ -75,7 +78,8 @@ class ImageCompressionService {
         final compressedSize = await compressedFile.length();
         if (compressedSize > 0 && compressedSize < originalSize) {
           debugPrint(
-            '[ImageCompression] ${image.name}: $originalSize -> $compressedSize bytes',
+            '[ImageCompression] ${image.name}: $originalSize -> $compressedSize bytes'
+            ' (${compressSw.elapsedMilliseconds}ms)',
           );
           return CompressedImage(path: compressed.path, isCompressed: true);
         }
@@ -100,6 +104,7 @@ class ImageCompressionService {
     int maxWidth = postMaxWidth,
     int maxHeight = postMaxHeight,
   }) async {
+    final sw = Stopwatch()..start();
     final results = await Future.wait(
       images.map(
         (img) => compress(
@@ -109,6 +114,12 @@ class ImageCompressionService {
           maxHeight: maxHeight,
         ),
       ),
+    );
+    final skipped = results.where((r) => !r.isCompressed).length;
+    final compressed = results.length - skipped;
+    debugPrint(
+      '[ImageCompression] compressAll ${results.length} images: '
+      '$compressed compressed, $skipped skipped, ${sw.elapsedMilliseconds}ms',
     );
     return results;
   }
