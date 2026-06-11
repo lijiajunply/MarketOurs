@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { userService } from "../../services/userService";
 import { authService } from "../../services/authService";
 import { fileService } from "../../services/fileService";
+import { compressImage } from "../../services/imageCompression";
 import { logout, setUser as setReduxUser } from "../../stores/authSlice";
 import type { RootState } from "../../stores";
 import {
@@ -145,7 +146,13 @@ export default function ProfilePage() {
     setAvatar(previewUrl);
 
     try {
-      const response = await fileService.uploadImage(file);
+      // Compress avatar to WebP before upload
+      const compressed = await compressImage(file, {
+        quality: 0.85,
+        maxWidth: 512,
+        maxHeight: 512,
+      });
+      const response = await fileService.uploadImage(compressed);
       if (response.data) {
         setAvatar(response.data);
       }

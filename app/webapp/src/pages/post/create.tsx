@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { type RootState } from '../../stores';
 import { postService } from '../../services/postService';
 import { fileService } from '../../services/fileService';
+import { compressImages } from '../../services/imageCompression';
 import { extractUserMessage } from '../../services/errorCodes';
 import { ImagePlus, X, Loader2, Send } from 'lucide-react';
 
@@ -54,9 +55,14 @@ export default function CreatePostPage() {
     setError(null);
 
     try {
-      // 1. Upload images first
+      // 1. Compress images to WebP, then upload
+      const compressed = await compressImages(images, {
+        quality: 0.75,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      });
       const uploadedImageUrls: string[] = [];
-      for (const image of images) {
+      for (const image of compressed) {
         const response = await fileService.uploadImage(image);
         if (response.data) {
           uploadedImageUrls.push(response.data);

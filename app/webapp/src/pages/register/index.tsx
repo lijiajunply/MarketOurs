@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { authService } from "../../services/authService";
 import { fileService } from "../../services/fileService";
+import { compressImage } from "../../services/imageCompression";
 import { User, Mail, Lock, Loader2, ArrowRight, RefreshCw, Image, Camera } from "lucide-react";
 import { PasswordField } from "../../components/auth/PasswordField";
 
@@ -114,7 +115,13 @@ export default function RegisterPage() {
     try {
       let avatar = avatarUrl;
       if (avatarFile) {
-        const uploadResponse = await fileService.uploadAvatar(avatarFile);
+        // Compress avatar to WebP before upload
+        const compressed = await compressImage(avatarFile, {
+          quality: 0.85,
+          maxWidth: 512,
+          maxHeight: 512,
+        });
+        const uploadResponse = await fileService.uploadAvatar(compressed);
         if (uploadResponse.data) {
           avatar = uploadResponse.data;
         }

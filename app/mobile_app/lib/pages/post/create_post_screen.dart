@@ -11,6 +11,7 @@ import '../../providers/post_feed_provider.dart';
 import '../../services/error_messages.dart';
 import '../../router/app_router.dart';
 import '../../services/file_service.dart';
+import '../../services/image_compression_service.dart';
 import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_responsive.dart';
@@ -67,10 +68,26 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       _isSubmitting = true;
     });
 
+    // Compress images to WebP before upload to reduce file size
+    final compressed = <CompressedImage>[];
     try {
-      final uploadedImages = _images.isEmpty
+      if (_images.isNotEmpty) {
+        compressed.addAll(
+          await ImageCompressionService.compressAll(
+            _images,
+            quality: ImageCompressionService.postImageQuality,
+            maxWidth: ImageCompressionService.postMaxWidth,
+            maxHeight: ImageCompressionService.postMaxHeight,
+          ),
+        );
+      }
+
+      final uploadedImages = compressed.isEmpty
           ? <String>[]
-          : (await _fileService.uploadImages(_images)).data ?? <String>[];
+          : (await _fileService.uploadImages(
+              compressed.map(ImageCompressionService.toXFile).toList(),
+            )).data ??
+              <String>[];
 
       final response = await ref
           .read(postServiceProvider)
@@ -98,6 +115,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
         message: extractErrorFromException(error),
       );
     } finally {
+      // Clean up temp compressed files regardless of outcome
+      ImageCompressionService.cleanup(compressed);
       if (mounted) setState(() => _isSubmitting = false);
     }
   }

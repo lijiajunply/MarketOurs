@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../router/app_router.dart';
 import '../../services/file_service.dart';
+import '../../services/image_compression_service.dart';
 import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_theme.dart';
@@ -148,10 +149,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
+    CompressedImage? compressedAvatar;
     try {
       var avatar = _avatarUrl;
       if (_avatarFile != null) {
-        final uploadResponse = await _fileService.uploadAvatar(_avatarFile!);
+        // Compress avatar to WebP before upload
+        compressedAvatar = await ImageCompressionService.compress(
+          _avatarFile!,
+          quality: ImageCompressionService.avatarQuality,
+          maxWidth: ImageCompressionService.avatarMaxWidth,
+          maxHeight: ImageCompressionService.avatarMaxHeight,
+        );
+
+        final uploadResponse = await _fileService.uploadAvatar(
+          ImageCompressionService.toXFile(compressedAvatar),
+        );
         final url = uploadResponse.data;
         if (url != null && url.isNotEmpty) {
           avatar = url;
@@ -201,6 +213,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ? errorMessage
             : '注册失败，请稍后重试',
       );
+    } finally {
+      // Clean up temp compressed avatar file
+      if (compressedAvatar != null) {
+        ImageCompressionService.cleanup([compressedAvatar]);
+      }
     }
   }
 
