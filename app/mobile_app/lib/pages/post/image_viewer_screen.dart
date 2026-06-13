@@ -61,7 +61,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                   minScale: PhotoViewComputedScale.contained,
                   maxScale: PhotoViewComputedScale.covered * 3,
                   heroAttributes:
-                      PhotoViewHeroAttributes(tag: 'image_$index'),
+                      PhotoViewHeroAttributes(tag: 'image_$url'),
                 );
               }
               return PhotoViewGalleryPageOptions(
@@ -69,7 +69,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 3,
                 heroAttributes:
-                    PhotoViewHeroAttributes(tag: 'image_$index'),
+                    PhotoViewHeroAttributes(tag: 'image_$url'),
               );
             },
             itemCount: widget.images.length,

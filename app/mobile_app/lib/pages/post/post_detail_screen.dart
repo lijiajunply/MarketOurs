@@ -1451,7 +1451,7 @@ class _PostHero extends StatelessWidget {
                           );
                         },
                         child: Hero(
-                          tag: 'image_$itemIndex',
+                          tag: 'image_${post.images?[itemIndex]}',
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(AppRadii.lg),
                             child: Image.network(
@@ -1949,19 +1949,22 @@ class _CommentImageGrid extends StatelessWidget {
                   ),
                 );
               },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadii.md),
-                child: Image.network(
-                  images[i],
-                  width: images.length == 1 ? 132 : 82,
-                  height: images.length == 1 ? 132 : 82,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
+              child: Hero(
+                tag: 'image_${images[i]}',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadii.md),
+                  child: Image.network(
+                    images[i],
                     width: images.length == 1 ? 132 : 82,
                     height: images.length == 1 ? 132 : 82,
-                    color: AppColors.secondary,
-                    alignment: Alignment.center,
-                    child: const Icon(CupertinoIcons.photo),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: images.length == 1 ? 132 : 82,
+                      height: images.length == 1 ? 132 : 82,
+                      color: AppColors.secondary,
+                      alignment: Alignment.center,
+                      child: const Icon(CupertinoIcons.photo),
+                    ),
                   ),
                 ),
               ),
