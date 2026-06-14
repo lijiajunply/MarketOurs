@@ -450,6 +450,7 @@ class _FakeHomeFeedNotifier extends HomeFeedNotifier {
       pageIndex: 1,
       hasNextPage: false,
       isLoadingMore: false,
+      isRefreshing: false,
       keyword: '',
     );
   }
@@ -463,6 +464,7 @@ class _FakeHomeFeedNotifier extends HomeFeedNotifier {
         pageIndex: 1,
         hasNextPage: false,
         isLoadingMore: false,
+        isRefreshing: false,
         keyword: lastSearchKeyword!,
       ),
     );

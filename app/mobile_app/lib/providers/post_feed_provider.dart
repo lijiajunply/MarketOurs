@@ -18,6 +18,7 @@ class HomeFeedState {
     required this.pageIndex,
     required this.hasNextPage,
     required this.isLoadingMore,
+    required this.isRefreshing,
     required this.keyword,
   });
 
@@ -25,6 +26,7 @@ class HomeFeedState {
   final int pageIndex;
   final bool hasNextPage;
   final bool isLoadingMore;
+  final bool isRefreshing;
   final String keyword;
 
   HomeFeedState copyWith({
@@ -32,6 +34,7 @@ class HomeFeedState {
     int? pageIndex,
     bool? hasNextPage,
     bool? isLoadingMore,
+    bool? isRefreshing,
     String? keyword,
   }) {
     return HomeFeedState(
@@ -39,6 +42,7 @@ class HomeFeedState {
       pageIndex: pageIndex ?? this.pageIndex,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      isRefreshing: isRefreshing ?? this.isRefreshing,
       keyword: keyword ?? this.keyword,
     );
   }
@@ -68,6 +72,8 @@ class HomeFeedNotifier extends AsyncNotifier<HomeFeedState> {
     final currentState = state.asData?.value;
     if (currentState == null) {
       state = const AsyncLoading();
+    } else {
+      state = AsyncData(currentState.copyWith(isRefreshing: true));
     }
 
     state = await AsyncValue.guard(
@@ -77,7 +83,14 @@ class HomeFeedNotifier extends AsyncNotifier<HomeFeedState> {
 
   Future<void> search(String keyword) async {
     final trimmedKeyword = keyword.trim();
-    state = const AsyncLoading();
+    final currentState = state.asData?.value;
+    if (currentState == null) {
+      state = const AsyncLoading();
+    } else {
+      state = AsyncData(
+        currentState.copyWith(isRefreshing: true, keyword: trimmedKeyword),
+      );
+    }
     state = await AsyncValue.guard(
       () => _fetchPage(pageIndex: 1, keyword: trimmedKeyword),
     );
@@ -133,6 +146,7 @@ class HomeFeedNotifier extends AsyncNotifier<HomeFeedState> {
       pageIndex: page.pageIndex,
       hasNextPage: page.hasNextPage,
       isLoadingMore: false,
+      isRefreshing: false,
       keyword: keyword,
     );
   }

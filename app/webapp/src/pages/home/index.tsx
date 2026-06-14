@@ -148,6 +148,8 @@ export default function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const [feedError, setFeedError] = useState<string | null>(null);
   const observerTarget = useRef(null);
+  const isRefreshingFeed = loading && page === 1;
+  const isSearching = isRefreshingFeed && keyword.trim().length > 0;
 
   const fetchPosts = useEffectEvent(async (pageNum: number, searchKw: string, append = true) => {
     if (loading) return;
@@ -212,9 +214,17 @@ export default function HomePage() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder={t('common.search_placeholder')}
-          className="w-full pl-12 pr-4 py-4 rounded-2xl bg-card border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-sm"
+          className="w-full pl-12 pr-12 py-4 rounded-2xl bg-card border border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-sm"
+          aria-busy={isSearching}
         />
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+        {isSearching ? (
+          <Loader2
+            className="absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-primary"
+            size={20}
+            aria-hidden="true"
+          />
+        ) : null}
         <button type="submit" className="hidden">{t('common.search')}</button>
       </form>
 
@@ -224,6 +234,12 @@ export default function HomePage() {
             {feedError}
           </div>
         )}
+        {isRefreshingFeed ? (
+          <div className="flex items-center justify-center gap-3 rounded-2xl border border-border/50 bg-card/70 px-4 py-5 text-sm font-medium text-muted-foreground">
+            <Loader2 className="animate-spin text-primary" size={20} />
+            <span>{isSearching ? t('common.search') : t('common.loading', { defaultValue: 'Loading...' })}</span>
+          </div>
+        ) : null}
         {posts.map((post) => (
           <PostCard 
             key={post.id} 
@@ -234,7 +250,7 @@ export default function HomePage() {
       </div>
 
       <div ref={observerTarget} className="flex justify-center py-8">
-        {loading && <Loader2 className="animate-spin text-primary" size={32} />}
+        {loading && page > 1 && <Loader2 className="animate-spin text-primary" size={32} />}
         {!hasMore && posts.length > 0 && <p className="text-muted-foreground">{t('common.no_more_posts')}</p>}
         {!hasMore && posts.length === 0 && !loading && <p className="text-muted-foreground">{t('common.no_posts_found')}</p>}
       </div>

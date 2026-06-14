@@ -114,10 +114,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
+            SliverToBoxAdapter(
+              child: AppResponsiveCenter(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: _SearchLoadingIndicator(
+                  isVisible: state.isRefreshing,
+                  keyword: state.keyword,
+                ),
+              ),
+            ),
             AppResponsiveSliverPadding(
               child: _PostListSection(
                 posts: state.posts,
                 isLoadingMore: state.isLoadingMore,
+                isRefreshing: state.isRefreshing,
                 keyword: state.keyword,
               ),
             ),
@@ -137,16 +147,25 @@ class _PostListSection extends StatelessWidget {
   const _PostListSection({
     required this.posts,
     required this.isLoadingMore,
+    required this.isRefreshing,
     required this.keyword,
   });
 
   final List<PostDto> posts;
   final bool isLoadingMore;
+  final bool isRefreshing;
   final String keyword;
 
   @override
   Widget build(BuildContext context) {
     final columnCount = AppResponsive.listColumnCount(context);
+
+    if (posts.isEmpty && isRefreshing) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: CupertinoActivityIndicator(radius: 14)),
+      );
+    }
 
     if (posts.isEmpty) {
       return AppEmptyState(
@@ -201,6 +220,35 @@ class _PostListSection extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CupertinoActivityIndicator()),
           ),
+      ],
+    );
+  }
+}
+
+class _SearchLoadingIndicator extends StatelessWidget {
+  const _SearchLoadingIndicator({
+    required this.isVisible,
+    required this.keyword,
+  });
+
+  final bool isVisible;
+  final String keyword;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isVisible) {
+      return const SizedBox.shrink();
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const CupertinoActivityIndicator(radius: 8),
+        const SizedBox(width: 8),
+        Text(
+          keyword.isEmpty ? '正在刷新帖子...' : '正在搜索...',
+          style: AppTextStyles.label(context),
+        ),
       ],
     );
   }
