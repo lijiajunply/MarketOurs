@@ -134,6 +134,26 @@ export interface ChangePasswordRequest {
 /**
  * Post Models
  */
+export interface PostTagDto {
+  id: string;
+  name: string;
+  color: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PostTagCreateDto {
+  name: string;
+  color?: string;
+}
+
+export interface PostTagUpdateDto {
+  name: string;
+  color?: string;
+  isActive: boolean;
+}
+
 export interface PostDto {
   id: string;
   title: string;
@@ -143,6 +163,8 @@ export interface PostDto {
   updatedAt: string;
   userId: string;
   author?: UserSimpleDto | null;
+  tagId?: string | null;
+  tag?: PostTagDto | null;
   likes: number;
   dislikes: number;
   isLiked?: boolean;
@@ -157,6 +179,7 @@ export interface PostCreateDto {
   images?: string[];
   userId: string;
   uploadKey?: string;
+  tagId?: string | null;
 }
 
 export interface PostUpdateDto {
@@ -165,6 +188,7 @@ export interface PostUpdateDto {
   images?: string[];
   isReview?: boolean;
   uploadKey?: string;
+  tagId?: string | null;
 }
 
 /**

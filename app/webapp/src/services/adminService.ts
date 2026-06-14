@@ -11,6 +11,9 @@ import type {
   PaginatedResponse,
   PagedResult,
   PostDto,
+  PostTagCreateDto,
+  PostTagDto,
+  PostTagUpdateDto,
   RemoveIpRequest,
   UpdateUserStatusRequest,
   UserDto,
@@ -69,6 +72,21 @@ export const adminService = {
 
   updatePostReview: (id: string, data: { isReview: boolean }) =>
     apiClient.put<PostDto>(`/Post/${id}/review`, data),
+
+  updatePostTag: (id: string, data: { tagId: string | null }) =>
+    apiClient.post<PostDto>(`/Post/${id}/tag`, data),
+
+  getPostTags: () =>
+    apiClient.get<PostTagDto[]>('/PostTag/admin'),
+
+  createPostTag: (data: PostTagCreateDto) =>
+    apiClient.post<PostTagDto>('/PostTag', data),
+
+  updatePostTagDefinition: (id: string, data: PostTagUpdateDto) =>
+    apiClient.put<PostTagDto>(`/PostTag/${id}`, data),
+
+  deactivatePostTag: (id: string) =>
+    apiClient.delete<PostTagDto>(`/PostTag/${id}`),
 
   updateCommentReview: (id: string, data: { isReview: boolean }) =>
     apiClient.put<CommentDto>(`/Comment/${id}/review`, data),

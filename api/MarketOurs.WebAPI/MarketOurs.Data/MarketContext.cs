@@ -14,6 +14,7 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
     public DbSet<CommentModel> Commits { get; set; }
     public DbSet<NotificationModel> Notifications { get; set; }
     public DbSet<SensitiveWordModel> SensitiveWords { get; set; }
+    public DbSet<PostTagModel> PostTags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,12 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
             .HasMany(x => x.Comments)
             .WithOne(x => x.Post)
             .HasForeignKey(x => x.PostId);
+
+        modelBuilder.Entity<PostModel>()
+            .HasOne(x => x.Tag)
+            .WithMany()
+            .HasForeignKey(x => x.TagId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<PostModel>()
             .HasMany(x => x.LikeUsers)
@@ -75,10 +82,17 @@ public class MarketContext(DbContextOptions<MarketContext> options) : DbContext(
             .HasIndex(x => x.Word)
             .IsUnique();
 
+        modelBuilder.Entity<PostTagModel>()
+            .HasIndex(x => x.Name)
+            .IsUnique();
+
         // 帖子列表查询：WHERE IsReview ORDER BY CreatedAt DESC
         // 复合索引覆盖筛选 + 排序，避免全表扫描与排序
         modelBuilder.Entity<PostModel>()
             .HasIndex(x => new { x.IsReview, x.CreatedAt });
+
+        modelBuilder.Entity<PostModel>()
+            .HasIndex(x => x.TagId);
 
         // 评论查询：WHERE PostId（详情页加载评论的热路径）
         modelBuilder.Entity<CommentModel>()

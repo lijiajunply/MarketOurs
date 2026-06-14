@@ -3,6 +3,7 @@ import type {
   PostDto,
   PostCreateDto,
   PostUpdateDto,
+  PostTagDto,
   PagedResult,
   CommentDto,
   LikeToggleResult,
@@ -55,4 +56,7 @@ export const postService = {
     if (keyword) params.append('Keyword', keyword);
     return apiClient.get<PagedResult<PostDto>>(`/Post/search?${params.toString()}`);
   },
+
+  getPostTags: () =>
+    apiClient.get<PostTagDto[]>('/PostTag'),
 };

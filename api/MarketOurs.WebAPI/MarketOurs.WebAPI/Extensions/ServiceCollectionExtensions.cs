@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         // Repositories
         services.AddScoped<IUserRepo, UserRepo>();
         services.AddScoped<IPostRepo, PostRepo>();
+        services.AddScoped<IPostTagRepo, PostTagRepo>();
         services.AddScoped<ICommentRepo, CommentRepo>();
         services.AddScoped<INotificationRepo, NotificationRepo>();
         services.AddScoped<IAdminRepo, AdminRepo>();
@@ -40,6 +41,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFollowService, FollowService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPostService, PostService>();
+        services.AddScoped<IPostTagService, PostTagService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IPushService, MockPushService>();

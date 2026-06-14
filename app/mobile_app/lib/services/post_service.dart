@@ -83,6 +83,16 @@ class PostService {
     );
   }
 
+  Future<ApiResponse<List<PostTagDto>>> getPostTags() async {
+    final response = await _api.get('/PostTag');
+    return ApiResponse<List<PostTagDto>>.fromJson(
+      response.data as Map<String, dynamic>,
+      (json) => (json as List)
+          .map((item) => PostTagDto.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
   Future<ApiResponse<PostDto>> createPost(PostCreateDto request) async {
     final response = await _api.post('/Post', data: request.toJson());
     return ApiResponse<PostDto>.fromJson(

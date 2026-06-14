@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
-import type { PagedResult, PostDto } from "../../types"
+import type { PagedResult, PostDto, PostTagDto } from "../../types"
+import { PostTagBadge } from "../../components/post/PostTagBadge"
 
 const PAGE_SIZE = 10
 
@@ -21,6 +22,7 @@ export default function AdminPostsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [page, setPage] = useState(1)
   const [posts, setPosts] = useState<PagedResult<PostDto> | null>(null)
+  const [tags, setTags] = useState<PostTagDto[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -33,11 +35,15 @@ export default function AdminPostsPage() {
         setError(null)
         setMessage(null)
 
-        const response = searchTerm.trim()
-          ? await adminService.searchPosts(page, PAGE_SIZE, searchTerm.trim())
-          : await adminService.getPosts(page, PAGE_SIZE)
+        const [response, tagResponse] = await Promise.all([
+          searchTerm.trim()
+            ? adminService.searchPosts(page, PAGE_SIZE, searchTerm.trim())
+            : adminService.getPosts(page, PAGE_SIZE),
+          adminService.getPostTags(),
+        ])
 
         setPosts(response.data)
+        setTags(tagResponse.data ?? [])
       } catch (err) {
         setError(extractUserMessage(err, t("admin.common.load_error")))
       } finally {
@@ -55,6 +61,21 @@ export default function AdminPostsPage() {
 
     setPosts(response.data)
     setPage(nextPage)
+  }
+
+  const handleTagChange = async (post: PostDto, tagId: string) => {
+    try {
+      setActivePostId(post.id)
+      setMessage(null)
+      setError(null)
+      await adminService.updatePostTag(post.id, { tagId: tagId || null })
+      await refreshCurrentPage()
+      setMessage(t("admin.posts.tag_updated"))
+    } catch (err) {
+      setError(extractUserMessage(err, t("admin.common.action_error")))
+    } finally {
+      setActivePostId(null)
+    }
   }
 
   const handleDelete = async (post: PostDto) => {
@@ -132,6 +153,7 @@ export default function AdminPostsPage() {
               <tr>
                 <th className="px-6 py-4 font-semibold">{t("admin.posts.table_title")}</th>
                 <th className="px-6 py-4 font-semibold">{t("admin.posts.table_author")}</th>
+                <th className="px-6 py-4 font-semibold">{t("admin.posts.table_tag")}</th>
                 <th className="px-6 py-4 font-semibold">{t("admin.posts.table_status")}</th>
                 <th className="px-6 py-4 font-semibold">{t("admin.posts.table_date")}</th>
                 <th className="px-6 py-4 text-right font-semibold">{t("admin.posts.table_actions")}</th>
@@ -141,7 +163,7 @@ export default function AdminPostsPage() {
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-5" colSpan={5}>
+                    <td className="px-6 py-5" colSpan={6}>
                       <div className="h-10 animate-pulse rounded-xl bg-muted/50" />
                     </td>
                   </tr>
@@ -159,6 +181,24 @@ export default function AdminPostsPage() {
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {post.author?.name || t("common.null")}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-2">
+                          <PostTagBadge tag={post.tag} />
+                          <select
+                            value={post.tagId ?? ""}
+                            disabled={isBusy}
+                            onChange={(event) => void handleTagChange(post, event.target.value)}
+                            className="w-36 rounded-lg border border-border/50 bg-muted/30 px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">{t("post.tag_none")}</option>
+                            {tags.map((tag) => (
+                              <option key={tag.id} value={tag.id}>
+                                {tag.name}{tag.isActive ? "" : ` (${t("admin.tags.inactive")})`}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         {post.isReview ? (
@@ -212,7 +252,7 @@ export default function AdminPostsPage() {
                 })
               ) : (
                 <tr>
-                  <td className="px-6 py-12 text-center text-muted-foreground" colSpan={5}>
+                  <td className="px-6 py-12 text-center text-muted-foreground" colSpan={6}>
                     {t("admin.posts.no_posts_found", { searchTerm })}
                   </td>
                 </tr>

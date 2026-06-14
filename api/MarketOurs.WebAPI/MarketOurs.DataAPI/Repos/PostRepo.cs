@@ -26,6 +26,7 @@ public interface IPostRepo
     Task CreateAsync(PostModel post);
     Task UpdateAsync(PostModel post);
     Task SetReviewStatusAsync(string id, bool isReview);
+    Task SetTagAsync(string id, string? tagId);
 
     Task SetLikesAsync(UserModel user, string id);
     Task SetDislikesAsync(UserModel user, string id);
@@ -47,6 +48,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         return await context.Posts
             .AsNoTracking()
             .Include(x => x.User)
+            .Include(x => x.Tag)
             .Where(x => x.IsReview)
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
@@ -66,6 +68,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         return await context.Posts
             .AsNoTracking()
             .Include(x => x.User)
+            .Include(x => x.Tag)
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
@@ -85,6 +88,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         return await context.Posts
             .AsNoTracking()
             .Include(x => x.User)
+            .Include(x => x.Tag)
             .Where(x => x.IsReview)
             .OrderByDescending(x => x.Watch + (x.Likes * 3) - (x.Dislikes * 2))
             .Take(count)
@@ -96,6 +100,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         await using var context = await factory.CreateDbContextAsync();
         return await context.Posts
             .Include(x => x.User)
+            .Include(x => x.Tag)
             .Where(x => x.Id == id)
             .FirstOrDefaultAsync();
     }
@@ -106,6 +111,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         return await context.Posts
             .AsNoTracking()
             .Include(x => x.User)
+            .Include(x => x.Tag)
             .Where(x => x.Id == id && x.IsReview)
             .FirstOrDefaultAsync();
     }
@@ -202,6 +208,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
                         """)
                     .AsNoTracking()
                     .Include(x => x.User)
+                    .Include(x => x.Tag)
                     .ToListAsync();
             }
             catch
@@ -213,6 +220,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         return await context.Posts
             .Where(x => x.IsReview && (x.Title.Contains(keyword) || x.Content.Contains(keyword)))
             .Include(x => x.User)
+            .Include(x => x.Tag)
             .OrderByDescending(x => x.CreatedAt)
             .Skip(offset)
             .Take(pageSize)
@@ -253,6 +261,7 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
             .AsNoTracking()
             .Where(x => x.IsReview && EF.Functions.ILike(x.Title + " " + x.Content, $"%{keyword}%"))
             .Include(x => x.User)
+            .Include(x => x.Tag)
             .OrderByDescending(x => x.CreatedAt)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
@@ -271,14 +280,47 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     {
         await using var context = await factory.CreateDbContextAsync();
         post.Id = post.GetHashKey();
-        await context.Posts.AddAsync(post);
+
+        var entity = new PostModel
+        {
+            Id = post.Id,
+            Title = post.Title,
+            Content = post.Content,
+            Images = post.Images,
+            CreatedAt = post.CreatedAt,
+            UpdatedAt = post.UpdatedAt,
+            UserId = post.UserId,
+            TagId = post.TagId,
+            Likes = post.Likes,
+            Dislikes = post.Dislikes,
+            Watch = post.Watch,
+            IsReview = post.IsReview
+        };
+
+        await context.Posts.AddAsync(entity);
         await context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(PostModel post)
     {
         await using var context = await factory.CreateDbContextAsync();
-        context.Posts.Update(post);
+        var entity = await context.Posts.FirstOrDefaultAsync(x => x.Id == post.Id);
+        if (entity == null)
+        {
+            return;
+        }
+
+        entity.Title = post.Title;
+        entity.Content = post.Content;
+        entity.Images = post.Images;
+        entity.CreatedAt = post.CreatedAt;
+        entity.UpdatedAt = post.UpdatedAt;
+        entity.UserId = post.UserId;
+        entity.TagId = post.TagId;
+        entity.Likes = post.Likes;
+        entity.Dislikes = post.Dislikes;
+        entity.Watch = post.Watch;
+        entity.IsReview = post.IsReview;
         await context.SaveChangesAsync();
     }
 
@@ -292,6 +334,20 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
         }
 
         post.IsReview = isReview;
+        await context.SaveChangesAsync();
+    }
+
+    public async Task SetTagAsync(string id, string? tagId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        var post = await context.Posts.FirstOrDefaultAsync(x => x.Id == id);
+        if (post == null)
+        {
+            return;
+        }
+
+        post.TagId = string.IsNullOrWhiteSpace(tagId) ? null : tagId;
+        post.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
     }
 

@@ -118,6 +118,11 @@ public interface IPostService
     /// <param name="isReview">是否审核通过</param>
     /// <returns>操作后的帖子DTO</returns>
     Task<PostDto> UpdateReviewAsync(string id, bool isReview);
+
+    /// <summary>
+    /// 管理员单独更新帖子标签，不触发内容重新审核
+    /// </summary>
+    Task<PostDto> UpdateTagAsync(string id, string? tagId);
 }
 
 public class PostService(
@@ -131,6 +136,7 @@ public class PostService(
     ILogger<PostService> logger,
     UploadKeyService uploadKeyService,
     IStorageService storageService,
+    IPostTagService? postTagService = null,
     ReviewMessageQueue? reviewQueue = null) : IPostService
 {
     private readonly IConnectionMultiplexer? _redis = redisEnumerable.FirstOrDefault();
@@ -359,6 +365,8 @@ public class PostService(
             UpdatedAt = dto.UpdatedAt,
             UserId = dto.UserId,
             Author = dto.Author,
+            TagId = dto.TagId,
+            Tag = dto.Tag,
             Likes = dto.Likes,
             Dislikes = dto.Dislikes,
             IsLiked = dto.IsLiked,
@@ -411,12 +419,17 @@ public class PostService(
         if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         var images = NormalizeImages(createDto.Images);
+        var tag = postTagService == null
+            ? null
+            : await postTagService.GetValidTagForPostAsync(createDto.TagId);
         var post = new PostModel
         {
             Title = createDto.Title,
             Content = createDto.Content,
             Images = images,
             UserId = createDto.UserId,
+            TagId = tag?.Id,
+            Tag = tag,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             Likes = 0,
@@ -468,6 +481,11 @@ public class PostService(
         post.Title = updateDto.Title;
         post.Content = updateDto.Content;
         post.Images = NormalizeImages(updateDto.Images);
+        var tag = postTagService == null
+            ? null
+            : await postTagService.GetValidTagForPostAsync(updateDto.TagId, isAdmin);
+        post.TagId = tag?.Id;
+        post.Tag = tag;
         post.UpdatedAt = DateTime.UtcNow;
         post.IsReview = isAdmin;
 
@@ -672,6 +690,23 @@ public class PostService(
         return MapToDto(post);
     }
 
+    public async Task<PostDto> UpdateTagAsync(string id, string? tagId)
+    {
+        var post = await postRepo.GetByIdAsync(id);
+        if (post == null) throw new ResourceAccessException(ErrorCode.PostNotFound, "帖子不存在");
+
+        var tag = postTagService == null
+            ? null
+            : await postTagService.GetValidTagForPostAsync(tagId, allowInactive: true);
+
+        await postRepo.SetTagAsync(id, tag?.Id);
+        post.TagId = tag?.Id;
+        post.Tag = tag;
+        post.UpdatedAt = DateTime.UtcNow;
+        InvalidateCache(id);
+        return MapToDto(post);
+    }
+
     private async Task<int> GetPostWatchAsync(string postId, int fallbackCount)
 
     {
@@ -728,6 +763,8 @@ public class PostService(
             CreatedAt = post.CreatedAt,
             UpdatedAt = post.UpdatedAt,
             UserId = post.UserId,
+            TagId = post.TagId,
+            Tag = post.Tag == null ? null : PostTagService.MapToDto(post.Tag),
             Author = post.User != null!
                 ? new UserSimpleDto
                 {

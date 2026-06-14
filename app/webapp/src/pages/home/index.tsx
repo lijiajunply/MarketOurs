@@ -9,6 +9,7 @@ import { extractUserMessage } from "../../services/errorCodes"
 import type { PostDto } from "../../types"
 import { formatPostRelativeDate, getPostAuthorName, getPostExcerpt } from "../../lib/postDisplay"
 import { sharePost } from "../../lib/postShare"
+import { PostTagBadge } from "../../components/post/PostTagBadge"
 
 export function PostCard({ post, onDelete }: { post: PostDto; onDelete?: (id: string) => void }) {
   const navigate = useNavigate();
@@ -92,6 +93,7 @@ export function PostCard({ post, onDelete }: { post: PostDto; onDelete?: (id: st
       </div>
 
       <div className="space-y-2 mb-6">
+        <PostTagBadge tag={post.tag} />
         <h2 className="text-2xl font-bold tracking-tight group-hover:text-primary transition-colors">
           {post.title}
         </h2>

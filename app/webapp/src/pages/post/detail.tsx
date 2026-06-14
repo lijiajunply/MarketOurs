@@ -16,6 +16,7 @@ import { zhCN, enUS } from "date-fns/locale"
 import { cn } from "../../lib/utils"
 import { sharePost } from "../../lib/postShare"
 import { DTO_LIMITS, requiredMax } from "../../lib/dtoValidation"
+import { PostTagBadge } from "../../components/post/PostTagBadge"
 
 const MAX_COMMENT_IMAGES = 3;
 
@@ -1125,6 +1126,8 @@ export default function PostDetailPage() {
         {post.images && post.images.length > 0 && (
           <PostImageCarousel key={post.id} images={post.images} imageLabel={`${t("nav.post")} image`} />
         )}
+
+        <PostTagBadge tag={post.tag} />
 
         <div className="prose prose-lg dark:prose-invert max-w-none">
           {isEditingPost ? (

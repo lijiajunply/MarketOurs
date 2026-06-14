@@ -48,6 +48,16 @@ public class PostDto
     public UserSimpleDto? Author { get; set; }
 
     /// <summary>
+    /// 标签ID
+    /// </summary>
+    public string? TagId { get; set; }
+
+    /// <summary>
+    /// 标签信息
+    /// </summary>
+    public PostTagDto? Tag { get; set; }
+
+    /// <summary>
     /// 点赞数
     /// </summary>
     public int Likes { get; set; }
@@ -113,6 +123,12 @@ public class PostCreateDto
     /// 上传密钥，用于关联已上传的图片。创建成功后自动确认，失败时自动清理。
     /// </summary>
     public string? UploadKey { get; set; }
+
+    /// <summary>
+    /// 可选标签ID
+    /// </summary>
+    [MaxLength(64, ErrorMessage = "标签ID长度不能超过64位")]
+    public string? TagId { get; set; }
 }
 
 /// <summary>
@@ -148,6 +164,12 @@ public class PostUpdateDto
     /// 是否通过审核
     /// </summary>
     public bool IsReview { get; set; }
+
+    /// <summary>
+    /// 可选标签ID
+    /// </summary>
+    [MaxLength(64, ErrorMessage = "标签ID长度不能超过64位")]
+    public string? TagId { get; set; }
 }
 
 public class UpdatePostReviewRequest

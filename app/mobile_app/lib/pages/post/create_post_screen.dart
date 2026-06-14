@@ -33,8 +33,16 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   final _imagePicker = ImagePicker();
   final _fileService = FileService();
   final List<XFile> _images = [];
+  List<PostTagDto> _tags = const [];
+  PostTagDto? _selectedTag;
   bool _isSubmitting = false;
   double? _uploadProgress;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTags();
+  }
 
   @override
   void dispose() {
@@ -54,6 +62,48 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   Future<void> _removeImage(int index) async {
     setState(() => _images.removeAt(index));
+  }
+
+  Future<void> _loadTags() async {
+    try {
+      final response = await ref.read(postServiceProvider).getPostTags();
+      if (!mounted) return;
+      setState(() => _tags = response.data ?? const <PostTagDto>[]);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _tags = const <PostTagDto>[]);
+    }
+  }
+
+  Future<void> _selectTag() async {
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('选择标签'),
+        message: const Text('标签由管理员预设，可不选择。'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              setState(() => _selectedTag = null);
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('无标签'),
+          ),
+          for (final tag in _tags)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                setState(() => _selectedTag = tag);
+                Navigator.of(ctx).pop();
+              },
+              child: Text(tag.name ?? '未命名标签'),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('取消'),
+        ),
+      ),
+    );
   }
 
   Future<void> _submit() async {
@@ -115,6 +165,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
               images: uploadedImages,
               userId: user.id,
               uploadKey: uploadKey,
+              tagId: _selectedTag?.id,
             ),
           );
 
@@ -232,6 +283,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildImageCard(),
+                      const SizedBox(height: 12),
+                      _buildTagCard(),
                       if (_uploadProgress != null) ...[
                         const SizedBox(height: 12),
                         _buildUploadProgress(),
@@ -341,6 +394,76 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       ),
     );
   }
+
+  Widget _buildTagCard() {
+    return AppTappableCard(
+      padding: const EdgeInsets.all(20),
+      radius: AppRadii.lg,
+      onPressed: _isSubmitting ? null : _selectTag,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '标签',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 6),
+                _PostTagPill(tag: _selectedTag, emptyText: '无标签'),
+              ],
+            ),
+          ),
+          const Icon(
+            CupertinoIcons.chevron_down,
+            size: 18,
+            color: AppColors.mutedForeground,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PostTagPill extends StatelessWidget {
+  const _PostTagPill({required this.tag, required this.emptyText});
+
+  final PostTagDto? tag;
+  final String emptyText;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _parseColor(tag?.color);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: tag == null ? AppColors.secondary : color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: tag == null
+              ? CupertinoDynamicColor.resolve(AppColors.border, context)
+              : color.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Text(
+        tag?.name?.trim().isNotEmpty == true ? tag!.name!.trim() : emptyText,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: tag == null ? AppColors.mutedForeground : color,
+        ),
+      ),
+    );
+  }
+}
+
+Color _parseColor(String? value) {
+  final normalized = value?.trim().replaceFirst('#', '');
+  if (normalized == null || normalized.isEmpty) return AppColors.primary;
+  final hex = normalized.length == 6 ? 'FF$normalized' : normalized;
+  final parsed = int.tryParse(hex, radix: 16);
+  return parsed == null ? AppColors.primary : Color(parsed);
 }
 
 class _ImagePreview extends StatelessWidget {

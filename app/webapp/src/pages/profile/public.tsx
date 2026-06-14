@@ -8,6 +8,7 @@ import { postService } from "../../services/postService";
 import { followService } from "../../services/followService";
 import type { RootState } from "../../stores";
 import type { PostDto, PublicUserProfileDto } from "../../types";
+import { PostTagBadge } from "../../components/post/PostTagBadge";
 
 const RECENT_POST_FETCH_SIZE = 10;
 
@@ -274,6 +275,7 @@ export default function PublicProfilePage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-3">
+                    <PostTagBadge tag={post.tag} />
                     <h3 className="text-xl font-bold tracking-tight">{post.title}</h3>
                     <p className="line-clamp-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
                       {post.content}

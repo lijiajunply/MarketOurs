@@ -6,6 +6,7 @@ import { postService } from "../../services/postService"
 import type { PostDto } from "../../types"
 import { cn } from "../../lib/utils"
 import { formatPostRelativeDate, getPostAuthorName, getPostExcerpt } from "../../lib/postDisplay"
+import { PostTagBadge } from "../../components/post/PostTagBadge"
 
 const hotRanks = ["01", "02", "03"]
 
@@ -154,6 +155,7 @@ export default function HotPage() {
                     </div>
 
                     <div className="space-y-3">
+                      <PostTagBadge tag={post.tag} />
                       <h2 className="text-2xl font-black tracking-tight text-slate-900 transition-colors group-hover:text-orange-600">
                         {post.title}
                       </h2>

@@ -6,6 +6,29 @@ part of 'post.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+PostTagDto _$PostTagDtoFromJson(Map<String, dynamic> json) => PostTagDto(
+  id: json['id'] as String,
+  name: json['name'] as String?,
+  color: json['color'] as String?,
+  isActive: json['isActive'] as bool?,
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+  updatedAt: json['updatedAt'] == null
+      ? null
+      : DateTime.parse(json['updatedAt'] as String),
+);
+
+Map<String, dynamic> _$PostTagDtoToJson(PostTagDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'color': instance.color,
+      'isActive': instance.isActive,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
+    };
+
 PostDto _$PostDtoFromJson(Map<String, dynamic> json) => PostDto(
   id: json['id'] as String,
   title: json['title'] as String?,
@@ -21,6 +44,10 @@ PostDto _$PostDtoFromJson(Map<String, dynamic> json) => PostDto(
   author: json['author'] == null
       ? null
       : UserSimpleDto.fromJson(json['author'] as Map<String, dynamic>),
+  tagId: json['tagId'] as String?,
+  tag: json['tag'] == null
+      ? null
+      : PostTagDto.fromJson(json['tag'] as Map<String, dynamic>),
   likes: (json['likes'] as num?)?.toInt(),
   dislikes: (json['dislikes'] as num?)?.toInt(),
   isLiked: json['isLiked'] as bool?,
@@ -39,6 +66,8 @@ Map<String, dynamic> _$PostDtoToJson(PostDto instance) => <String, dynamic>{
   'updatedAt': instance.updatedAt?.toIso8601String(),
   'userId': instance.userId,
   'author': instance.author,
+  'tagId': instance.tagId,
+  'tag': instance.tag,
   'likes': instance.likes,
   'dislikes': instance.dislikes,
   'isLiked': instance.isLiked,
@@ -57,6 +86,7 @@ PostCreateDto _$PostCreateDtoFromJson(Map<String, dynamic> json) =>
           .toList(),
       userId: json['userId'] as String,
       uploadKey: json['uploadKey'] as String?,
+      tagId: json['tagId'] as String?,
     );
 
 Map<String, dynamic> _$PostCreateDtoToJson(PostCreateDto instance) =>
@@ -66,6 +96,7 @@ Map<String, dynamic> _$PostCreateDtoToJson(PostCreateDto instance) =>
       'images': instance.images,
       'userId': instance.userId,
       'uploadKey': instance.uploadKey,
+      'tagId': instance.tagId,
     };
 
 PostUpdateDto _$PostUpdateDtoFromJson(Map<String, dynamic> json) =>
@@ -77,6 +108,7 @@ PostUpdateDto _$PostUpdateDtoFromJson(Map<String, dynamic> json) =>
           .toList(),
       isReview: json['isReview'] as bool?,
       uploadKey: json['uploadKey'] as String?,
+      tagId: json['tagId'] as String?,
     );
 
 Map<String, dynamic> _$PostUpdateDtoToJson(PostUpdateDto instance) =>
@@ -86,4 +118,5 @@ Map<String, dynamic> _$PostUpdateDtoToJson(PostUpdateDto instance) =>
       'images': instance.images,
       'isReview': instance.isReview,
       'uploadKey': instance.uploadKey,
+      'tagId': instance.tagId,
     };

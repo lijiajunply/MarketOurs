@@ -128,6 +128,7 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
                 {
                     context.Token = token;
                 }
+
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
@@ -584,6 +585,15 @@ using (var scope = app.Services.CreateScope())
             context.Users.Add(model);
         }
 
+        if (!await context.PostTags.AnyAsync())
+        {
+            var tags = new[] { "数码科技", "生活闲聊", "八卦吐槽", "恋爱交友", "二手闲置", "校园生活" };
+            foreach (var tag in tags)
+            {
+                context.PostTags.Add(new PostTagModel { Id = tag.StringToHash(), Name = tag });
+            }
+        }
+
         await context.SaveChangesAsync();
     }
     catch (Exception ex)
@@ -625,5 +635,7 @@ app.Run();
 [Serializable]
 internal record GitHubEmailItem(
     [property: JsonPropertyName("email")] string Email,
-    [property: JsonPropertyName("primary")] bool Primary,
-    [property: JsonPropertyName("verified")] bool Verified);
+    [property: JsonPropertyName("primary")]
+    bool Primary,
+    [property: JsonPropertyName("verified")]
+    bool Verified);

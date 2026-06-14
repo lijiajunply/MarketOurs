@@ -212,4 +212,15 @@ public class PostController(IPostService postService) : ControllerBase
         var post = await postService.UpdateReviewAsync(id, request.IsReview);
         return ApiResponse<PostDto>.Success(post, "审核成功");
     }
+
+    /// <summary>
+    /// 更新帖子标签 (仅限管理员)
+    /// </summary>
+    [HttpPost("{id}/tag")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ApiResponse<PostDto>> UpdatePostTag(string id, [FromBody] UpdatePostTagRequest request)
+    {
+        var post = await postService.UpdateTagAsync(id, request.TagId);
+        return ApiResponse<PostDto>.Success(post, "标签更新成功");
+    }
 }

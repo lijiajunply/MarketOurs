@@ -50,6 +50,16 @@ public class PostModel : DataModel
     public UserModel User { get; set; } = null!;
 
     /// <summary>
+    /// 可选帖子标签 ID
+    /// </summary>
+    [MaxLength(64)] public string? TagId { get; set; }
+
+    /// <summary>
+    /// 可选帖子标签
+    /// </summary>
+    public PostTagModel? Tag { get; set; }
+
+    /// <summary>
     /// 帖子的评论列表
     /// </summary>
     public List<CommentModel> Comments { get; set; } = [];
@@ -99,6 +109,8 @@ public class PostModel : DataModel
         CreatedAt = postModel.CreatedAt;
         UpdatedAt = postModel.UpdatedAt;
         UserId = postModel.UserId;
+        TagId = postModel.TagId;
+        Tag = postModel.Tag;
 
         LikeUsers = postModel.LikeUsers;
         DislikeUsers = postModel.DislikeUsers;

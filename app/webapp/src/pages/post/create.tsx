@@ -9,6 +9,8 @@ import { compressImages } from '../../services/imageCompression';
 import { extractUserMessage } from '../../services/errorCodes';
 import { ImagePlus, X, Loader2, Send } from 'lucide-react';
 import { DTO_LIMITS, requiredMax } from '../../lib/dtoValidation';
+import type { PostTagDto } from '../../types';
+import { PostTagBadge } from '../../components/post/PostTagBadge';
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
@@ -17,6 +19,8 @@ export default function CreatePostPage() {
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tagId, setTagId] = useState('');
+  const [tags, setTags] = useState<PostTagDto[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,6 +33,19 @@ export default function CreatePostPage() {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
+
+  React.useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const response = await postService.getPostTags();
+        setTags(response.data ?? []);
+      } catch (err) {
+        console.error('Failed to load post tags', err);
+      }
+    };
+
+    void loadTags();
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -93,10 +110,11 @@ export default function CreatePostPage() {
         images: uploadedImageUrls,
         userId: user?.id || '',
         uploadKey,
+        tagId: tagId || null,
       });
 
       navigate('/');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(extractUserMessage(err, t('post.error_create_failed')));
     } finally {
       setIsSubmitting(false);
@@ -142,6 +160,28 @@ export default function CreatePostPage() {
               className="flex min-h-[200px] w-full rounded-2xl border border-input bg-background/50 px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all disabled:cursor-not-allowed disabled:opacity-50 resize-none"
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="tag" className="text-sm font-medium leading-none">
+              {t('post.tag_label')}
+            </label>
+            <select
+              id="tag"
+              value={tagId}
+              onChange={(e) => setTagId(e.target.value)}
+              className="flex h-12 w-full rounded-2xl border border-input bg-background/50 px-4 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all"
+            >
+              <option value="">{t('post.tag_none')}</option>
+              {tags.map((tag) => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </option>
+              ))}
+            </select>
+            {tagId ? (
+              <PostTagBadge tag={tags.find((tag) => tag.id === tagId)} fallback={t('post.tag_label')} />
+            ) : null}
           </div>
 
           <div className="space-y-3">
