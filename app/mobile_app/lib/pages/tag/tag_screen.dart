@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_app/components/post_card.dart';
 
-import '../../components/post_tag_pill.dart';
 import '../../models/post.dart';
 import '../../providers/post_feed_provider.dart';
 import '../../router/app_router.dart';
@@ -90,7 +90,6 @@ class _TagScreenState extends ConsumerState<TagScreen> {
         backgroundColor: AppColors.background,
         navigationBar: CupertinoNavigationBar(
           middle: const Text('标签'),
-          previousPageTitle: '返回',
         ),
         child: SafeArea(
           child: Center(
@@ -124,7 +123,6 @@ class _TagScreenState extends ConsumerState<TagScreen> {
           slivers: [
             CupertinoSliverNavigationBar(
               largeTitle: Text(_tag!.name?.trim().isNotEmpty == true ? _tag!.name!.trim() : '标签'),
-              previousPageTitle: '返回',
               backgroundColor: CupertinoDynamicColor.resolve(
                 AppColors.background,
                 context,
@@ -144,15 +142,6 @@ class _TagScreenState extends ConsumerState<TagScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    PostTagPill(tag: _tag, clickable: false),
-                    const SizedBox(height: 10),
-                    Text(
-                      _tag!.isActive == false
-                          ? '这个标签已停用，但历史公开帖子仍会显示在这里。'
-                          : '这里展示带有这个标签的公开帖子。',
-                      style: AppTextStyles.muted(context),
-                    ),
-                    const SizedBox(height: 16),
                     CupertinoSearchTextField(
                       controller: _searchController,
                       placeholder: '在该标签下搜索帖子',
@@ -247,7 +236,7 @@ class _TagPostListSection extends StatelessWidget {
           for (final post in posts)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: _TagPostCard(post: post),
+              child: PostCard(post: post),
             ),
           if (isLoadingMore)
             const Padding(
@@ -271,7 +260,7 @@ class _TagPostListSection extends StatelessWidget {
                 for (final post in posts)
                   SizedBox(
                     width: itemWidth,
-                    child: _TagPostCard(post: post),
+                    child: PostCard(post: post),
                   ),
               ],
             );
@@ -283,49 +272,6 @@ class _TagPostListSection extends StatelessWidget {
             child: Center(child: CupertinoActivityIndicator()),
           ),
       ],
-    );
-  }
-}
-
-class _TagPostCard extends StatelessWidget {
-  const _TagPostCard({required this.post});
-
-  final PostDto post;
-
-  @override
-  Widget build(BuildContext context) {
-    final title = post.title?.trim().isNotEmpty == true ? post.title!.trim() : '未命名帖子';
-    final excerpt = post.content?.trim().isNotEmpty == true ? post.content!.trim() : '这个帖子还没有内容描述。';
-
-    return AppTappableCard(
-      onPressed: () => context.push(buildPostDetailLocation(post.id)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (post.tag != null) ...[
-            PostTagPill(tag: post.tag),
-            const SizedBox(height: 8),
-          ],
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: AppColors.foreground,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            excerpt,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              height: 1.5,
-              color: AppColors.mutedForeground,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

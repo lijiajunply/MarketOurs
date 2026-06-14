@@ -590,7 +590,7 @@ using (var scope = app.Services.CreateScope())
             var tags = new[] { "数码科技", "生活闲聊", "八卦吐槽", "恋爱交友", "二手闲置", "校园生活" };
             foreach (var tag in tags)
             {
-                context.PostTags.Add(new PostTagModel { Id = tag.StringToHash(), Name = tag });
+                context.PostTags.Add(new PostTagModel { Id = DataTool.ToMd5Hash(tag), Name = tag });
             }
         }
 

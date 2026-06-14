@@ -292,7 +292,6 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     try {
       await _shareService.sharePost(post);
       if (!mounted) return;
-      await AppFeedback.showSuccess(context, message: '帖子分享面板已打开');
     } catch (error) {
       if (!mounted) return;
       await AppFeedback.showError(context, message: '分享失败，请稍后重试');

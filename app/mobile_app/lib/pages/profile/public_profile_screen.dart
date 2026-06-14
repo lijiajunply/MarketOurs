@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_app/components/post_card.dart';
 import 'package:mobile_app/ui/app_theme.dart';
 
 import '../../components/post_tag_pill.dart';
@@ -229,7 +230,7 @@ class _RecentPostsSection extends StatelessWidget {
           ...posts.map(
             (post) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _PostPreview(post: post),
+              child: SimplePostCard(post: post),
             ),
           ),
       ],
@@ -314,50 +315,6 @@ class _MetaChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(label, style: const TextStyle(color: AppColors.foreground)),
-    );
-  }
-}
-
-class _PostPreview extends StatelessWidget {
-  const _PostPreview({required this.post});
-
-  final PostDto post;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppTappableCard(
-      onPressed: () => context.push(buildPostDetailLocation(post.id)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (post.tag != null) ...[
-            PostTagPill(tag: post.tag),
-            const SizedBox(height: 8),
-          ],
-          Text(
-            post.title?.trim().isNotEmpty == true
-                ? post.title!.trim()
-                : '未命名帖子',
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: AppColors.foreground,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            post.content?.trim().isNotEmpty == true
-                ? post.content!.trim()
-                : '这个帖子还没有内容描述。',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              height: 1.5,
-              color: AppColors.mutedForeground,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
