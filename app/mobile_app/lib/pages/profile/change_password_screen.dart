@@ -74,6 +74,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
     return AppPageScaffold(
       title: '修改密码',
+      navigationBarStyle: AppNavigationBarStyle.compact,
       maxContentWidth: AppResponsive.readableMaxWidth(context, fallback: 560),
       child: Form(
         key: _formKey,

@@ -96,7 +96,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (_notifications.any((n) => !n.isRead))
+                if (_notifications.any((n) => !n.isRead)) ...[
                   CupertinoButton(
                     padding: EdgeInsets.zero,
                     minimumSize: Size.zero,
@@ -105,6 +105,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     },
                     child: const Icon(CupertinoIcons.trash, size: 24),
                   ),
+                  const SizedBox(width: 12),
+                ],
                 CupertinoButton(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,

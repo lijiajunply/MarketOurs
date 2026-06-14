@@ -127,6 +127,7 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen> {
 
     return AppPageScaffold(
       title: '社交管理',
+      navigationBarStyle: AppNavigationBarStyle.compact,
       slivers: [
         CupertinoSliverRefreshControl(onRefresh: _loadData),
         SliverToBoxAdapter(

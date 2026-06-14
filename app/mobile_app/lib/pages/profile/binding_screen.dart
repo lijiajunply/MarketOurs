@@ -22,26 +22,21 @@ class BindingScreen extends ConsumerWidget {
     final authState = ref.watch(authControllerProvider).asData?.value;
     final user = authState?.user;
 
-    return CupertinoPageScaffold(
-      backgroundColor: AppColors.background,
-      child: CustomScrollView(
-        slivers: [
-          const CupertinoSliverNavigationBar(
-            largeTitle: Text('第三方绑定'),
-            border: null,
+    return AppPageScaffold(
+      title: '第三方绑定',
+      navigationBarStyle: AppNavigationBarStyle.compact,
+      slivers: [
+        CupertinoSliverRefreshControl(
+          onRefresh: () =>
+              ref.read(authControllerProvider.notifier).refreshProfile(),
+        ),
+        SliverToBoxAdapter(
+          child: AppResponsiveCenter(
+            padding: AppResponsive.sliverPagePadding(context, bottom: 32),
+            child: _BindingSection(user: user),
           ),
-          CupertinoSliverRefreshControl(
-            onRefresh: () =>
-                ref.read(authControllerProvider.notifier).refreshProfile(),
-          ),
-          SliverToBoxAdapter(
-            child: AppResponsiveCenter(
-              padding: AppResponsive.sliverPagePadding(context, bottom: 32),
-              child: _BindingSection(user: user),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

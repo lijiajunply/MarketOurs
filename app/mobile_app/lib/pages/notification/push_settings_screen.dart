@@ -65,6 +65,7 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
   Widget build(BuildContext context) {
     return AppPageScaffold(
       title: '推送设置',
+      navigationBarStyle: AppNavigationBarStyle.compact,
       maxContentWidth: AppResponsive.readableMaxWidth(context, fallback: 720),
       child: _isLoading
           ? const Center(child: CupertinoActivityIndicator())

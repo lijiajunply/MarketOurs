@@ -6,12 +6,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'app_responsive.dart';
 import 'app_theme.dart';
 
+enum AppNavigationBarStyle { large, compact }
+
 class AppPageScaffold extends StatelessWidget {
   const AppPageScaffold({
     super.key,
     this.title,
     this.leading,
     this.trailing,
+    this.previousPageTitle,
+    this.navigationBarStyle = AppNavigationBarStyle.large,
+    this.alwaysShowMiddle = true,
+    this.transitionBetweenRoutes = true,
     this.bottomBar,
     this.maxContentWidth,
     this.padding,
@@ -34,6 +40,10 @@ class AppPageScaffold extends StatelessWidget {
   final String? title;
   final Widget? leading;
   final Widget? trailing;
+  final String? previousPageTitle;
+  final AppNavigationBarStyle navigationBarStyle;
+  final bool alwaysShowMiddle;
+  final bool transitionBetweenRoutes;
   final Widget? bottomBar;
   final double? maxContentWidth;
   final EdgeInsets? padding;
@@ -63,34 +73,47 @@ class AppPageScaffold extends StatelessWidget {
             physics: physics,
             slivers: [
               if (title != null)
-                CupertinoSliverNavigationBar(
-                  largeTitle: Text(
-                    title!,
-                    style: TextStyle(
-                      color: CupertinoDynamicColor.resolve(
-                        AppColors.foreground,
-                        context,
+                switch (navigationBarStyle) {
+                  AppNavigationBarStyle.large => CupertinoSliverNavigationBar(
+                    largeTitle: Text(
+                      title!,
+                      style: TextStyle(
+                        color: CupertinoDynamicColor.resolve(
+                          AppColors.foreground,
+                          context,
+                        ),
+                        fontWeight: FontWeight.w700,
                       ),
-                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                  leading: leading,
-                  trailing: trailing,
-                  backgroundColor: CupertinoDynamicColor.resolve(
-                    AppColors.background,
-                    context,
-                  ).withValues(alpha: 0.94),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: CupertinoDynamicColor.resolve(
-                        AppColors.border,
-                        context,
-                      ).withValues(alpha: 0.35),
+                    leading: leading,
+                    trailing: trailing,
+                    previousPageTitle: previousPageTitle,
+                    alwaysShowMiddle: alwaysShowMiddle,
+                    transitionBetweenRoutes: transitionBetweenRoutes,
+                    backgroundColor: CupertinoDynamicColor.resolve(
+                      AppColors.background,
+                      context,
+                    ).withValues(alpha: 0.94),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: CupertinoDynamicColor.resolve(
+                          AppColors.border,
+                          context,
+                        ).withValues(alpha: 0.35),
+                      ),
                     ),
+                    automaticallyImplyLeading: leading == null,
+                    padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
                   ),
-                  automaticallyImplyLeading: leading == null,
-                  padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
-                ),
+                  AppNavigationBarStyle.compact =>
+                    _AppCompactNavigationBarSliver(
+                      title: title!,
+                      leading: leading,
+                      trailing: trailing,
+                      previousPageTitle: previousPageTitle,
+                      transitionBetweenRoutes: transitionBetweenRoutes,
+                    ),
+                },
               if (slivers != null)
                 ...slivers!
               else
@@ -145,6 +168,94 @@ class AppPageScaffold extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _AppCompactNavigationBarSliver extends StatelessWidget {
+  const _AppCompactNavigationBarSliver({
+    required this.title,
+    this.leading,
+    this.trailing,
+    this.previousPageTitle,
+    required this.transitionBetweenRoutes,
+  });
+
+  final String title;
+  final Widget? leading;
+  final Widget? trailing;
+  final String? previousPageTitle;
+  final bool transitionBetweenRoutes;
+
+  @override
+  Widget build(BuildContext context) {
+    final navigationBar = CupertinoNavigationBar(
+      middle: Text(
+        title,
+        style: TextStyle(
+          color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      leading: leading,
+      trailing: trailing,
+      previousPageTitle: previousPageTitle,
+      automaticallyImplyLeading: leading == null,
+      transitionBetweenRoutes: transitionBetweenRoutes,
+      backgroundColor: CupertinoDynamicColor.resolve(
+        AppColors.background,
+        context,
+      ).withValues(alpha: 0.94),
+      border: Border(
+        bottom: BorderSide(
+          color: CupertinoDynamicColor.resolve(
+            AppColors.border,
+            context,
+          ).withValues(alpha: 0.35),
+        ),
+      ),
+      padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
+    );
+
+    return SliverPersistentHeader(
+      pinned: true,
+      delegate: _AppCompactNavigationBarDelegate(
+        navigationBar: navigationBar,
+        height:
+            navigationBar.preferredSize.height +
+            MediaQuery.paddingOf(context).top,
+      ),
+    );
+  }
+}
+
+class _AppCompactNavigationBarDelegate extends SliverPersistentHeaderDelegate {
+  const _AppCompactNavigationBarDelegate({
+    required this.navigationBar,
+    required this.height,
+  });
+
+  final CupertinoNavigationBar navigationBar;
+  final double height;
+
+  @override
+  double get minExtent => height;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return navigationBar;
+  }
+
+  @override
+  bool shouldRebuild(_AppCompactNavigationBarDelegate oldDelegate) {
+    return navigationBar != oldDelegate.navigationBar ||
+        height != oldDelegate.height;
   }
 }
 

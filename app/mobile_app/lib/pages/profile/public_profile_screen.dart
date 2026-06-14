@@ -134,6 +134,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
 
     if (_isLoading) {
       return const AppPageScaffold(
+        navigationBarStyle: AppNavigationBarStyle.compact,
         title: '用户主页',
         child: Center(child: CupertinoActivityIndicator()),
       );
@@ -141,6 +142,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
 
     if (_errorMessage != null || _profile == null) {
       return AppPageScaffold(
+        navigationBarStyle: AppNavigationBarStyle.compact,
         title: '用户主页',
         child: _ErrorState(message: _errorMessage ?? '用户不存在', onRetry: _load),
       );
@@ -148,6 +150,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
 
     return AppPageScaffold(
       title: '用户主页',
+      navigationBarStyle: AppNavigationBarStyle.compact,
       slivers: [
         CupertinoSliverRefreshControl(onRefresh: _load),
         SliverToBoxAdapter(

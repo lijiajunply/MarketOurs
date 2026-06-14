@@ -1033,6 +1033,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     if (_isLoading) {
       return AppPageScaffold(
         title: '详情',
+        navigationBarStyle: AppNavigationBarStyle.compact,
         trailing: trailing,
         child: const Center(child: CupertinoActivityIndicator(radius: 14)),
       );
@@ -1041,6 +1042,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     if (_errorMessage != null || post == null) {
       return AppPageScaffold(
         title: '详情',
+        navigationBarStyle: AppNavigationBarStyle.compact,
         trailing: trailing,
         child: _PostDetailErrorView(
           message: _errorMessage ?? '详情加载失败',
@@ -1051,6 +1053,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 
     return AppPageScaffold(
       title: '详情',
+      navigationBarStyle: AppNavigationBarStyle.compact,
       trailing: trailing,
       bottomBar: _buildCommentComposer(context),
       slivers: [
