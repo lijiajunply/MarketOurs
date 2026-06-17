@@ -22,6 +22,7 @@ if (localPropertiesFile.exists()) {
 }
 
 val googleServicesFile = project.file("google-services.json")
+val agconnectServicesFile = project.file("agconnect-services.json")
 val enableFcm =
     providers.gradleProperty("ENABLE_FCM")
         .orElse(localProperties.getProperty("ENABLE_FCM") ?: "")
@@ -29,6 +30,30 @@ val enableFcm =
         .map { value -> value.equals("true", ignoreCase = true) }
         .orElse(googleServicesFile.exists())
         .get()
+val enableHuawei =
+    providers.gradleProperty("ENABLE_HUAWEI")
+        .orElse(localProperties.getProperty("ENABLE_HUAWEI") ?: "")
+        .orElse(providers.environmentVariable("ENABLE_HUAWEI"))
+        .map { value -> value.equals("true", ignoreCase = true) }
+        .orElse(agconnectServicesFile.exists())
+        .get()
+
+fun propertyValue(key: String, defaultValue: String = "") =
+    providers.gradleProperty(key)
+        .orElse(localProperties.getProperty(key) ?: "")
+        .orElse(providers.environmentVariable(key))
+        .orElse(defaultValue)
+
+fun enabledFlag(key: String, defaultValue: Boolean = false) =
+    propertyValue(key, if (defaultValue) "true" else "false")
+        .map { value -> value.equals("true", ignoreCase = true) }
+        .get()
+
+fun normalizeOppoValue(value: String): String {
+    val trimmed = value.trim()
+    if (trimmed.isEmpty()) return ""
+    return if (trimmed.startsWith("OP-")) trimmed else "OP-$trimmed"
+}
 
 val jpushAppKey = providers.gradleProperty("JPUSH_APPKEY")
     .orElse(localProperties.getProperty("JPUSH_APPKEY") ?: "")
@@ -38,6 +63,47 @@ val jpushChannel = providers.gradleProperty("JPUSH_CHANNEL")
     .orElse(localProperties.getProperty("JPUSH_CHANNEL") ?: "")
     .orElse(providers.environmentVariable("JPUSH_CHANNEL"))
     .orElse("developer-default")
+
+val xiaomiAppId = propertyValue("XIAOMI_APPID").get().trim()
+val xiaomiAppKey = propertyValue("XIAOMI_APPKEY").get().trim()
+val vivoAppId = propertyValue("VIVO_APPID").get().trim()
+val vivoAppKey = propertyValue("VIVO_APPKEY").get().trim()
+val oppoAppId = normalizeOppoValue(propertyValue("OPPO_APPID").get())
+val oppoAppKey = normalizeOppoValue(propertyValue("OPPO_APPKEY").get())
+val oppoAppSecret = normalizeOppoValue(propertyValue("OPPO_APPSECRET").get())
+val honorAppId = propertyValue("HONOR_APPID").get().trim()
+
+val enableXiaomi =
+    enabledFlag("ENABLE_XIAOMI") ||
+        (xiaomiAppId.isNotEmpty() && xiaomiAppKey.isNotEmpty())
+val enableVivo =
+    enabledFlag("ENABLE_VIVO") ||
+        (vivoAppId.isNotEmpty() && vivoAppKey.isNotEmpty())
+val enableOppo =
+    enabledFlag("ENABLE_OPPO") ||
+        (oppoAppId.isNotEmpty() && oppoAppKey.isNotEmpty() && oppoAppSecret.isNotEmpty())
+val enableHonor =
+    enabledFlag("ENABLE_HONOR") ||
+        honorAppId.isNotEmpty()
+
+if (enabledFlag("ENABLE_XIAOMI") && (xiaomiAppId.isEmpty() || xiaomiAppKey.isEmpty())) {
+    logger.lifecycle("Xiaomi channel requested but XIAOMI_APPID/XIAOMI_APPKEY is incomplete.")
+}
+
+if (enabledFlag("ENABLE_VIVO") && (vivoAppId.isEmpty() || vivoAppKey.isEmpty())) {
+    logger.lifecycle("Vivo channel requested but VIVO_APPID/VIVO_APPKEY is incomplete.")
+}
+
+if (enabledFlag("ENABLE_OPPO") &&
+    (oppoAppId.isEmpty() || oppoAppKey.isEmpty() || oppoAppSecret.isEmpty())
+) {
+    logger.lifecycle("Oppo channel requested but OPPO_APPID/OPPO_APPKEY/OPPO_APPSECRET is incomplete.")
+}
+
+if (enabledFlag("ENABLE_HONOR") && honorAppId.isEmpty()) {
+    logger.lifecycle("Honor channel requested but HONOR_APPID is incomplete.")
+}
+
 val androidApplicationId = "com.luckyfish.lumalis"
 
 android {
@@ -72,6 +138,14 @@ android {
         manifestPlaceholders["JPUSH_APPKEY"] = jpushAppKey.get()
         manifestPlaceholders["JPUSH_CHANNEL"] = jpushChannel.get()
         manifestPlaceholders["FCM_NOTIFICATION_ICON"] = "@drawable/ic_stat_marketours_notification"
+        manifestPlaceholders["XIAOMI_APPID"] = xiaomiAppId
+        manifestPlaceholders["XIAOMI_APPKEY"] = xiaomiAppKey
+        manifestPlaceholders["VIVO_APPID"] = vivoAppId
+        manifestPlaceholders["VIVO_APPKEY"] = vivoAppKey
+        manifestPlaceholders["OPPO_APPID"] = oppoAppId
+        manifestPlaceholders["OPPO_APPKEY"] = oppoAppKey
+        manifestPlaceholders["OPPO_APPSECRET"] = oppoAppSecret
+        manifestPlaceholders["HONOR_APPID"] = honorAppId
     }
 
     buildTypes {
@@ -89,6 +163,36 @@ if (!enableFcm) {
     )
 }
 
+if (!enableHuawei) {
+    logger.lifecycle(
+        "Huawei channel is disabled for ${project.path}. Add android/app/agconnect-services.json or set ENABLE_HUAWEI=true to enable it.",
+    )
+}
+
+if (!enableXiaomi) {
+    logger.lifecycle(
+        "Xiaomi channel is disabled for ${project.path}. Set XIAOMI_APPID/XIAOMI_APPKEY or ENABLE_XIAOMI=true to enable it.",
+    )
+}
+
+if (!enableVivo) {
+    logger.lifecycle(
+        "Vivo channel is disabled for ${project.path}. Set VIVO_APPID/VIVO_APPKEY or ENABLE_VIVO=true to enable it.",
+    )
+}
+
+if (!enableOppo) {
+    logger.lifecycle(
+        "Oppo channel is disabled for ${project.path}. Set OPPO_APPID/OPPO_APPKEY/OPPO_APPSECRET or ENABLE_OPPO=true to enable it.",
+    )
+}
+
+if (!enableHonor) {
+    logger.lifecycle(
+        "Honor channel is disabled for ${project.path}. Set HONOR_APPID or ENABLE_HONOR=true to enable it.",
+    )
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
@@ -103,10 +207,29 @@ if (enableFcm) {
     apply(plugin = "com.google.gms.google-services")
 }
 
+if (enableHuawei) {
+    apply(plugin = "com.huawei.agconnect")
+}
+
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     if (enableFcm) {
         implementation("cn.jiguang.sdk.plugin:fcm:4.8.6")
         implementation("com.google.firebase:firebase-messaging:24.1.2")
+    }
+    if (enableHuawei) {
+        implementation("cn.jiguang.sdk.plugin:huawei:6.0.1")
+    }
+    if (enableXiaomi) {
+        implementation("cn.jiguang.sdk.plugin:xiaomi:6.0.1")
+    }
+    if (enableVivo) {
+        implementation("cn.jiguang.sdk.plugin:vivo:6.0.1")
+    }
+    if (enableOppo) {
+        implementation("cn.jiguang.sdk.plugin:oppo:6.0.1")
+    }
+    if (enableHonor) {
+        implementation("cn.jiguang.sdk.plugin:honor:6.0.1")
     }
 }
