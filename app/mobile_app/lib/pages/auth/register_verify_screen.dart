@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -134,7 +135,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
-      title: '验证注册',
+      title: AppLocalizations.of(context)!.authRegisterVerifyTitle,
       footer: Center(
         child: CupertinoButton(
           onPressed: isSubmitting
@@ -191,7 +192,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
                 onPressed: isSubmitting || _countdown > 0 ? null : _resendCode,
                 padding: EdgeInsets.zero,
                 child: Text(
-                  _countdown > 0 ? '${_countdown}s 后重新发送' : '重新发送验证码',
+                  _countdown > 0 ? '${_countdown}s 后重新发送' : AppLocalizations.of(context)!.authResendCode,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -206,7 +207,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
 
             AppPrimaryButton(
               onPressed: isSubmitting || !_isCodeValid ? null : _submit,
-              child: Text(isSubmitting ? '验证中...' : '验证并完成'),
+              child: Text(isSubmitting ? AppLocalizations.of(context)!.profileSaving : AppLocalizations.of(context)!.submit),
             ),
           ],
         ),

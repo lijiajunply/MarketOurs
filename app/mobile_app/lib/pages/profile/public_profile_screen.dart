@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/components/post_card.dart';
@@ -283,7 +284,7 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                     const SizedBox(height: 12),
                     AppSecondaryButton(
                       onPressed: () => context.go(AppRoutePaths.profile),
-                      child: const Text('管理我的资料'),
+                      child: Text(AppLocalizations.of(context)!.profileManageMyProfile),
                     ),
                   ],
                 ],
@@ -318,7 +319,7 @@ class _RecentPostsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '最近发布',
+          AppLocalizations.of(context)!.profileRecentPosts,
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
@@ -326,13 +327,13 @@ class _RecentPostsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          '看看这位同学最近在 光汇 分享了什么。',
+        Text(
+          AppLocalizations.of(context)!.profileRecentPostsSubtitle,
           style: TextStyle(color: CupertinoColors.systemGrey),
         ),
         const SizedBox(height: 16),
         if (posts.isEmpty)
-          const AppSectionCard(child: Text('还没有公开帖子'))
+          AppSectionCard(child: Text(AppLocalizations.of(context)!.profileNoPublicPosts))
         else
           ...posts.map(
             (post) => Padding(
@@ -346,11 +347,11 @@ class _RecentPostsSection extends StatelessWidget {
             child: Center(child: CupertinoActivityIndicator()),
           )
         else if (!hasNextPage && posts.isNotEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: 4, bottom: 12),
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 12),
             child: Center(
               child: Text(
-                '已经到底了',
+                AppLocalizations.of(context)!.profileReachedEnd,
                 style: TextStyle(color: CupertinoColors.systemGrey),
               ),
             ),
@@ -378,7 +379,7 @@ class _ProfileHero extends StatelessWidget {
           Text(
             profile.name?.trim().isNotEmpty == true
                 ? profile.name!.trim()
-                : '未设置昵称',
+                : AppLocalizations.of(context)!.profileNoNickname,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
@@ -389,13 +390,13 @@ class _ProfileHero extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [if (isMe) const _MetaChip(label: '这是你')],
+            children: [if (isMe) _MetaChip(label: AppLocalizations.of(context)!.profileThisIsYou)],
           ),
           const SizedBox(height: 14),
           Text(
             profile.info?.trim().isNotEmpty == true
                 ? profile.info!.trim()
-                : '这个人很低调，还没有写简介。',
+                : AppLocalizations.of(context)!.profileOwnerLowkey,
             style: TextStyle(
               fontSize: 15,
               height: 1.5,
@@ -404,7 +405,7 @@ class _ProfileHero extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '加入时间 ${_formatDate(profile.createdAt)}',
+            '${AppLocalizations.of(context)!.profileJoinDate} ${_formatDate(profile.createdAt)}',
             style: TextStyle(
               fontSize: 12,
               color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
@@ -474,7 +475,7 @@ class _FollowStats extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '粉丝',
+                  AppLocalizations.of(context)!.profileFollowers,
                   style: TextStyle(
                     fontSize: 13,
                     color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
@@ -500,7 +501,7 @@ class _FollowStats extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '关注',
+                  AppLocalizations.of(context)!.profileFollowing,
                   style: TextStyle(
                     fontSize: 13,
                     color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
@@ -556,7 +557,7 @@ class _FollowBlockButtons extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isFollowing ? '已关注' : '关注',
+                  isFollowing ? AppLocalizations.of(context)!.profileUnfollow : AppLocalizations.of(context)!.profileFollowing,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -591,7 +592,7 @@ class _FollowBlockButtons extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                isBlocked ? '已屏蔽' : '屏蔽',
+                isBlocked ? AppLocalizations.of(context)!.profileUnblock : AppLocalizations.of(context)!.profileBlock,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -62,7 +63,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         context,
         message: (errorMessage != null && errorMessage.isNotEmpty)
             ? errorMessage
-            : '修改密码失败，请稍后重试',
+            : AppLocalizations.of(context)!.authChangePasswordFailed,
       );
     }
   }
@@ -73,7 +74,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AppPageScaffold(
-      title: '修改密码',
+      title: AppLocalizations.of(context)!.profileChangePasswordTitle,
       navigationBarStyle: AppNavigationBarStyle.compact,
       maxContentWidth: AppResponsive.readableMaxWidth(context, fallback: 560),
       child: Form(

@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+
+import 'package:mobile_app/l10n/app_localizations.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
 import '../../ui/app_feedback.dart';
@@ -55,9 +57,15 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
 
     if (mounted) {
       if (success) {
-        await AppFeedback.showSuccess(context, message: '保存成功');
+        await AppFeedback.showSuccess(
+          context,
+          message: AppLocalizations.of(context)!.notificationSaved,
+        );
       } else {
-        await AppFeedback.showError(context, message: '保存失败');
+        await AppFeedback.showError(
+          context,
+          message: AppLocalizations.of(context)!.notificationSaveFailed,
+        );
       }
     }
   }
@@ -65,7 +73,7 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return AppPageScaffold(
-      title: '推送设置',
+      title: AppLocalizations.of(context)!.notificationPushSettings,
       navigationBarStyle: AppNavigationBarStyle.compact,
       maxContentWidth: AppResponsive.readableMaxWidth(context, fallback: 720),
       child: _isLoading
@@ -73,16 +81,16 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
           : Column(
               children: [
                 _buildSwitchTile(
-                  title: '邮件通知',
-                  subtitle: '当收到新回复或系统通知时发送邮件',
+                  title: AppLocalizations.of(context)!.notificationEmail,
+                  subtitle: AppLocalizations.of(context)!.notificationEmailDesc,
                   value: _emailEnabled,
                   onChanged: (val) => setState(() => _emailEnabled = val),
                   icon: CupertinoIcons.mail,
                 ),
                 const SizedBox(height: 12),
                 _buildSwitchTile(
-                  title: '评论回复推送',
-                  subtitle: '当有人回复您的贴子或评论时推送',
+                  title: AppLocalizations.of(context)!.notificationCommentPush,
+                  subtitle: AppLocalizations.of(context)!.notificationCommentPushDesc,
                   value: _commentReplyEnabled,
                   onChanged: (val) =>
                       setState(() => _commentReplyEnabled = val),
@@ -90,8 +98,8 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildSwitchTile(
-                  title: '每日热榜推送',
-                  subtitle: '每天早晨接收校园最热贴子精选',
+                  title: AppLocalizations.of(context)!.notificationHotListPush,
+                  subtitle: AppLocalizations.of(context)!.notificationHotListPushDesc,
                   value: _hotListEnabled,
                   onChanged: (val) => setState(() => _hotListEnabled = val),
                   icon: CupertinoIcons.flame,
@@ -99,7 +107,11 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
                 const SizedBox(height: 28),
                 AppPrimaryButton(
                   onPressed: _isSaving ? null : _saveSettings,
-                  child: Text(_isSaving ? '保存中...' : '保存设置'),
+                  child: Text(
+                    _isSaving
+                        ? AppLocalizations.of(context)!.profileSaving
+                        : AppLocalizations.of(context)!.notificationSaveSettings,
+                  ),
                 ),
               ],
             ),

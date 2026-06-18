@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:mobile_app/l10n/app_localizations.dart';
 import '../../models/notification.dart';
 import '../../router/app_router.dart';
 import '../../services/notification_service.dart';
@@ -217,9 +218,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            '暂无通知',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.notificationEmpty,
+            style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
               color: AppColors.mutedForeground,

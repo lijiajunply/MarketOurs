@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 import 'app_responsive.dart';
 import 'app_theme.dart';
@@ -690,7 +691,7 @@ class AppRetryState extends StatelessWidget {
         description: description,
         action: AppPrimaryButton(
           onPressed: onRetry,
-          child: const Text('重新加载'),
+          child: Text(AppLocalizations.of(context)!.reload),
         ),
       ),
     );

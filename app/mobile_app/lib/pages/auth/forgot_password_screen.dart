@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -70,14 +71,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
-      title: '找回密码',
+      title: AppLocalizations.of(context)!.authForgotPassword,
       footer: Center(
         child: CupertinoButton(
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.login),
-          child: const Text(
-            '返回登录',
+          child: Text(
+            AppLocalizations.of(context)!.authAlreadyHaveAccount,
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
@@ -100,7 +101,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             const SizedBox(height: 24),
             AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
-              child: Text(isSubmitting ? '提交中...' : '发送验证码'),
+              child: Text(isSubmitting ? AppLocalizations.of(context)!.profileSaving : AppLocalizations.of(context)!.authSendCode),
             ),
           ],
         ),

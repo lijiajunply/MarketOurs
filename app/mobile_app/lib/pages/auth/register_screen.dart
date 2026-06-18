@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -116,34 +117,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => CupertinoActionSheet(
-        title: const Text('选择头像'),
+        title: Text(AppLocalizations.of(context)!.authSelectAvatar),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(ctx);
               _generateRandomAvatar();
             },
-            child: const Text('随机生成'),
+            child: Text(AppLocalizations.of(context)!.authRandomAvatar),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(ctx);
               _pickFromGallery();
             },
-            child: const Text('从相册选择'),
+            child: Text(AppLocalizations.of(context)!.authPickFromGallery),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(ctx);
               _takePhoto();
             },
-            child: const Text('拍照'),
+            child: Text(AppLocalizations.of(context)!.authTakePhoto),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           isDefaultAction: true,
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('取消'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
       ),
     );
@@ -236,14 +237,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         (_isPasswordDirty && !_isPasswordValid);
 
     return AuthScaffold(
-      title: '注册账号',
+      title: AppLocalizations.of(context)!.authRegister,
       footer: Center(
         child: CupertinoButton(
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.login),
-          child: const Text(
-            '已有账号？返回登录',
+          child: Text(
+            AppLocalizations.of(context)!.authAlreadyHaveAccount,
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
@@ -319,7 +320,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 4),
             Center(
               child: Text(
-                '点击更换头像',
+                AppLocalizations.of(context)!.profileClickToChangeAvatar,
                 style: AppTextStyles.label(context).copyWith(fontSize: 11),
               ),
             ),
@@ -350,7 +351,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 20),
 
             // Account
-            Text('账号', style: AppTextStyles.label(context)),
+            Text(AppLocalizations.of(context)!.authAccount, style: AppTextStyles.label(context)),
             const SizedBox(height: 8),
             AppTextField(
               controller: _accountController,
@@ -394,7 +395,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 20),
 
             // Password
-            Text('密码', style: AppTextStyles.label(context)),
+            Text(AppLocalizations.of(context)!.authPassword, style: AppTextStyles.label(context)),
             const SizedBox(height: 8),
             PasswordFormField(
               controller: _passwordController,
@@ -443,7 +444,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
             AppPrimaryButton(
               onPressed: submitDisabled ? null : _submit,
-              child: Text(isSubmitting ? '提交中...' : '注册'),
+              child: Text(isSubmitting ? AppLocalizations.of(context)!.profileSaving : AppLocalizations.of(context)!.authRegister),
             ),
           ],
         ),

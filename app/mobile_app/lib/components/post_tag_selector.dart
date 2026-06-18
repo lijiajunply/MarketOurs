@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 
 import '../models/post.dart';
 import '../ui/app_theme.dart';
@@ -30,7 +31,7 @@ Future<PostTagDto?> showPostTagPicker(
       ],
       cancelButton: CupertinoActionSheetAction(
         onPressed: () => Navigator.of(ctx).pop(selectedTag),
-        child: const Text('取消'),
+        child: Text(AppLocalizations.of(context)!.cancel),
       ),
     ),
   );

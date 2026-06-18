@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -84,7 +85,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
-      title: '重置密码',
+      title: AppLocalizations.of(context)!.authResetPassword,
       footer: Center(
         child: CupertinoButton(
           onPressed: isSubmitting
@@ -136,7 +137,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             const SizedBox(height: 24),
             AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
-              child: Text(isSubmitting ? '提交中...' : '确认重置'),
+              child: Text(isSubmitting ? AppLocalizations.of(context)!.profileSaving : AppLocalizations.of(context)!.authResetPassword),
             ),
           ],
         ),

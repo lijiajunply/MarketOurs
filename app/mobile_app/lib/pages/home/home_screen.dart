@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/components/post_card.dart';
@@ -104,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
           cancelButton: CupertinoActionSheetAction(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
         ),
       );
@@ -143,7 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           slivers: [
             CupertinoSliverNavigationBar(
-              largeTitle: const Text('首页'),
+              largeTitle: Text(AppLocalizations.of(context)!.tabHome),
               backgroundColor: CupertinoDynamicColor.resolve(
                 AppColors.background,
                 context,
@@ -194,7 +195,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: CupertinoSearchTextField(
                   key: const ValueKey('home-responsive-search-field'),
                   controller: _searchController,
-                  placeholder: '搜索帖子、话题或用户',
+                  placeholder: AppLocalizations.of(context)!.homeSearchPlaceholder,
                   borderRadius: BorderRadius.circular(AppRadii.md),
                   backgroundColor: AppColors.secondary,
                   onSubmitted: (value) =>
@@ -263,7 +264,7 @@ class _PostListSection extends StatelessWidget {
     if (posts.isEmpty) {
       return AppEmptyState(
         icon: keyword.isEmpty ? CupertinoIcons.news : CupertinoIcons.search,
-        title: keyword.isEmpty ? '还没有帖子' : '没有找到相关帖子',
+        title: keyword.isEmpty ? AppLocalizations.of(context)!.homeEmpty : '没有找到相关帖子',
         description: keyword.isEmpty
             ? '等第一位同学来发布内容，或者稍后再刷新看看。'
             : '换个关键词试试，或者清空搜索回到首页。',

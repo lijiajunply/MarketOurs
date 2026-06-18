@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:mobile_app/l10n/app_localizations.dart';
 import '../../components/post_editor_form.dart';
 import '../../components/post_tag_selector.dart';
 import '../../models/post.dart';
@@ -145,11 +146,17 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
           );
 
       final post = response.data;
-      if (post == null) throw Exception(response.message ?? '帖子创建失败');
+      if (post == null)
+        throw Exception(
+          response.message ?? AppLocalizations.of(context)!.postCreateFailed,
+        );
 
       if (!mounted) return;
 
-      await AppFeedback.showSuccess(context, message: '帖子已发布');
+      await AppFeedback.showSuccess(
+        context,
+        message: AppLocalizations.of(context)!.postCreated,
+      );
       if (!mounted) return;
       context.pushReplacement(buildPostDetailLocation(post.id));
     } catch (error) {
@@ -174,12 +181,14 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('发布帖子'),
+        middle: Text(AppLocalizations.of(context)!.postCreate),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: _isSubmitting ? null : _submit,
           child: Text(
-            _isSubmitting ? '正在发布' : '发布',
+            _isSubmitting
+                ? AppLocalizations.of(context)!.postCreatePublishing
+                : AppLocalizations.of(context)!.postCreatePublish,
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
@@ -197,21 +206,24 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                 selectedTag: _selectedTag,
                 existingImages: const [],
                 localImages: _images,
+                tagEmptyText: AppLocalizations.of(context)!.postCreateNoTag,
                 onPickTag: _isSubmitting ? null : _selectTag,
                 onPickImages: _isSubmitting ? null : _pickImages,
                 onRemoveLocalImage: _isSubmitting ? null : _removeImage,
                 onSubmit: _isSubmitting ? null : _submit,
-                submitLabel: _isSubmitting ? '发布中...' : '立即发布',
+                submitLabel: _isSubmitting
+                    ? AppLocalizations.of(context)!.postCreatePublishing
+                    : AppLocalizations.of(context)!.postCreatePublish,
                 uploadProgress: _uploadProgress,
                 titleValidator: (v) => requiredMaxValidator(
                   v,
-                  emptyMessage: '请输入标题',
+                  emptyMessage: AppLocalizations.of(context)!.postCreateTitleEmpty,
                   max: DtoLimits.postTitleMax,
                   maxMessage: '标题长度不能超过 ${DtoLimits.postTitleMax} 位',
                 ),
                 contentValidator: (v) => requiredMaxValidator(
                   v,
-                  emptyMessage: '请输入内容',
+                  emptyMessage: AppLocalizations.of(context)!.postCreateContentEmpty,
                   max: DtoLimits.postContentMax,
                   maxMessage: '内容长度不能超过 ${DtoLimits.postContentMax} 位',
                 ),

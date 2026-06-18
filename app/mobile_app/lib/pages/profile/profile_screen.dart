@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -33,8 +34,8 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: AppColors.background,
         child: CustomScrollView(
           slivers: [
-            const CupertinoSliverNavigationBar(
-              largeTitle: Text('我的'),
+            CupertinoSliverNavigationBar(
+              largeTitle: Text(AppLocalizations.of(context)!.tabProfile),
               border: null,
             ),
             SliverFillRemaining(
@@ -45,11 +46,11 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       AppEmptyState(
                         icon: CupertinoIcons.person,
-                        title: '还没有登录',
-                        description: '登录后可以查看个人资料、管理安全设置。',
+                        title: AppLocalizations.of(context)!.profileNotLoggedIn,
+                        description: AppLocalizations.of(context)!.profileNotLoggedInDesc,
                         action: AppPrimaryButton(
                           onPressed: () => context.go(AppRoutePaths.login),
-                          child: const Text('去登录'),
+                          child: Text(AppLocalizations.of(context)!.profileGoLogin),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -72,7 +73,7 @@ class ProfileScreen extends ConsumerWidget {
         ),
         slivers: [
           CupertinoSliverNavigationBar(
-            largeTitle: const Text('我的'),
+            largeTitle: Text(AppLocalizations.of(context)!.tabProfile),
             backgroundColor: CupertinoDynamicColor.resolve(
               AppColors.background,
               context,
@@ -97,19 +98,19 @@ class ProfileScreen extends ConsumerWidget {
                 primary: Column(
                   children: [
                     _ProfileSection(
-                      title: '资料信息',
+                      title: AppLocalizations.of(context)!.profileInfo,
                       children: [
-                        _InfoRow(label: '昵称', value: _fallback(user.name, '未设置')),
+                        _InfoRow(label: AppLocalizations.of(context)!.profileNickname, value: _fallback(user.name, '未设置')),
                         _InfoRow(
-                          label: '简介',
-                          value: _fallback(user.info, '还没有写简介'),
+                          label: AppLocalizations.of(context)!.profileBio,
+                          value: _fallback(user.info, AppLocalizations.of(context)!.profileNoBio),
                         ),
                         _InfoRow(
-                          label: '邮箱',
-                          value: _fallback(user.email, '未绑定'),
+                          label: AppLocalizations.of(context)!.profileEmail,
+                          value: _fallback(user.email, AppLocalizations.of(context)!.profileNoEmail),
                         ),
                         _VerificationRow(
-                          label: '邮箱验证',
+                          label: AppLocalizations.of(context)!.profileVerifyEmailTitle,
                           isVerified: user.isEmailVerified ?? false,
                           isBusy: isSubmitting,
                           onVerify: () => _startVerification(
@@ -128,7 +129,7 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _ProfileSection(
-                      title: '社交管理',
+                      title: AppLocalizations.of(context)!.profileSocial,
                       children: [
                         _NavRow(
                           icon: CupertinoIcons.person_2,
@@ -138,7 +139,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         _NavRow(
                           icon: CupertinoIcons.link,
-                          title: '第三方绑定',
+                          title: AppLocalizations.of(context)!.profileBindings,
                           subtitle: '管理 Github、Google 等平台关联',
                           onTap: () =>
                               context.push(AppRoutePaths.bindings),
@@ -167,12 +168,12 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _ProfileSection(
-                      title: '账户安全',
+                      title: AppLocalizations.of(context)!.profileSecurity,
                       children: [
                         _NavRow(
                           icon: CupertinoIcons.lock_rotation,
-                          title: '修改密码',
-                          subtitle: '更新当前账号密码',
+                          title: AppLocalizations.of(context)!.profileChangePasswordTitle,
+                          subtitle: AppLocalizations.of(context)!.profileChangePasswordDesc,
                           onTap: () => context.push(AppRoutePaths.changePassword),
                         ),
                         _NavRow(
@@ -226,7 +227,7 @@ class ProfileScreen extends ConsumerWidget {
     try {
       await sendCode();
       if (!context.mounted) return;
-      await AppFeedback.showSuccess(context, message: '验证码已发送');
+      await AppFeedback.showSuccess(context, message: AppLocalizations.of(context)!.authSendCodeSuccess);
     } catch (_) {
       final errorMessage = ref
           .read(authControllerProvider)
@@ -259,11 +260,11 @@ class ProfileScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('输入验证码', style: AppTextStyles.sectionTitle(context)),
+              Text(AppLocalizations.of(context)!.profileEnterCode, style: AppTextStyles.sectionTitle(context)),
               const SizedBox(height: 16),
               AppTextField(
                 controller: codeController,
-                placeholder: '请输入收到的验证码',
+                placeholder: AppLocalizations.of(context)!.profileEnterCodeHint,
               ),
               const SizedBox(height: 20),
               Row(
@@ -271,14 +272,14 @@ class ProfileScreen extends ConsumerWidget {
                   Expanded(
                     child: AppSecondaryButton(
                       onPressed: () => Navigator.of(dialogContext).pop(false),
-                      child: const Text('取消'),
+                      child: Text(AppLocalizations.of(context)!.cancel),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: AppPrimaryButton(
                       onPressed: () => Navigator.of(dialogContext).pop(true),
-                      child: const Text('确认验证'),
+                      child: Text(AppLocalizations.of(context)!.profileConfirmVerify),
                     ),
                   ),
                 ],
@@ -348,14 +349,14 @@ class _ProfileHero extends StatelessWidget {
                 Text(
                   user.name?.trim().isNotEmpty == true
                       ? user.name!.trim()
-                      : '未设置昵称',
+                      : AppLocalizations.of(context)!.profileNoNickname,
                   style: AppTextStyles.sectionTitle(context),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   user.info?.trim().isNotEmpty == true
                       ? user.info!.trim()
-                      : '这个人很低调，还没有写简介。',
+                      : AppLocalizations.of(context)!.profileOwnerLowkey,
                   style: AppTextStyles.muted(context),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -507,7 +508,7 @@ class _ThemeModeSection extends ConsumerWidget {
         cancelButton: CupertinoActionSheetAction(
           isDefaultAction: true,
           onPressed: () => Navigator.of(sheetContext).pop(),
-          child: const Text('取消'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
       ),
     );
@@ -589,7 +590,7 @@ class _VerificationRow extends StatelessWidget {
         label,
         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
       ),
-      subtitle: Text(isVerified ? '已通过安全验证' : '尚未进行安全验证'),
+      subtitle: Text(isVerified ? AppLocalizations.of(context)!.profileEmailVerified : AppLocalizations.of(context)!.profileEmailNotVerified),
       trailing: isVerified
           ? const Icon(
               CupertinoIcons.check_mark_circled_solid,
@@ -600,8 +601,8 @@ class _VerificationRow extends StatelessWidget {
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               onPressed: isBusy ? null : onVerify,
-              child: const Text(
-                '去验证',
+              child: Text(
+                AppLocalizations.of(context)!.profileVerifyEmail,
                 style: TextStyle(
                   color: AppColors.primary,
                   fontSize: 14,
@@ -718,7 +719,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
         cancelButton: CupertinoActionSheetAction(
           isDefaultAction: true,
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('取消'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
       ),
     );
@@ -749,12 +750,12 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
             avatar = url;
           } else {
             if (!mounted) return;
-            await AppFeedback.showError(context, message: '头像上传失败');
+            await AppFeedback.showError(context, message: AppLocalizations.of(context)!.errorAvatarUploadFailed);
             return;
           }
         } catch (_) {
           if (!mounted) return;
-          await AppFeedback.showError(context, message: '头像上传失败');
+          await AppFeedback.showError(context, message: AppLocalizations.of(context)!.errorAvatarUploadFailed);
           return;
         }
       }
@@ -771,7 +772,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
             ),
           );
       if (!mounted) return;
-      await AppFeedback.showSuccess(context, message: '个人资料已更新');
+      await AppFeedback.showSuccess(context, message: AppLocalizations.of(context)!.profileUpdated);
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (_) {
@@ -785,7 +786,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
           context,
           message: errorMessage?.isNotEmpty == true
               ? errorMessage!
-              : '个人资料更新失败，请稍后重试',
+              : AppLocalizations.of(context)!.profileUpdateFailed,
         );
       }
     } finally {
@@ -814,7 +815,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            Text('编辑资料', style: AppTextStyles.sectionTitle(context)),
+            Text(AppLocalizations.of(context)!.profileEditProfile, style: AppTextStyles.sectionTitle(context)),
             const SizedBox(height: 20),
 
             // Avatar picker
@@ -853,7 +854,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
             const SizedBox(height: 8),
             Center(
               child: Text(
-                '点击更换头像',
+                AppLocalizations.of(context)!.profileClickToChangeAvatar,
                 style: AppTextStyles.label(context).copyWith(fontSize: 11),
               ),
             ),
@@ -861,7 +862,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
 
             AppTextField(
               controller: _nameController,
-              placeholder: '昵称',
+              placeholder: AppLocalizations.of(context)!.profileNickname,
               maxLength: DtoLimits.userNameMax,
               validator: (v) => optionalMaxValidator(
                 v,
@@ -884,7 +885,7 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
             const SizedBox(height: 24),
             AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
-              child: Text(isSubmitting ? '保存中...' : '保存修改'),
+              child: Text(isSubmitting ? AppLocalizations.of(context)!.profileSaving : AppLocalizations.of(context)!.profileSaveChanges),
             ),
           ],
         ),

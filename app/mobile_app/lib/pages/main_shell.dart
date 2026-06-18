@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -48,7 +49,7 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     _lastExitAttemptAt = now;
     unawaited(ref.read(homeFeedProvider.notifier).refresh());
-    unawaited(AppFeedback.showInfo(context, message: '再按一次退出光汇'));
+    unawaited(AppFeedback.showInfo(context, message: AppLocalizations.of(context)!.appTitle));
   }
 
   @override
@@ -92,7 +93,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                   ),
                   currentIndex: widget.navigationShell.currentIndex,
                   onTap: (index) => _onTap(context, index),
-                  items: _navigationItems
+                  items: _navigationItems(context)
                       .map(
                         (item) => BottomNavigationBarItem(
                           icon: Icon(item.icon),
@@ -161,7 +162,7 @@ class _TabletSideNavigation extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
           child: Column(
             children: [
-              for (final entry in _navigationItems.indexed)
+              for (final entry in _navigationItems(context).indexed)
                 _TabletSideNavigationItem(
                   item: entry.$2,
                   isSelected: entry.$1 == currentIndex,
@@ -252,25 +253,28 @@ class _MainNavigationItem {
   final String label;
 }
 
-const _navigationItems = [
-  _MainNavigationItem(
-    icon: CupertinoIcons.house,
-    activeIcon: CupertinoIcons.house_fill,
-    label: '首页',
-  ),
-  _MainNavigationItem(
-    icon: CupertinoIcons.flame,
-    activeIcon: CupertinoIcons.flame_fill,
-    label: '热榜',
-  ),
-  _MainNavigationItem(
-    icon: CupertinoIcons.bell,
-    activeIcon: CupertinoIcons.bell_fill,
-    label: '通知',
-  ),
-  _MainNavigationItem(
-    icon: CupertinoIcons.person,
-    activeIcon: CupertinoIcons.person_fill,
-    label: '我的',
-  ),
-];
+List<_MainNavigationItem> _navigationItems(BuildContext context) {
+  final l10n = AppLocalizations.of(context)!;
+  return [
+    _MainNavigationItem(
+      icon: CupertinoIcons.house,
+      activeIcon: CupertinoIcons.house_fill,
+      label: l10n.tabHome,
+    ),
+    _MainNavigationItem(
+      icon: CupertinoIcons.flame,
+      activeIcon: CupertinoIcons.flame_fill,
+      label: l10n.tabHot,
+    ),
+    _MainNavigationItem(
+      icon: CupertinoIcons.bell,
+      activeIcon: CupertinoIcons.bell_fill,
+      label: l10n.tabNotifications,
+    ),
+    _MainNavigationItem(
+      icon: CupertinoIcons.person,
+      activeIcon: CupertinoIcons.person_fill,
+      label: l10n.tabProfile,
+    ),
+  ];
+}

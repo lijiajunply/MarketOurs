@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -147,14 +148,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isSubmitting = authState?.isSubmitting ?? false;
 
     return AuthScaffold(
-      title: '登录',
+      title: AppLocalizations.of(context)!.authLogin,
       footer: Center(
         child: CupertinoButton(
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.register),
-          child: const Text(
-            '没有账号？去注册',
+          child: Text(
+            AppLocalizations.of(context)!.authNoAccount,
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
@@ -169,13 +170,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               onValueChanged: (value) {
                 if (value != null) setState(() => _loginMode = value);
               },
-              children: const {
-                _LoginMode.password: Text('密码登录'),
-                _LoginMode.otp: Text('验证码登录'),
+              children: {
+                _LoginMode.password: Text(AppLocalizations.of(context)!.authPasswordLogin),
+                _LoginMode.otp: Text(AppLocalizations.of(context)!.authCodeLogin),
               },
             ),
             const SizedBox(height: 24),
-            Text('账号', style: AppTextStyles.label(context)),
+            Text(AppLocalizations.of(context)!.authAccount, style: AppTextStyles.label(context)),
             const SizedBox(height: 8),
             AppTextField(
               controller: _accountController,
@@ -200,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('密码', style: AppTextStyles.label(context)),
+                  Text(AppLocalizations.of(context)!.authPassword, style: AppTextStyles.label(context)),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
                     minimumSize: Size.zero,
@@ -208,7 +209,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ? null
                         : () => context.go(AppRoutePaths.forgotPassword),
                     child: Text(
-                      '忘记密码？',
+                      AppLocalizations.of(context)!.authForgotPasswordPrompt,
                       style: TextStyle(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w700,
@@ -231,7 +232,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 },
               ),
             ] else ...[
-              Text('验证码', style: AppTextStyles.label(context)),
+              Text(AppLocalizations.of(context)!.authVerificationCode, style: AppTextStyles.label(context)),
               const SizedBox(height: 8),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,10 +266,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
                         _isSendingCode
-                            ? '发送中'
+                            ? AppLocalizations.of(context)!.profileSaving
                             : _countdown > 0
                             ? '${_countdown}s'
-                            : '获取验证码',
+                            : AppLocalizations.of(context)!.authSendCode,
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
@@ -279,7 +280,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: 28),
             AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
-              child: Text(isSubmitting ? '登录中...' : '登录'),
+              child: Text(isSubmitting ? AppLocalizations.of(context)!.profileSaving : AppLocalizations.of(context)!.authLogin),
             ),
             const SizedBox(height: 32),
             Row(
@@ -296,7 +297,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    '其他方式登录',
+                    AppLocalizations.of(context)!.oauthOtherMethods,
                     style: AppTextStyles.label(
                       context,
                     ).copyWith(fontSize: 11, letterSpacing: 1.2),
