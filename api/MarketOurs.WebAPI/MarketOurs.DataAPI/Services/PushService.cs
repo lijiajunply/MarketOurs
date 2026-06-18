@@ -178,22 +178,25 @@ public sealed class FirebasePushProvider : IPushProvider
 public sealed class JPushProvider : IPushProvider
 {
     private const string ApiUrl = "https://api.jpush.cn/v3/push";
+    private const string DefaultNotificationChannelId = "marketours_notifications";
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<JPushProvider> _logger;
-    private readonly string _channel;
+    private readonly string _notificationChannelId;
 
     public JPushProvider(
         HttpClient httpClient,
         ILogger<JPushProvider> logger,
         string appKey,
         string masterSecret,
-        string? channel = null)
+        string? notificationChannelId = null)
     {
         _httpClient = httpClient;
         _logger = logger;
-        _channel = string.IsNullOrWhiteSpace(channel) ? "developer-default" : channel.Trim();
+        _notificationChannelId = string.IsNullOrWhiteSpace(notificationChannelId)
+            ? DefaultNotificationChannelId
+            : notificationChannelId.Trim();
 
         var credentialBytes = Encoding.UTF8.GetBytes($"{appKey}:{masterSecret}");
         _httpClient.DefaultRequestHeaders.Authorization =
@@ -218,7 +221,7 @@ public sealed class JPushProvider : IPushProvider
                     alert = request.Body,
                     title = request.Title,
                     builder_id = 1,
-                    channel_id = _channel,
+                    channel_id = _notificationChannelId,
                     extras = request.Data ?? new Dictionary<string, string>()
                 }
             },

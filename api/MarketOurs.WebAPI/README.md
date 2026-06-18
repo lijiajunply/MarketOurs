@@ -85,7 +85,7 @@ WEIXIN_CLIENTSECRET=
 # 极光推送服务端推送配置 (推荐)
 JPUSH_APP_KEY=
 JPUSH_MASTER_SECRET=
-JPUSH_CHANNEL=developer-default
+JPUSH_NOTIFICATION_CHANNEL_ID=marketours_notifications
 
 # Firebase Cloud Messaging 服务端推送配置 (可选，作为回滚 Provider)
 FIREBASE_SERVICE_ACCOUNT_PATH=/absolute/path/to/firebase-service-account.json
@@ -119,6 +119,7 @@ dotnet run
 通知后台服务现在支持通过可插拔 Push Provider 向 Android `MobileApp` 下发系统通知，默认推荐使用极光推送。
 
 - 当 `JPUSH_APP_KEY` 与 `JPUSH_MASTER_SECRET` 都存在时，后端会启用 JPush Provider。
+- `JPUSH_NOTIFICATION_CHANNEL_ID` 默认使用 `marketours_notifications`，它需要和 Android 客户端实际创建的通知渠道 ID 保持一致。
 - 当 `FIREBASE_SERVICE_ACCOUNT_PATH` 指向有效服务账号 JSON 时，后端还会额外注册 Firebase Provider，便于回滚。
 - 当以上真实 Provider 都未配置时，系统会自动回退到 `MockPushProvider`，仅记录日志，不影响本地开发启动。
 - 推送载荷会包含：

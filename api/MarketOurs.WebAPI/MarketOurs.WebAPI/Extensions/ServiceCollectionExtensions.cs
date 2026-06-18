@@ -65,7 +65,7 @@ public static class ServiceCollectionExtensions
         var projectId = Environment.GetEnvironmentVariable("FIREBASE_PROJECT_ID", EnvironmentVariableTarget.Process);
         var jpushAppKey = Environment.GetEnvironmentVariable("JPUSH_APP_KEY", EnvironmentVariableTarget.Process);
         var jpushMasterSecret = Environment.GetEnvironmentVariable("JPUSH_MASTER_SECRET", EnvironmentVariableTarget.Process);
-        var jpushChannel = Environment.GetEnvironmentVariable("JPUSH_CHANNEL", EnvironmentVariableTarget.Process);
+        var jpushNotificationChannelId = Environment.GetEnvironmentVariable("JPUSH_NOTIFICATION_CHANNEL_ID", EnvironmentVariableTarget.Process);
 
         services.AddSingleton<IPushService, PushService>();
 
@@ -77,7 +77,7 @@ public static class ServiceCollectionExtensions
                     sp.GetRequiredService<ILogger<JPushProvider>>(),
                     jpushAppKey,
                     jpushMasterSecret,
-                    jpushChannel));
+                    jpushNotificationChannelId));
         }
 
         if (!string.IsNullOrWhiteSpace(serviceAccountPath) && File.Exists(serviceAccountPath))
