@@ -314,6 +314,10 @@
       "review_approved": "文章已通过审核",
       "review_reverted": "文章已撤回审核",
       "tag_updated": "文章标签已更新",
+      "edit_tag": "编辑标签",
+      "edit_tag_title": "编辑文章标签",
+      "edit_tag_description": "修改此文章的标签分类。",
+      "edit_tag_save": "保存",
       "no_posts_found": "未找到匹配 \"{{searchTerm}}\" 的文章",
       "deleted": "文章已删除"
     },
@@ -329,7 +333,10 @@
       "inactive": "已停用",
       "activate": "启用",
       "deactivate": "停用",
-      "blur_hint": "修改名称后离开输入框会自动保存。"
+      "edit_name": "编辑标签名称",
+      "edit_title": "编辑标签",
+      "edit_description": "修改此标签的名称。",
+      "edit_save": "保存"
     },
     "comments": {
       "title": "评论管理",

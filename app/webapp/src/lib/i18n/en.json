@@ -314,6 +314,10 @@
       "review_approved": "Post has been approved",
       "review_reverted": "Post approval has been reverted",
       "tag_updated": "Post tag updated",
+      "edit_tag": "Edit tag",
+      "edit_tag_title": "Edit Post Tag",
+      "edit_tag_description": "Change the tag assigned to this post.",
+      "edit_tag_save": "Save",
       "no_posts_found": "No posts found matching \"{{searchTerm}}\"",
       "deleted": "Post deleted"
     },
@@ -329,7 +333,10 @@
       "inactive": "Inactive",
       "activate": "Activate",
       "deactivate": "Deactivate",
-      "blur_hint": "Name changes are saved when the input loses focus."
+      "edit_name": "Edit tag name",
+      "edit_title": "Edit Tag",
+      "edit_description": "Change the name of this tag.",
+      "edit_save": "Save"
     },
     "comments": {
       "title": "Comments",

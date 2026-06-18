@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Search, Eye, Trash2, CheckCircle, XCircle } from "lucide-react"
+import { Search, Eye, Trash2, CheckCircle, XCircle, Pencil } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 import { adminService } from "../../services/adminService"
@@ -18,6 +18,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog"
 
 const PAGE_SIZE = 10
 
@@ -31,6 +39,8 @@ export default function AdminPostsPage() {
   const [error, setError] = useState<string | null>(null)
   const [activePostId, setActivePostId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "review"; post: PostDto } | null>(null)
+  const [editingPost, setEditingPost] = useState<PostDto | null>(null)
+  const [editTagId, setEditTagId] = useState("")
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -135,6 +145,29 @@ export default function AdminPostsPage() {
 
   const confirmContent = getConfirmDialogContent()
 
+  const handleOpenTagEdit = (post: PostDto) => {
+    setEditingPost(post)
+    setEditTagId(post.tagId ?? "")
+  }
+
+  const handleSaveTagEdit = async () => {
+    if (!editingPost) return
+
+    const post = editingPost
+    const tagId = editTagId
+    setEditingPost(null)
+
+    if (tagId !== (post.tagId ?? "")) {
+      await handleTagChange(post, tagId)
+    }
+  }
+
+  const getTagName = (tagId: string | null | undefined): string => {
+    if (!tagId) return t("post.tag_none")
+    const tag = tags.find((t) => t.id === tagId)
+    return tag ? tag.name : t("post.tag_none")
+  }
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -201,20 +234,17 @@ export default function AdminPostsPage() {
                         {post.author?.name || t("common.null")}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex flex-col gap-2">
-                          <select
-                            value={post.tagId ?? ""}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">{getTagName(post.tagId)}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
                             disabled={isBusy}
-                            onChange={(event) => void handleTagChange(post, event.target.value)}
-                            className="w-36 rounded-lg border border-border/50 bg-muted/30 px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            onClick={() => handleOpenTagEdit(post)}
+                            title={t("admin.posts.edit_tag")}
                           >
-                            <option value="">{t("post.tag_none")}</option>
-                            {tags.map((tag) => (
-                              <option key={tag.id} value={tag.id}>
-                                {tag.name}{tag.isActive ? "" : ` (${t("admin.tags.inactive")})`}
-                              </option>
-                            ))}
-                          </select>
+                            <Pencil size={14} />
+                          </Button>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -299,6 +329,40 @@ export default function AdminPostsPage() {
         </div>
       </div>
 
+      {/* Edit Post Tag Dialog */}
+      <Dialog open={editingPost !== null} onOpenChange={(open) => { if (!open) setEditingPost(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("admin.posts.edit_tag_title")}</DialogTitle>
+            <DialogDescription>{t("admin.posts.edit_tag_description")}</DialogDescription>
+          </DialogHeader>
+          <select
+            value={editTagId}
+            onChange={(event) => setEditTagId(event.target.value)}
+            className="h-11 rounded-xl border border-border/50 bg-muted/40 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="">{t("post.tag_none")}</option>
+            {tags.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                {tag.name}{tag.isActive ? "" : ` (${t("admin.tags.inactive")})`}
+              </option>
+            ))}
+          </select>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingPost(null)}>
+              {t("admin.common.cancel")}
+            </Button>
+            <Button
+              disabled={editTagId === (editingPost?.tagId ?? "")}
+              onClick={() => void handleSaveTagEdit()}
+            >
+              {t("admin.posts.edit_tag_save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
       <AlertDialog open={confirmAction !== null} onOpenChange={(open) => { if (!open) setConfirmAction(null) }}>
         <AlertDialogContent>
           <AlertDialogHeader>

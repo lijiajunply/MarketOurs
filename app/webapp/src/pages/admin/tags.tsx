@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Plus, Save, Tag, ToggleLeft, ToggleRight } from "lucide-react"
+import { Pencil, Plus, Tag, ToggleLeft, ToggleRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
@@ -17,6 +17,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog"
 
 export default function AdminTagsPage() {
   const { t } = useTranslation()
@@ -26,6 +34,8 @@ export default function AdminTagsPage() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmToggle, setConfirmToggle] = useState<PostTagDto | null>(null)
+  const [editingTag, setEditingTag] = useState<PostTagDto | null>(null)
+  const [editName, setEditName] = useState("")
 
   const loadTags = async () => {
     try {
@@ -97,6 +107,23 @@ export default function AdminTagsPage() {
     await handleUpdate(tag, { isActive: !tag.isActive })
   }
 
+  const handleOpenEdit = (tag: PostTagDto) => {
+    setEditingTag(tag)
+    setEditName(tag.name)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingTag || !editName.trim()) return
+
+    const tag = editingTag
+    const nextName = editName.trim()
+    setEditingTag(null)
+
+    if (nextName !== tag.name) {
+      await handleUpdate(tag, { name: nextName })
+    }
+  }
+
   return (
     <div className="space-y-8">
       <header>
@@ -141,16 +168,17 @@ export default function AdminTagsPage() {
               return (
                 <div key={tag.id} className="grid gap-3 p-4 md:grid-cols-[180px_minmax(0,1fr)_150px_auto] md:items-center">
                   <PostTagBadge tag={tag} clickable={false} />
-                  <div className="grid gap-2">
-                    <input
-                      defaultValue={tag.name}
-                      maxLength={32}
-                      className="h-10 rounded-xl border border-border/50 bg-muted/30 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                      onBlur={(event) => {
-                        const nextName = event.target.value.trim()
-                        if (nextName && nextName !== tag.name) void handleUpdate(tag, { name: nextName })
-                      }}
-                    />
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{tag.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      disabled={isBusy}
+                      onClick={() => handleOpenEdit(tag)}
+                      title={t("admin.tags.edit_name")}
+                    >
+                      <Pencil size={14} />
+                    </Button>
                   </div>
                   <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ${
                     tag.isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
@@ -175,11 +203,38 @@ export default function AdminTagsPage() {
         )}
       </div>
 
-      <p className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Save size={16} />
-        {t("admin.tags.blur_hint")}
-      </p>
+      {/* Edit Tag Name Dialog */}
+      <Dialog open={editingTag !== null} onOpenChange={(open) => { if (!open) setEditingTag(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("admin.tags.edit_title")}</DialogTitle>
+            <DialogDescription>{t("admin.tags.edit_description")}</DialogDescription>
+          </DialogHeader>
+          <input
+            value={editName}
+            onChange={(event) => setEditName(event.target.value)}
+            placeholder={t("admin.tags.name_placeholder")}
+            className="h-11 rounded-xl border border-border/50 bg-muted/40 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+            maxLength={32}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void handleSaveEdit()
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingTag(null)}>
+              {t("admin.common.cancel")}
+            </Button>
+            <Button
+              disabled={!editName.trim() || editName.trim() === editingTag?.name}
+              onClick={() => void handleSaveEdit()}
+            >
+              {t("admin.tags.edit_save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
+      {/* Toggle Active/Inactive Confirmation Dialog */}
       <AlertDialog open={confirmToggle !== null} onOpenChange={(open) => { if (!open) setConfirmToggle(null) }}>
         <AlertDialogContent>
           <AlertDialogHeader>
