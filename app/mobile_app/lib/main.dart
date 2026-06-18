@@ -27,7 +27,7 @@ class MarketOursApp extends ConsumerWidget {
       routerConfig: router,
       locale: appLocale,
       supportedLocales: supportedLocales,
-      localizationsDelegates: const [
+      localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
