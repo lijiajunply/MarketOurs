@@ -162,7 +162,7 @@ export function Navbar() {
                     </button>
                   }
                 />
-                <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl">
+                <DropdownMenuContent align="end" className="w-56 mt-2">
                   <div className="px-2 py-2">
                     <div className="flex flex-col gap-0.5">
                       <p className="text-sm font-medium">{user?.name}</p>
@@ -177,14 +177,6 @@ export function Navbar() {
                       {t("nav.profile")}
                     </Link>}
                   />
-                  <DropdownMenuItem
-                    className="rounded-xl"
-                    render={<Link to="/profile/reset-password" className="cursor-pointer inline-flex items-center w-full">
-                      <Settings size={14} className="mr-2" />
-                      {t("nav.settings")}
-                    </Link>}
-                  />
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="text-destructive focus:text-destructive rounded-xl"
@@ -230,7 +222,7 @@ export function Navbar() {
                       to={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-medium transition-colors",
+                        "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors",
                         isActiveRoute(item.href)
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -245,7 +237,7 @@ export function Navbar() {
                       to="/post/create"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-medium transition-colors",
+                        "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors",
                         isActiveRoute("/post/create")
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
