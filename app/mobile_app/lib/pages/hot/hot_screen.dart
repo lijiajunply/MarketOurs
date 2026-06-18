@@ -65,11 +65,11 @@ class HotScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: AppEmptyState(
               icon: CupertinoIcons.exclamationmark_triangle,
-              title: '加载失败',
+              title: AppLocalizations.of(context).loadingFailed,
               description: extractErrorFromException(error),
               action: AppPrimaryButton(
                 onPressed: () => ref.read(hotFeedProvider.notifier).refresh(),
-                child: const Text('重新加载'),
+                child: Text(AppLocalizations.of(context).retry),
               ),
             ),
           ),
@@ -87,10 +87,10 @@ class _HotPostList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (posts.isEmpty) {
-      return const AppEmptyState(
+      return AppEmptyState(
         icon: CupertinoIcons.flame,
-        title: '热榜暂时为空',
-        description: '等大家再热闹一点，热门帖子就会出现在这里。',
+        title: AppLocalizations.of(context).hotListEmpty,
+        description: AppLocalizations.of(context).hotListEmptyDesc,
       );
     }
 

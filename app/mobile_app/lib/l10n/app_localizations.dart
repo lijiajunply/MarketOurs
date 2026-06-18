@@ -1805,6 +1805,144 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'绑定成功，但刷新资料失败，请稍后下拉刷新'**
   String get commentBindingSuccessRefreshFailed;
+
+  /// No description provided for @passwordResetSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码已重置，请重新登录'**
+  String get passwordResetSuccess;
+
+  /// No description provided for @registerComplete.
+  ///
+  /// In zh, this message translates to:
+  /// **'注册完成，请使用账号密码登录'**
+  String get registerComplete;
+
+  /// No description provided for @goBack.
+  ///
+  /// In zh, this message translates to:
+  /// **'返回上一步'**
+  String get goBack;
+
+  /// No description provided for @codeSentToAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码已发送至 {account}'**
+  String codeSentToAccount(String account);
+
+  /// No description provided for @codeMinLength.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码至少4位'**
+  String get codeMinLength;
+
+  /// No description provided for @regenerateInstructions.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新获取重置说明'**
+  String get regenerateInstructions;
+
+  /// No description provided for @passwordNewPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码'**
+  String get passwordNewPlaceholder;
+
+  /// No description provided for @passwordRequirementHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码，至少6位，含大小写字母和数字'**
+  String get passwordRequirementHint;
+
+  /// No description provided for @noTagAvailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前没有可进入的标签'**
+  String get noTagAvailable;
+
+  /// No description provided for @enterTagPage.
+  ///
+  /// In zh, this message translates to:
+  /// **'进入标签页'**
+  String get enterTagPage;
+
+  /// No description provided for @chooseTagHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择一个标签，查看该标签下的帖子。'**
+  String get chooseTagHint;
+
+  /// No description provided for @unnamedTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'未命名标签'**
+  String get unnamedTag;
+
+  /// No description provided for @waitFirstPoster.
+  ///
+  /// In zh, this message translates to:
+  /// **'等第一位同学来发布内容，或者稍后再刷新看看。'**
+  String get waitFirstPoster;
+
+  /// No description provided for @tryDifferentKeyword.
+  ///
+  /// In zh, this message translates to:
+  /// **'换个关键词试试，或者清空搜索回到首页。'**
+  String get tryDifferentKeyword;
+
+  /// No description provided for @refreshingPosts.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在刷新帖子...'**
+  String get refreshingPosts;
+
+  /// No description provided for @searching.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在搜索...'**
+  String get searching;
+
+  /// No description provided for @loadingFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载失败'**
+  String get loadingFailed;
+
+  /// No description provided for @hotListEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'热榜暂时为空'**
+  String get hotListEmpty;
+
+  /// No description provided for @hotListEmptyDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'等大家再热闹一点，热门帖子就会出现在这里。'**
+  String get hotListEmptyDesc;
+
+  /// No description provided for @validatorCodeRequiredToken.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入验证码或 Token'**
+  String get validatorCodeRequiredToken;
+
+  /// No description provided for @validatorAccountTooLong.
+  ///
+  /// In zh, this message translates to:
+  /// **'账号长度不能超过 {max} 位'**
+  String validatorAccountTooLong(int max);
+
+  /// No description provided for @validatorEmailOrPhoneRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入有效的邮箱或手机号'**
+  String get validatorEmailOrPhoneRequired;
+
+  /// No description provided for @validatorPasswordMinLength.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码至少 6 位'**
+  String get validatorPasswordMinLength;
 }
 
 class _AppLocalizationsDelegate

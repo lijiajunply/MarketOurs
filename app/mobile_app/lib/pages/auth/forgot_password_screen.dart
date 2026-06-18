@@ -90,7 +90,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           children: [
             AppTextField(
               controller: _accountController,
-              placeholder: '账号 / 邮箱 / 手机号',
+              placeholder: AppLocalizations.of(context).authAccountPlaceholder,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return AppLocalizations.of(context).validatorAccountRequired;

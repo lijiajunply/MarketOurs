@@ -880,4 +880,77 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get commentBindingSuccessRefreshFailed => '绑定成功，但刷新资料失败，请稍后下拉刷新';
+
+  @override
+  String get passwordResetSuccess => '密码已重置，请重新登录';
+
+  @override
+  String get registerComplete => '注册完成，请使用账号密码登录';
+
+  @override
+  String get goBack => '返回上一步';
+
+  @override
+  String codeSentToAccount(String account) {
+    return '验证码已发送至 $account';
+  }
+
+  @override
+  String get codeMinLength => '验证码至少4位';
+
+  @override
+  String get regenerateInstructions => '重新获取重置说明';
+
+  @override
+  String get passwordNewPlaceholder => '新密码';
+
+  @override
+  String get passwordRequirementHint => '密码，至少6位，含大小写字母和数字';
+
+  @override
+  String get noTagAvailable => '当前没有可进入的标签';
+
+  @override
+  String get enterTagPage => '进入标签页';
+
+  @override
+  String get chooseTagHint => '选择一个标签，查看该标签下的帖子。';
+
+  @override
+  String get unnamedTag => '未命名标签';
+
+  @override
+  String get waitFirstPoster => '等第一位同学来发布内容，或者稍后再刷新看看。';
+
+  @override
+  String get tryDifferentKeyword => '换个关键词试试，或者清空搜索回到首页。';
+
+  @override
+  String get refreshingPosts => '正在刷新帖子...';
+
+  @override
+  String get searching => '正在搜索...';
+
+  @override
+  String get loadingFailed => '加载失败';
+
+  @override
+  String get hotListEmpty => '热榜暂时为空';
+
+  @override
+  String get hotListEmptyDesc => '等大家再热闹一点，热门帖子就会出现在这里。';
+
+  @override
+  String get validatorCodeRequiredToken => '请输入验证码或 Token';
+
+  @override
+  String validatorAccountTooLong(int max) {
+    return '账号长度不能超过 $max 位';
+  }
+
+  @override
+  String get validatorEmailOrPhoneRequired => '请输入有效的邮箱或手机号';
+
+  @override
+  String get validatorPasswordMinLength => '密码至少 6 位';
 }

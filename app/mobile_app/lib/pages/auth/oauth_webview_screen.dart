@@ -152,7 +152,7 @@ class _OAuthWebViewScreenState extends ConsumerState<OAuthWebViewScreen> {
       context.pop();
     } catch (_) {
       if (!mounted) return;
-      _fail('绑定成功，但刷新资料失败，请稍后下拉刷新');
+      _fail(AppLocalizations.of(context).commentBindingSuccessRefreshFailed);
     }
   }
 

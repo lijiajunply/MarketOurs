@@ -310,5 +310,30 @@
   "postWatchCount": "{count} views",
 
   "commentBindingSuccess": "Linked successfully",
-  "commentBindingSuccessRefreshFailed": "Linked, but profile refresh failed"
+  "commentBindingSuccessRefreshFailed": "Linked, but profile refresh failed",
+
+  "passwordResetSuccess": "Password reset, please log in again",
+  "registerComplete": "Registration complete, please log in",
+  "goBack": "Go back",
+  "codeSentToAccount": "Code sent to {account}",
+  "codeMinLength": "Code must be at least 4 characters",
+  "regenerateInstructions": "Get reset instructions again",
+  "passwordNewPlaceholder": "New password",
+  "passwordRequirementHint": "Password, at least 6 chars with upper, lower & digit",
+  "noTagAvailable": "No tags available",
+  "enterTagPage": "Enter Tag Page",
+  "chooseTagHint": "Choose a tag to view posts.",
+  "unnamedTag": "Unnamed tag",
+  "waitFirstPoster": "Wait for the first person to post, or refresh later.",
+  "tryDifferentKeyword": "Try a different keyword, or clear search to go home.",
+  "refreshingPosts": "Refreshing posts...",
+  "searching": "Searching...",
+  "loadingFailed": "Loading failed",
+  "hotListEmpty": "Hot list is empty",
+  "hotListEmptyDesc": "Hot posts will appear here when things pick up.",
+
+  "validatorCodeRequiredToken": "Please enter verification code or token",
+  "validatorAccountTooLong": "Account cannot exceed {max} characters",
+  "validatorEmailOrPhoneRequired": "Please enter a valid email or phone number",
+  "validatorPasswordMinLength": "Password must be at least 6 characters"
 }

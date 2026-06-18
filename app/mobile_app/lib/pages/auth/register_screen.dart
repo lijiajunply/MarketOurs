@@ -331,7 +331,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 8),
             AppTextField(
               controller: _nameController,
-              placeholder: '给自己起个名字',
+              placeholder: AppLocalizations.of(context).authNamePlaceholder,
               maxLength: DtoLimits.userNameMax,
               prefix: Icon(
                 CupertinoIcons.person,
@@ -355,7 +355,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 8),
             AppTextField(
               controller: _accountController,
-              placeholder: '邮箱或手机号',
+              placeholder: AppLocalizations.of(context).authAccountHint,
               keyboardType: TextInputType.emailAddress,
               maxLength: DtoLimits.userAccountMax,
               prefix: Icon(
@@ -371,7 +371,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   return '账号长度不能超过 ${DtoLimits.userAccountMax} 位';
                 }
                 if (_isAccountDirty && !_isAccountValid) {
-                  return '请输入有效的邮箱或手机号';
+                  return AppLocalizations.of(context).validatorEmailOrPhoneRequired;
                 }
                 return null;
               },
@@ -384,7 +384,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Padding(
                 padding: const EdgeInsets.only(left: 4, top: 6),
                 child: Text(
-                  '请输入有效的邮箱或手机号',
+                  AppLocalizations.of(context).validatorEmailOrPhoneRequired,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -399,7 +399,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             const SizedBox(height: 8),
             PasswordFormField(
               controller: _passwordController,
-              placeholder: '密码，至少6位，含大小写字母和数字',
+              placeholder: AppLocalizations.of(context).passwordRequirementHint,
               maxLength: DtoLimits.userPasswordMax,
               validator: (value) {
                 if (value == null || value.isEmpty) {

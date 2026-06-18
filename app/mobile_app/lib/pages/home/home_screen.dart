@@ -83,15 +83,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (!mounted) return;
 
       if (_tags.isEmpty) {
-        await AppFeedback.showInfo(context, message: '当前没有可进入的标签');
+        await AppFeedback.showInfo(context, message: AppLocalizations.of(context).noTagAvailable);
         return;
       }
 
       final selectedTag = await showCupertinoModalPopup<PostTagDto>(
         context: context,
         builder: (ctx) => CupertinoActionSheet(
-          title: const Text('进入标签页'),
-          message: const Text('选择一个标签，查看该标签下的帖子。'),
+          title: Text(AppLocalizations.of(context).enterTagPage),
+          message: Text(AppLocalizations.of(context).chooseTagHint),
           actions: [
             for (final tag in _tags)
               CupertinoActionSheetAction(
@@ -99,7 +99,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Text(
                   tag.name?.trim().isNotEmpty == true
                       ? tag.name!.trim()
-                      : '未命名标签',
+                      : AppLocalizations.of(context).unnamedTag,
                 ),
               ),
           ],
@@ -266,8 +266,8 @@ class _PostListSection extends StatelessWidget {
         icon: keyword.isEmpty ? CupertinoIcons.news : CupertinoIcons.search,
         title: keyword.isEmpty ? AppLocalizations.of(context).homeEmpty : '没有找到相关帖子',
         description: keyword.isEmpty
-            ? '等第一位同学来发布内容，或者稍后再刷新看看。'
-            : '换个关键词试试，或者清空搜索回到首页。',
+            ? AppLocalizations.of(context).waitFirstPoster
+            : AppLocalizations.of(context).tryDifferentKeyword,
       );
     }
 
@@ -340,7 +340,7 @@ class _SearchLoadingIndicator extends StatelessWidget {
         const CupertinoActivityIndicator(radius: 8),
         const SizedBox(width: 8),
         Text(
-          keyword.isEmpty ? '正在刷新帖子...' : '正在搜索...',
+          keyword.isEmpty ? AppLocalizations.of(context).refreshingPosts : AppLocalizations.of(context).searching,
           style: AppTextStyles.label(context),
         ),
       ],
@@ -370,11 +370,11 @@ class _FeedErrorView extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: AppEmptyState(
           icon: CupertinoIcons.exclamationmark_triangle,
-          title: '加载失败',
+          title: AppLocalizations.of(context).loadingFailed,
           description: message,
           action: AppPrimaryButton(
             onPressed: onRetry,
-            child: const Text('重新加载'),
+            child: Text(AppLocalizations.of(context).retry),
           ),
         ),
       ),

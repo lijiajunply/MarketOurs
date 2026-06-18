@@ -90,7 +90,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
         context,
         message: (errorMessage != null && errorMessage.isNotEmpty)
             ? errorMessage
-            : '重发验证码失败，请稍后重试',
+            : AppLocalizations.of(context).authSendCodeFailed,
       );
     }
   }
@@ -110,7 +110,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
 
       if (!mounted) return;
 
-      await AppFeedback.showSuccess(context, message: '注册完成，请使用账号密码登录');
+      await AppFeedback.showSuccess(context, message: AppLocalizations.of(context).registerComplete);
       if (!mounted) return;
       context.go(AppRoutePaths.login);
     } catch (_) {
@@ -124,7 +124,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
         context,
         message: (errorMessage != null && errorMessage.isNotEmpty)
             ? errorMessage
-            : '验证失败，请稍后重试',
+            : AppLocalizations.of(context).authVerifyFailed,
       );
     }
   }
@@ -141,9 +141,9 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
           onPressed: isSubmitting
               ? null
               : () => context.go(AppRoutePaths.register),
-          child: const Text(
-            '返回上一步',
-            style: TextStyle(fontWeight: FontWeight.w700),
+          child: Text(
+            AppLocalizations.of(context).goBack,
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
       ),
@@ -179,7 +179,7 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
                   return AppLocalizations.of(context).validatorCodeRequired;
                 }
                 if (value.trim().length < 4) {
-                  return '验证码至少4位';
+                  return AppLocalizations.of(context).codeMinLength;
                 }
                 return null;
               },

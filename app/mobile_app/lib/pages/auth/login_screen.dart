@@ -57,7 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .sendLoginCode(account: account);
       if (!mounted) return;
       _startCountdown();
-      await AppFeedback.showSuccess(context, message: '验证码已发送');
+      await AppFeedback.showSuccess(context, message: AppLocalizations.of(context).authSendCodeSuccess);
     } catch (error) {
       if (!mounted) return;
       await AppFeedback.showError(
@@ -180,7 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: 8),
             AppTextField(
               controller: _accountController,
-              placeholder: '账号 / 邮箱 / 手机号',
+              placeholder: AppLocalizations.of(context).authAccountPlaceholder,
               prefix: Icon(
                 CupertinoIcons.mail,
                 color: AppColors.mutedForeground,
@@ -240,7 +240,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Expanded(
                     child: AppTextField(
                       controller: _otpController,
-                      placeholder: '6 位验证码',
+                      placeholder: AppLocalizations.of(context).authCodePlaceholder,
                       keyboardType: TextInputType.number,
                       prefix: Icon(
                         CupertinoIcons.shield_fill,

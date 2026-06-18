@@ -330,5 +330,32 @@
   "appSlogan": "校园集市",
 
   "commentBindingSuccess": "绑定成功",
-  "commentBindingSuccessRefreshFailed": "绑定成功，但刷新资料失败，请稍后下拉刷新"
+  "commentBindingSuccessRefreshFailed": "绑定成功，但刷新资料失败，请稍后下拉刷新",
+
+  "passwordResetSuccess": "密码已重置，请重新登录",
+  "registerComplete": "注册完成，请使用账号密码登录",
+  "goBack": "返回上一步",
+  "codeSentToAccount": "验证码已发送至 {account}",
+  "@codeSentToAccount": {"placeholders": {"account": {"type": "String"}}},
+  "codeMinLength": "验证码至少4位",
+  "regenerateInstructions": "重新获取重置说明",
+  "passwordNewPlaceholder": "新密码",
+  "passwordRequirementHint": "密码，至少6位，含大小写字母和数字",
+  "noTagAvailable": "当前没有可进入的标签",
+  "enterTagPage": "进入标签页",
+  "chooseTagHint": "选择一个标签，查看该标签下的帖子。",
+  "unnamedTag": "未命名标签",
+  "waitFirstPoster": "等第一位同学来发布内容，或者稍后再刷新看看。",
+  "tryDifferentKeyword": "换个关键词试试，或者清空搜索回到首页。",
+  "refreshingPosts": "正在刷新帖子...",
+  "searching": "正在搜索...",
+  "loadingFailed": "加载失败",
+  "hotListEmpty": "热榜暂时为空",
+  "hotListEmptyDesc": "等大家再热闹一点，热门帖子就会出现在这里。",
+
+  "validatorCodeRequiredToken": "请输入验证码或 Token",
+  "validatorAccountTooLong": "账号长度不能超过 {max} 位",
+  "@validatorAccountTooLong": {"placeholders": {"max": {"type": "int"}}},
+  "validatorEmailOrPhoneRequired": "请输入有效的邮箱或手机号",
+  "validatorPasswordMinLength": "密码至少 6 位"
 }

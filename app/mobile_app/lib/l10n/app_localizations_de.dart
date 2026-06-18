@@ -898,4 +898,84 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get commentBindingSuccessRefreshFailed =>
       'Linked, but profile refresh failed';
+
+  @override
+  String get passwordResetSuccess => 'Password reset, please log in again';
+
+  @override
+  String get registerComplete => 'Registration complete, please log in';
+
+  @override
+  String get goBack => 'Go back';
+
+  @override
+  String codeSentToAccount(String account) {
+    return 'Code sent to $account';
+  }
+
+  @override
+  String get codeMinLength => 'Code must be at least 4 characters';
+
+  @override
+  String get regenerateInstructions => 'Get reset instructions again';
+
+  @override
+  String get passwordNewPlaceholder => 'New password';
+
+  @override
+  String get passwordRequirementHint =>
+      'Password, at least 6 chars with upper, lower & digit';
+
+  @override
+  String get noTagAvailable => 'No tags available';
+
+  @override
+  String get enterTagPage => 'Enter Tag Page';
+
+  @override
+  String get chooseTagHint => 'Choose a tag to view posts.';
+
+  @override
+  String get unnamedTag => 'Unnamed tag';
+
+  @override
+  String get waitFirstPoster =>
+      'Wait for the first person to post, or refresh later.';
+
+  @override
+  String get tryDifferentKeyword =>
+      'Try a different keyword, or clear search to go home.';
+
+  @override
+  String get refreshingPosts => 'Refreshing posts...';
+
+  @override
+  String get searching => 'Searching...';
+
+  @override
+  String get loadingFailed => 'Loading failed';
+
+  @override
+  String get hotListEmpty => 'Hot list is empty';
+
+  @override
+  String get hotListEmptyDesc =>
+      'Hot posts will appear here when things pick up.';
+
+  @override
+  String get validatorCodeRequiredToken =>
+      'Please enter verification code or token';
+
+  @override
+  String validatorAccountTooLong(int max) {
+    return 'Account cannot exceed $max characters';
+  }
+
+  @override
+  String get validatorEmailOrPhoneRequired =>
+      'Please enter a valid email or phone number';
+
+  @override
+  String get validatorPasswordMinLength =>
+      'Password must be at least 6 characters';
 }
