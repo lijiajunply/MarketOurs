@@ -166,12 +166,20 @@ class PostEditorForm extends StatelessWidget {
               height: 120,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: AppColors.secondary,
+                color: CupertinoDynamicColor.resolve(
+                  AppColors.secondary,
+                  context,
+                ),
                 borderRadius: BorderRadius.circular(AppRadii.md),
               ),
-              child: const Text(
+              child: Text(
                 '还没选择图片',
-                style: TextStyle(color: AppColors.mutedForeground),
+                style: TextStyle(
+                  color: CupertinoDynamicColor.resolve(
+                    AppColors.mutedForeground,
+                    context,
+                  ),
+                ),
               ),
             )
           else

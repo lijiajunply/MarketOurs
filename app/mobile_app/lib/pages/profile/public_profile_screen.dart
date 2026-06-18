@@ -317,12 +317,12 @@ class _RecentPostsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           '最近发布',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
-            color: AppColors.foreground,
+            color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
           ),
         ),
         const SizedBox(height: 8),
@@ -379,10 +379,10 @@ class _ProfileHero extends StatelessWidget {
             profile.name?.trim().isNotEmpty == true
                 ? profile.name!.trim()
                 : '未设置昵称',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: AppColors.foreground,
+              color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
             ),
           ),
           const SizedBox(height: 8),
@@ -396,18 +396,18 @@ class _ProfileHero extends StatelessWidget {
             profile.info?.trim().isNotEmpty == true
                 ? profile.info!.trim()
                 : '这个人很低调，还没有写简介。',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               height: 1.5,
-              color: AppColors.mutedForeground,
+              color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             '加入时间 ${_formatDate(profile.createdAt)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.mutedForeground,
+              color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
             ),
           ),
         ],
@@ -433,10 +433,15 @@ class _MetaChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.secondary,
+        color: CupertinoDynamicColor.resolve(AppColors.secondary, context),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(label, style: const TextStyle(color: AppColors.foreground)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
+        ),
+      ),
     );
   }
 }
@@ -461,18 +466,18 @@ class _FollowStats extends StatelessWidget {
               children: [
                 Text(
                   '$followerCount',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.foreground,
+                    color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   '粉丝',
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.mutedForeground,
+                    color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
                   ),
                 ),
               ],
@@ -487,18 +492,18 @@ class _FollowStats extends StatelessWidget {
               children: [
                 Text(
                   '$followingCount',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.foreground,
+                    color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   '关注',
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.mutedForeground,
+                    color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
                   ),
                 ),
               ],

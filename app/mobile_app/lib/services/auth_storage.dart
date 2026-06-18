@@ -139,7 +139,7 @@ class SecureAuthStorage implements AuthStorage {
 
     try {
       return await _secureStorage.read(key: secureKey);
-    } on PlatformException catch (error) {
+    } catch (error) {
       _handleSecureStorageError('read', secureKey, error);
       return prefs.getString(secureKey);
     }
@@ -162,7 +162,7 @@ class SecureAuthStorage implements AuthStorage {
     try {
       await _secureStorage.write(key: secureKey, value: value);
       await prefs.remove(secureKey);
-    } on PlatformException catch (error) {
+    } catch (error) {
       _handleSecureStorageError('write', secureKey, error);
       await prefs.setString(secureKey, value);
     }
@@ -179,7 +179,7 @@ class SecureAuthStorage implements AuthStorage {
 
     try {
       await _secureStorage.delete(key: secureKey);
-    } on PlatformException catch (error) {
+    } catch (error) {
       _handleSecureStorageError('delete', secureKey, error);
     } finally {
       await prefs.remove(secureKey);
@@ -189,7 +189,7 @@ class SecureAuthStorage implements AuthStorage {
   void _handleSecureStorageError(
     String action,
     String key,
-    PlatformException error,
+    Object error,
   ) {
     if (_shouldDisableSecureStorage(error)) {
       _secureStorageEnabled = false;
@@ -204,8 +204,7 @@ class SecureAuthStorage implements AuthStorage {
         context: {
           'action': action,
           'key': key,
-          'code': error.code,
-          'message': error.message,
+          'error': error.toString(),
         },
       );
       return;
@@ -214,27 +213,30 @@ class SecureAuthStorage implements AuthStorage {
     _logFallback(action, key, error);
   }
 
-  bool _shouldDisableSecureStorage(PlatformException error) {
-    final code = error.code.toLowerCase();
-    final message = (error.message ?? '').toLowerCase();
-    return code.contains('-34018') ||
-        message.contains('required entitlement') ||
-        message.contains("isn't present");
+  bool _shouldDisableSecureStorage(Object error) {
+    final errorStr = error.toString().toLowerCase();
+    if (error is PlatformException) {
+      final code = error.code.toLowerCase();
+      final message = (error.message ?? '').toLowerCase();
+      return code.contains('-34018') ||
+          message.contains('required entitlement') ||
+          message.contains("isn't present");
+    }
+    return errorStr.contains('operation') || errorStr.contains('not supported');
   }
 
   static bool _shouldBypassSecureStorageForCurrentPlatform() {
     return !kReleaseMode && defaultTargetPlatform == TargetPlatform.macOS;
   }
 
-  void _logFallback(String action, String key, PlatformException error) {
+  void _logFallback(String action, String key, Object error) {
     AppLogger.warn(
       'AuthStorage',
       'Secure storage operation failed, using SharedPreferences fallback',
       context: {
         'action': action,
         'key': key,
-        'code': error.code,
-        'message': error.message,
+        'error': error.toString(),
       },
     );
   }

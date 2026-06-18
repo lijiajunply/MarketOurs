@@ -3,6 +3,7 @@ import '../../models/notification.dart';
 import '../../services/notification_service.dart';
 import '../../ui/app_feedback.dart';
 import '../../ui/app_responsive.dart';
+import '../../ui/app_theme.dart';
 import '../../ui/app_widgets.dart';
 
 class PushSettingsScreen extends StatefulWidget {
@@ -115,7 +116,7 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CupertinoColors.secondarySystemGroupedBackground,
+        color: CupertinoDynamicColor.resolve(AppColors.secondary, context),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
@@ -124,10 +125,17 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey6,
+              color: CupertinoDynamicColor.resolve(
+                AppColors.secondary,
+                context,
+              ).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: const Color(0xFF007AFF)),
+            child: Icon(
+              icon,
+              size: 20,
+              color: CupertinoDynamicColor.resolve(AppColors.primary, context),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -141,8 +149,11 @@ class _PushSettingsScreenState extends State<PushSettingsScreen> {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: CupertinoColors.systemGrey,
+                  style: TextStyle(
+                    color: CupertinoDynamicColor.resolve(
+                      AppColors.mutedForeground,
+                      context,
+                    ),
                     fontSize: 13,
                     height: 1.4,
                   ),

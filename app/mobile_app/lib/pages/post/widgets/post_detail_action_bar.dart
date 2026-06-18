@@ -120,7 +120,9 @@ class _ActionChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? color.withValues(alpha: 0.1) : AppColors.secondary,
+          color: active
+              ? color.withValues(alpha: 0.1)
+              : CupertinoDynamicColor.resolve(AppColors.secondary, context),
           borderRadius: BorderRadius.circular(AppRadii.pill),
         ),
         child: Row(

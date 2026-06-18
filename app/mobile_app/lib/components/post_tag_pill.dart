@@ -24,7 +24,9 @@ class PostTagPill extends StatelessWidget {
     final child = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: hasTag ? AppColors.primary.withValues(alpha: 0.12) : AppColors.secondary,
+        color: hasTag
+            ? AppColors.primary.withValues(alpha: 0.12)
+            : CupertinoDynamicColor.resolve(AppColors.secondary, context),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: hasTag
@@ -37,7 +39,9 @@ class PostTagPill extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: hasTag ? AppColors.primary : AppColors.mutedForeground,
+          color: hasTag
+              ? AppColors.primary
+              : CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
         ),
       ),
     );
