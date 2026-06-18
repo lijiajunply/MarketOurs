@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { authService } from "@/services/authService";
 import { writeAuthSession } from "@/services/authSession";
 import { setCredentials } from "@/stores/authSlice";
+import { toast } from "@/lib/toast";
 import { Mail, Lock, Loader2, ArrowRight, ShieldCheck, GraduationCap } from "lucide-react";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export default function LoginPage() {
           accessToken: response.data.accessToken,
           refreshToken: response.data.refreshToken,
         }));
+        toast.success(t("auth.login_success"));
         navigate("/");
       }
     } catch (err: any) {

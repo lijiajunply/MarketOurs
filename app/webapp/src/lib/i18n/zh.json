@@ -52,6 +52,8 @@
     "error_failed_to_login": "登录失败，请检查您的账号或密码。",
     "error_invalid_otp": "验证码错误或已过期",
     "error_registration_failed": "注册失败，请稍后重试。",
+    "login_success": "欢迎回来！",
+    "register_success": "注册成功！正在跳转...",
     "forgot_password": "忘记密码？",
     "forgot_password_title": "重置密码",
     "forgot_password_desc": "请输入您的账号以获取重置验证码。",
@@ -109,7 +111,10 @@
     "edited": "已编辑",
     "sort_recent": "最新",
     "sort_hot": "最热",
-    "sort_by": "排序方式"
+    "sort_by": "排序方式",
+    "created": "发布成功！",
+    "delete_error": "删除失败",
+    "tag_load_failed": "标签加载失败"
   },
   "tag": {
     "title": "标签：{{name}}",
@@ -164,7 +169,9 @@
     "unbind_hint": "解绑前需要使用当前账号的邮箱或手机验证码确认本次操作。",
     "confirm_unbind": "确认解绑",
     "unbind_success": "{{provider}} 已解绑",
-    "unbind_need_contact": "请先绑定邮箱或手机号后再解绑"
+    "unbind_need_contact": "请先绑定邮箱或手机号后再解绑",
+    "follow_error": "关注操作失败",
+    "block_error": "屏蔽操作失败"
   },
   "notifications": {
     "title": "通知中心",
@@ -181,7 +188,11 @@
     "hotlist_push": "每日热榜推送",
     "hotlist_push_desc": "每天早晨 8 点接收校园内最热门的贴子精选",
     "save_settings": "保存设置",
-    "saving": "保存中..."
+    "saving": "保存中...",
+    "settings_load_error": "通知设置加载失败",
+    "settings_save_error": "设置保存失败",
+    "settings_saved": "通知设置已保存",
+    "mark_read_error": "标记已读失败"
   },
   "hot": {
     "badge": "校园热榜",

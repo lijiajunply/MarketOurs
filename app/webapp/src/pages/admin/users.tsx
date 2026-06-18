@@ -3,6 +3,7 @@ import { Search, ShieldAlert, ShieldCheck, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
+import { toast } from "../../lib/toast"
 import type { PagedResult, UserDto } from "../../types"
 import { formatLocalDate } from "../../lib/dateTime"
 import { Button } from "../../components/ui/button"
@@ -26,7 +27,6 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<PagedResult<UserDto> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [activeUserId, setActiveUserId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "toggle"; user: UserDto } | null>(null)
 
@@ -35,7 +35,6 @@ export default function AdminUsersPage() {
       try {
         setIsLoading(true)
         setError(null)
-        setMessage(null)
 
         const response = searchTerm.trim()
           ? await adminService.searchUsers(page, PAGE_SIZE, searchTerm.trim())
@@ -53,12 +52,16 @@ export default function AdminUsersPage() {
   }, [page, searchTerm, t])
 
   const refreshCurrentPage = async (nextPage = page) => {
-    const response = searchTerm.trim()
-      ? await adminService.searchUsers(nextPage, PAGE_SIZE, searchTerm.trim())
-      : await adminService.getUsers(nextPage, PAGE_SIZE)
+    try {
+      const response = searchTerm.trim()
+        ? await adminService.searchUsers(nextPage, PAGE_SIZE, searchTerm.trim())
+        : await adminService.getUsers(nextPage, PAGE_SIZE)
 
-    setUsers(response.data)
-    setPage(nextPage)
+      setUsers(response.data)
+      setPage(nextPage)
+    } catch (err) {
+      toast.error(extractUserMessage(err, t("admin.common.load_error")))
+    }
   }
 
   const handleConfirm = async () => {
@@ -69,21 +72,19 @@ export default function AdminUsersPage() {
 
     try {
       setActiveUserId(user.id)
-      setMessage(null)
-      setError(null)
 
       if (type === "delete") {
         await adminService.deleteUser(user.id)
         const shouldStepBack = users && users.items.length === 1 && page > 1
         await refreshCurrentPage(shouldStepBack ? page - 1 : page)
-        setMessage(t("admin.users.deleted"))
+        toast.success(t("admin.users.deleted"))
       } else {
         await adminService.updateUserStatus(user.id, { isActive: !user.isActive })
         await refreshCurrentPage()
-        setMessage(user.isActive ? t("admin.users.status_disabled") : t("admin.users.status_enabled"))
+        toast.success(user.isActive ? t("admin.users.status_disabled") : t("admin.users.status_enabled"))
       }
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setActiveUserId(null)
     }
@@ -142,12 +143,6 @@ export default function AdminUsersPage() {
       {error && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
-        </div>
-      )}
-
-      {message && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
-          {message}
         </div>
       )}
 

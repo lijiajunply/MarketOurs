@@ -52,6 +52,8 @@
     "error_failed_to_login": "Login failed. Please check your credentials.",
     "error_invalid_otp": "Invalid or expired verification code.",
     "error_registration_failed": "Registration failed, please try again later.",
+    "login_success": "Welcome back!",
+    "register_success": "Registration successful! Redirecting...",
     "forgot_password": "Forgot password?",
     "forgot_password_title": "Reset Password",
     "forgot_password_desc": "Enter your account to receive a reset code.",
@@ -109,7 +111,10 @@
     "edited": "Edited",
     "sort_recent": "Recent",
     "sort_hot": "Hot",
-    "sort_by": "Sort by"
+    "sort_by": "Sort by",
+    "created": "Post created successfully!",
+    "delete_error": "Failed to delete post",
+    "tag_load_failed": "Failed to load tags"
   },
   "tag": {
     "title": "Tag: {{name}}",
@@ -164,7 +169,9 @@
     "unbind_hint": "Use a verification code from your current email or phone before unbinding this account.",
     "confirm_unbind": "Confirm Unbind",
     "unbind_success": "{{provider}} has been unbound",
-    "unbind_need_contact": "Bind an email or phone before unbinding"
+    "unbind_need_contact": "Bind an email or phone before unbinding",
+    "follow_error": "Failed to update follow status",
+    "block_error": "Failed to update block status"
   },
   "notifications": {
     "title": "Notifications",
@@ -181,7 +188,11 @@
     "hotlist_push": "Daily Hotlist",
     "hotlist_push_desc": "Receive daily trending posts at 8:00 AM",
     "save_settings": "Save Settings",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "settings_load_error": "Failed to load notification settings",
+    "settings_save_error": "Failed to save settings",
+    "settings_saved": "Notification settings saved",
+    "mark_read_error": "Failed to mark notification as read"
   },
   "hot": {
     "badge": "Campus Trending",

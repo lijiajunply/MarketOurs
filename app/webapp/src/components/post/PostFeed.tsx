@@ -6,6 +6,7 @@ import { useSelector } from "react-redux"
 import type { RootState } from "@/stores"
 import { postService } from "@/services/postService"
 import { extractUserMessage } from "@/services/errorCodes"
+import { toast } from "@/lib/toast"
 import type { PostDto } from "@/types"
 import { formatPostRelativeDate, getPostAuthorName, getPostExcerpt } from "@/lib/postDisplay"
 import { sharePost } from "@/lib/postShare"
@@ -44,7 +45,7 @@ export function PostCard({ post, onDelete }: { post: PostDto; onDelete?: (id: st
       await postService.deletePost(post.id)
       onDelete?.(post.id)
     } catch (err) {
-      console.error(err)
+      toast.error(extractUserMessage(err, t("post.delete_error")))
     }
   }
 

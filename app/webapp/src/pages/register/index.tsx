@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { authService } from "@/services/authService";
 import { fileService } from "@/services/fileService";
 import { compressImage } from "@/services/imageCompression";
+import { toast } from "@/lib/toast";
 import { User, Mail, Lock, Loader2, ArrowRight, RefreshCw, Image, Camera } from "lucide-react";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { DTO_LIMITS, passwordLength, requiredMax } from "@/lib/dtoValidation";
@@ -155,6 +156,7 @@ export default function RegisterPage() {
     setError("");
     try {
       await authService.verifyRegistration({ registrationToken: regToken, code: verificationCode });
+      toast.success(t("auth.register_success"));
       navigate("/login");
     } catch (err: any) {
       setError(err.message || t("auth.error_registration_failed"));

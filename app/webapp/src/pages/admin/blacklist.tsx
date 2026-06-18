@@ -3,6 +3,7 @@ import { Ban, RefreshCw, Search, ShieldCheck, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
+import { toast } from "../../lib/toast"
 import type { BlacklistStats } from "../../types"
 import { formatLocalDateTime } from "../../lib/dateTime"
 import { Button } from "../../components/ui/button"
@@ -23,7 +24,6 @@ export default function AdminBlacklistPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isWorking, setIsWorking] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [ipInput, setIpInput] = useState("")
   const [reasonInput, setReasonInput] = useState("")
   const [checkIp, setCheckIp] = useState("")
@@ -55,12 +55,11 @@ export default function AdminBlacklistPage() {
     try {
       setIsWorking(true)
       setError(null)
-      setMessage(null)
       const response = await action()
-      setMessage(response?.message || successMessage)
+      toast.success(response?.message || successMessage)
       await loadStats()
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setIsWorking(false)
     }
@@ -68,7 +67,7 @@ export default function AdminBlacklistPage() {
 
   const handleAdd = async () => {
     if (!ipInput.trim()) {
-      setError(t("admin.blacklist.validation_ip"))
+      toast.error(t("admin.blacklist.validation_ip"))
       return
     }
 
@@ -84,7 +83,7 @@ export default function AdminBlacklistPage() {
 
   const handleRemove = async () => {
     if (!ipInput.trim()) {
-      setError(t("admin.blacklist.validation_ip"))
+      toast.error(t("admin.blacklist.validation_ip"))
       return
     }
 
@@ -109,17 +108,16 @@ export default function AdminBlacklistPage() {
 
   const handleCheck = async () => {
     if (!checkIp.trim()) {
-      setError(t("admin.blacklist.validation_check_ip"))
+      toast.error(t("admin.blacklist.validation_check_ip"))
       return
     }
 
     try {
       setIsWorking(true)
-      setError(null)
       const response = await adminService.checkIp(checkIp.trim())
       setCheckResult(response.data)
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setIsWorking(false)
     }
@@ -164,7 +162,7 @@ export default function AdminBlacklistPage() {
 
   const openConfirm = (action: "add" | "remove" | "clear_cache") => {
     if ((action === "add" || action === "remove") && !ipInput.trim()) {
-      setError(t("admin.blacklist.validation_ip"))
+      toast.error(t("admin.blacklist.validation_ip"))
       return
     }
     setConfirmAction(action)
@@ -178,7 +176,6 @@ export default function AdminBlacklistPage() {
       </header>
 
       {error && <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>}
-      {message && <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">{message}</div>}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-3xl border border-border/50 bg-card p-5">

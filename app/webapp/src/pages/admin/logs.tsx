@@ -3,6 +3,7 @@ import { Search, RotateCcw, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
+import { toast } from "../../lib/toast"
 import type { LogDistribution, LogEntry, LogStatistics, PaginatedResponse } from "../../types"
 import { formatLocalDateTime } from "../../lib/dateTime"
 import { Button } from "../../components/ui/button"
@@ -32,7 +33,6 @@ export default function AdminLogsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCleaning, setIsCleaning] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [showCleanupConfirm, setShowCleanupConfirm] = useState(false)
 
   const levelSummary = useMemo(() => {
@@ -73,10 +73,9 @@ export default function AdminLogsPage() {
     try {
       setIsCleaning(true)
       setError(null)
-      setMessage(null)
       const days = Number(timeRange) > 0 ? Number(timeRange) : 7
       const response = await adminService.cleanupLogs(days)
-      setMessage(response.message || t("admin.logs.cleanup_success"))
+      toast.success(response.message || t("admin.logs.cleanup_success"))
 
       const [logsResponse, statsResponse, distributionResponse] = await Promise.all([
         adminService.getLogs(page, PAGE_SIZE, searchTerm.trim() || undefined, levelFilter || undefined, timeRange),
@@ -88,7 +87,7 @@ export default function AdminLogsPage() {
       setStatistics(statsResponse.data)
       setDistribution(distributionResponse.data)
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setIsCleaning(false)
     }
@@ -171,7 +170,6 @@ export default function AdminLogsPage() {
       </header>
 
       {error && <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>}
-      {message && <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">{message}</div>}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <div className="rounded-3xl border border-border/50 bg-card p-5">

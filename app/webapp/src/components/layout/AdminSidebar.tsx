@@ -42,7 +42,7 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon" variant="sidebar">
       {/* Logo Header */}
       <SidebarHeader>
-        <div className="flex items-center gap-2.5 px-2">
+        <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm">
             <span className="text-sm font-bold text-primary-foreground">A</span>
           </div>

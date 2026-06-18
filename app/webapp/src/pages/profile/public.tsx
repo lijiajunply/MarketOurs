@@ -6,6 +6,8 @@ import { ArrowRight, Calendar, FileText, Loader2, Sparkles, UserPlus, UserMinus,
 import { userService } from "../../services/userService";
 import { postService } from "../../services/postService";
 import { followService } from "../../services/followService";
+import { toast } from "../../lib/toast";
+import { extractUserMessage } from "../../services/errorCodes";
 import type { RootState } from "../../stores";
 import type { PagedResult, PostDto, PublicUserProfileDto } from "../../types";
 import { PostTagBadge } from "../../components/post/PostTagBadge";
@@ -192,7 +194,7 @@ export default function PublicProfilePage() {
       setIsFollowing(result.data.isFollowing);
       setFollowerCount(result.data.followerCount);
     } catch (err) {
-      console.error("Failed to toggle follow", err);
+      toast.error(extractUserMessage(err, t("profile.follow_error")));
     } finally {
       setFollowLoading(false);
     }
@@ -211,7 +213,7 @@ export default function PublicProfilePage() {
         setIsFollowing(false);
       }
     } catch (err) {
-      console.error("Failed to toggle block", err);
+      toast.error(extractUserMessage(err, t("profile.block_error")));
     } finally {
       setFollowLoading(false);
     }

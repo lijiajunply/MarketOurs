@@ -7,6 +7,7 @@ import { NotificationType, type PushSettingsDto } from "@/types"
 import { Bell, MessageSquare, Reply, Flame, Check, Save, Loader2 } from "lucide-react"
 import { Link } from "react-router"
 import { cn } from "@/lib/utils"
+import { toast } from "@/lib/toast"
 import { useTranslation } from "react-i18next"
 import { formatRelativeDateFromNow } from "@/lib/dateTime"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -41,7 +42,7 @@ export default function NotificationsPage() {
       const res = await notificationService.getSettings()
       if (res.data) setSettings(res.data)
     } catch (err) {
-      console.error("Failed to load settings:", err)
+      toast.error(t("notifications.settings_load_error"))
     } finally {
       setSettingsLoading(false)
     }
@@ -51,8 +52,9 @@ export default function NotificationsPage() {
     setSaving(true)
     try {
       await notificationService.updateSettings(settings)
+      toast.success(t("notifications.settings_saved"))
     } catch (err) {
-      console.error("Failed to update settings:", err)
+      toast.error(t("notifications.settings_save_error"))
     } finally {
       setSaving(false)
     }
@@ -63,7 +65,7 @@ export default function NotificationsPage() {
       await notificationService.markAsRead(id)
       dispatch(markReadLocal(id))
     } catch (err) {
-      console.error("Failed to mark as read:", err)
+      toast.error(t("notifications.mark_read_error"))
     }
   }
 
@@ -72,7 +74,7 @@ export default function NotificationsPage() {
       await notificationService.markAllAsRead()
       dispatch(markAllReadLocal())
     } catch (err) {
-      console.error("Failed to mark all as read:", err)
+      toast.error(t("notifications.mark_read_error"))
     }
   }
 

@@ -3,6 +3,7 @@ import { Plus, Save, Tag, ToggleLeft, ToggleRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
+import { toast } from "../../lib/toast"
 import type { PostTagDto } from "../../types"
 import { PostTagBadge } from "../../components/post/PostTagBadge"
 import { Button } from "../../components/ui/button"
@@ -24,12 +25,15 @@ export default function AdminTagsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [confirmToggle, setConfirmToggle] = useState<PostTagDto | null>(null)
 
   const loadTags = async () => {
-    const response = await adminService.getPostTags()
-    setTags(response.data ?? [])
+    try {
+      const response = await adminService.getPostTags()
+      setTags(response.data ?? [])
+    } catch (err) {
+      toast.error(extractUserMessage(err, t("admin.common.load_error")))
+    }
   }
 
   useEffect(() => {
@@ -55,13 +59,12 @@ export default function AdminTagsPage() {
     try {
       setActiveId("new")
       setError(null)
-      setMessage(null)
       await adminService.createPostTag({ name: name.trim() })
       setName("")
       await loadTags()
-      setMessage(t("admin.tags.created"))
+      toast.success(t("admin.tags.created"))
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setActiveId(null)
     }
@@ -72,15 +75,14 @@ export default function AdminTagsPage() {
     try {
       setActiveId(tag.id)
       setError(null)
-      setMessage(null)
       await adminService.updatePostTagDefinition(tag.id, {
         name: next.name,
         isActive: next.isActive,
       })
       await loadTags()
-      setMessage(t("admin.tags.updated"))
+      toast.success(t("admin.tags.updated"))
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setActiveId(null)
     }
@@ -105,11 +107,6 @@ export default function AdminTagsPage() {
       {error ? (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
-        </div>
-      ) : null}
-      {message ? (
-        <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
-          {message}
         </div>
       ) : null}
 

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Outlet } from "react-router"
 import { ThemeProvider } from "./components/theme-provider"
+import { Toaster } from "./components/ui/sonner"
 import { MainLayout } from "./components/layout/MainLayout"
 import { AdminLayout } from "./components/layout/AdminLayout"
 import { AdminGuard } from "./components/auth/AdminGuard"
@@ -73,6 +74,7 @@ export function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="marketours-theme">
       <BrowserRouter>
+        <Toaster richColors closeButton />
         <Routes>
           {/* Public Routes with MainLayout */}
           <Route element={<MainLayout><Outlet /></MainLayout>}>

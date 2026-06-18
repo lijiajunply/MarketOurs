@@ -7,6 +7,7 @@ import { postService } from '@/services/postService';
 import { fileService } from '@/services/fileService';
 import { compressImages } from '@/services/imageCompression';
 import { extractUserMessage } from '@/services/errorCodes';
+import { toast } from '@/lib/toast';
 import { ImagePlus, X, Loader2, Send } from 'lucide-react';
 import { DTO_LIMITS, requiredMax } from '@/lib/dtoValidation';
 import type { PostTagDto } from '@/types';
@@ -43,7 +44,7 @@ export default function CreatePostPage() {
         const response = await postService.getPostTags();
         setTags(response.data ?? []);
       } catch (err) {
-        console.error('Failed to load post tags', err);
+        toast.error(t("post.tag_load_failed"));
       }
     };
 
@@ -116,6 +117,7 @@ export default function CreatePostPage() {
         tagId: tagId || null,
       });
 
+      toast.success(t("post.created"));
       navigate('/');
     } catch (err: unknown) {
       setError(extractUserMessage(err, t('post.error_create_failed')));

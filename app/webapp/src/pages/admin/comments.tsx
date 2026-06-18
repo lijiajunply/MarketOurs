@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
+import { toast } from "../../lib/toast"
 import type { CommentDto, PagedResult } from "../../types"
 import { formatLocalDate } from "../../lib/dateTime"
 import { Button } from "../../components/ui/button"
@@ -27,7 +28,6 @@ export default function AdminCommentsPage() {
   const [comments, setComments] = useState<PagedResult<CommentDto> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "review"; comment: CommentDto } | null>(null)
 
@@ -36,7 +36,6 @@ export default function AdminCommentsPage() {
       try {
         setIsLoading(true)
         setError(null)
-        setMessage(null)
 
         const response = searchTerm.trim()
           ? await adminService.searchComments(page, PAGE_SIZE, searchTerm.trim())
@@ -54,12 +53,16 @@ export default function AdminCommentsPage() {
   }, [page, searchTerm, t])
 
   const refreshCurrentPage = async (nextPage = page) => {
-    const response = searchTerm.trim()
-      ? await adminService.searchComments(nextPage, PAGE_SIZE, searchTerm.trim())
-      : await adminService.getComments(nextPage, PAGE_SIZE)
+    try {
+      const response = searchTerm.trim()
+        ? await adminService.searchComments(nextPage, PAGE_SIZE, searchTerm.trim())
+        : await adminService.getComments(nextPage, PAGE_SIZE)
 
-    setComments(response.data)
-    setPage(nextPage)
+      setComments(response.data)
+      setPage(nextPage)
+    } catch (err) {
+      toast.error(extractUserMessage(err, t("admin.common.load_error")))
+    }
   }
 
   const handleConfirm = async () => {
@@ -70,21 +73,19 @@ export default function AdminCommentsPage() {
 
     try {
       setActiveCommentId(comment.id)
-      setMessage(null)
-      setError(null)
 
       if (type === "delete") {
         await adminService.deleteComment(comment.id)
         const shouldStepBack = comments && comments.items.length === 1 && page > 1
         await refreshCurrentPage(shouldStepBack ? page - 1 : page)
-        setMessage(t("admin.comments.deleted"))
+        toast.success(t("admin.comments.deleted"))
       } else {
         await adminService.updateCommentReview(comment.id, { isReview: !comment.isReview })
         await refreshCurrentPage()
-        setMessage(t(comment.isReview ? "admin.comments.review_reverted" : "admin.comments.review_approved"))
+        toast.success(t(comment.isReview ? "admin.comments.review_reverted" : "admin.comments.review_approved"))
       }
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setActiveCommentId(null)
     }
@@ -143,12 +144,6 @@ export default function AdminCommentsPage() {
       {error && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
-        </div>
-      )}
-
-      {message && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
-          {message}
         </div>
       )}
 

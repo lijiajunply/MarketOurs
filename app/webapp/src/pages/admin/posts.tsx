@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
+import { toast } from "../../lib/toast"
 import type { PagedResult, PostDto, PostTagDto } from "../../types"
 import { formatLocalDate } from "../../lib/dateTime"
 import { Button } from "../../components/ui/button"
@@ -28,7 +29,6 @@ export default function AdminPostsPage() {
   const [tags, setTags] = useState<PostTagDto[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [activePostId, setActivePostId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "review"; post: PostDto } | null>(null)
 
@@ -37,7 +37,6 @@ export default function AdminPostsPage() {
       try {
         setIsLoading(true)
         setError(null)
-        setMessage(null)
 
         const [response, tagResponse] = await Promise.all([
           searchTerm.trim()
@@ -59,24 +58,26 @@ export default function AdminPostsPage() {
   }, [page, searchTerm, t])
 
   const refreshCurrentPage = async (nextPage = page) => {
-    const response = searchTerm.trim()
-      ? await adminService.searchPosts(nextPage, PAGE_SIZE, searchTerm.trim())
-      : await adminService.getPosts(nextPage, PAGE_SIZE)
+    try {
+      const response = searchTerm.trim()
+        ? await adminService.searchPosts(nextPage, PAGE_SIZE, searchTerm.trim())
+        : await adminService.getPosts(nextPage, PAGE_SIZE)
 
-    setPosts(response.data)
-    setPage(nextPage)
+      setPosts(response.data)
+      setPage(nextPage)
+    } catch (err) {
+      toast.error(extractUserMessage(err, t("admin.common.load_error")))
+    }
   }
 
   const handleTagChange = async (post: PostDto, tagId: string) => {
     try {
       setActivePostId(post.id)
-      setMessage(null)
-      setError(null)
       await adminService.updatePostTag(post.id, { tagId: tagId || null })
       await refreshCurrentPage()
-      setMessage(t("admin.posts.tag_updated"))
+      toast.success(t("admin.posts.tag_updated"))
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setActivePostId(null)
     }
@@ -90,21 +91,19 @@ export default function AdminPostsPage() {
 
     try {
       setActivePostId(post.id)
-      setMessage(null)
-      setError(null)
 
       if (type === "delete") {
         await adminService.deletePost(post.id)
         const shouldStepBack = posts && posts.items.length === 1 && page > 1
         await refreshCurrentPage(shouldStepBack ? page - 1 : page)
-        setMessage(t("admin.posts.deleted"))
+        toast.success(t("admin.posts.deleted"))
       } else {
         await adminService.updatePostReview(post.id, { isReview: !post.isReview })
         await refreshCurrentPage()
-        setMessage(t(post.isReview ? "admin.posts.review_reverted" : "admin.posts.review_approved"))
+        toast.success(t(post.isReview ? "admin.posts.review_reverted" : "admin.posts.review_approved"))
       }
     } catch (err) {
-      setError(extractUserMessage(err, t("admin.common.action_error")))
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
     } finally {
       setActivePostId(null)
     }
@@ -162,12 +161,6 @@ export default function AdminPostsPage() {
       {error && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
-        </div>
-      )}
-
-      {message && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
-          {message}
         </div>
       )}
 
