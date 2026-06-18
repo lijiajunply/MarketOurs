@@ -191,9 +191,10 @@ class _OAuthWebViewScreenState extends ConsumerState<OAuthWebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final title = widget.purpose == 'bind'
-        ? '绑定 ${widget.provider}'
-        : '${widget.provider} 登录';
+        ? l10n.oauthBindProvider(widget.provider)
+        : l10n.oauthLoginProvider(widget.provider);
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -214,7 +215,7 @@ class _OAuthWebViewScreenState extends ConsumerState<OAuthWebViewScreen> {
               const CupertinoActivityIndicator(radius: 16),
               const SizedBox(height: 20),
               Text(
-                _isLaunching ? '正在打开系统浏览器' : '请在浏览器中完成授权',
+                _isLaunching ? l10n.oauthWebViewOpenBrowser : l10n.oauthWebViewAuthorizeInBrowser,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
@@ -223,7 +224,7 @@ class _OAuthWebViewScreenState extends ConsumerState<OAuthWebViewScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                _statusMessage ?? '完成后会自动回到光汇',
+                _statusMessage ?? l10n.oauthWebViewAutoReturn,
                 textAlign: TextAlign.center,
                 style: AppTextStyles.muted(context),
               ),
