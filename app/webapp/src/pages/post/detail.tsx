@@ -741,6 +741,11 @@ export default function PostDetailPage() {
   const [isEditingPost, setIsEditingPost] = useState(false)
   const [editTitle, setEditTitle] = useState("")
   const [editContent, setEditContent] = useState("")
+  const [editExistingImages, setEditExistingImages] = useState<string[]>([])
+  const [editImageFiles, setEditImageFiles] = useState<File[]>([])
+  const [editImagePreviews, setEditImagePreviews] = useState<string[]>([])
+  const [editUploadProgress, setEditUploadProgress] = useState<number | null>(null)
+  const editPostPreviewRef = useRef<string[]>([])
 
   useEffect(() => {
     if (!id) return;
@@ -753,6 +758,7 @@ export default function PostDetailPage() {
         setPostLiked(postRes.data.isLiked ?? false)
         setEditTitle(postRes.data.title)
         setEditContent(postRes.data.content)
+        setEditExistingImages(postRes.data.images || [])
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
       console.error(err)
@@ -800,8 +806,13 @@ export default function PostDetailPage() {
   }, [commentImagePreviews]);
 
   useEffect(() => {
+    editPostPreviewRef.current = editImagePreviews;
+  }, [editImagePreviews]);
+
+  useEffect(() => {
     return () => {
       commentPreviewRef.current.forEach((preview) => URL.revokeObjectURL(preview));
+      editPostPreviewRef.current.forEach((preview) => URL.revokeObjectURL(preview));
     };
   }, []);
 
@@ -818,6 +829,19 @@ export default function PostDetailPage() {
     URL.revokeObjectURL(commentImagePreviews[index]);
     setCommentImageFiles((prev) => prev.filter((_, i) => i !== index));
     setCommentImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addEditPostImages = (files: FileList | null) => {
+    if (!files) return;
+    const nextFiles = Array.from(files);
+    setEditImageFiles((prev) => [...prev, ...nextFiles]);
+    setEditImagePreviews((prev) => [...prev, ...nextFiles.map((file) => URL.createObjectURL(file))]);
+  };
+
+  const removeEditPostImage = (index: number) => {
+    URL.revokeObjectURL(editImagePreviews[index]);
+    setEditImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setEditImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handlePostUpdate = async () => {
@@ -840,19 +864,43 @@ export default function PostDetailPage() {
     }
     setSubmitting(true)
     try {
+      let uploadKey: string | undefined;
+      let uploadedUrls: string[] = [];
+
+      if (editImageFiles.length > 0) {
+        const keyResponse = await fileService.getUploadKey();
+        uploadKey = keyResponse.data?.key;
+
+        setEditUploadProgress(0);
+        const compressed = await compressImages(editImageFiles, {
+          quality: 0.75,
+          maxWidth: 1920,
+          maxHeight: 1920,
+        });
+        uploadedUrls = (await fileService.uploadStream(compressed, uploadKey, setEditUploadProgress)).data ?? [];
+      }
+
+      const allImages = [...editExistingImages, ...uploadedUrls];
+
       const res = await postService.updatePost(id, {
         title: editTitle,
-        content: editContent
+        content: editContent,
+        images: allImages,
+        uploadKey,
       });
       if (res.data) {
         setPost(res.data);
         setIsEditingPost(false);
+        editImagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+        setEditImageFiles([]);
+        setEditImagePreviews([]);
       }
     } catch (err) {
       console.error(err);
       setActionError(extractUserMessage(err, t("common.error")));
     } finally {
       setSubmitting(false);
+      setEditUploadProgress(null);
     }
   }
 
@@ -1107,8 +1155,16 @@ export default function PostDetailPage() {
             {(isMe || isAdmin) && !isEditingPost && (
               <div className="flex gap-2">
                 {isMe && (
-                  <button 
-                    onClick={() => setIsEditingPost(true)}
+                  <button
+                    onClick={() => {
+                      setIsEditingPost(true);
+                      setEditTitle(post.title);
+                      setEditContent(post.content);
+                      setEditExistingImages(post.images || []);
+                      editImagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+                      setEditImageFiles([]);
+                      setEditImagePreviews([]);
+                    }}
                     className="px-4 py-1.5 rounded-full bg-muted hover:bg-primary/10 hover:text-primary transition-all text-sm font-bold"
                   >
                     {t("post.edit")}
@@ -1143,7 +1199,7 @@ export default function PostDetailPage() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {post.images && post.images.length > 0 && (
+        {!isEditingPost && post.images && post.images.length > 0 && (
           <PostImageCarousel key={post.id} images={post.images} imageLabel={`${t("nav.post")} image`} />
         )}
 
@@ -1165,6 +1221,39 @@ export default function PostDetailPage() {
         </div>
 
         {isEditingPost && (
+          <div className="space-y-4 mt-6">
+            <ExistingImageEditor
+              images={editExistingImages}
+              onRemove={(index) => setEditExistingImages((prev) => prev.filter((_, i) => i !== index))}
+            />
+            <ImagePreviewStrip previews={editImagePreviews} onRemove={removeEditPostImage} />
+            <div className="flex items-center gap-3">
+              <label className="grid size-10 place-items-center rounded-2xl border border-border bg-background/70 cursor-pointer hover:border-primary hover:text-primary transition-colors">
+                <ImagePlus size={18} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(event) => {
+                    addEditPostImages(event.target.files);
+                    event.target.value = "";
+                  }}
+                  className="hidden"
+                />
+              </label>
+              <span className="text-xs text-muted-foreground">
+                {editExistingImages.length + editImageFiles.length} image{(editExistingImages.length + editImageFiles.length) !== 1 ? "s" : ""}
+              </span>
+            </div>
+            {editUploadProgress !== null && (
+              <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+                <div className="h-full bg-primary transition-all" style={{ width: `${editUploadProgress * 100}%` }} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {isEditingPost && (
           <div className="flex gap-4">
             <button
               onClick={handlePostUpdate}
@@ -1178,6 +1267,10 @@ export default function PostDetailPage() {
                 setIsEditingPost(false);
                 setEditTitle(post.title);
                 setEditContent(post.content);
+                setEditExistingImages(post.images || []);
+                editImagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+                setEditImageFiles([]);
+                setEditImagePreviews([]);
               }}
               className="flex-1 py-3 rounded-2xl bg-muted font-bold hover:bg-border transition-all"
             >

@@ -128,7 +128,7 @@ export default function CreatePostPage() {
   };
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 py-8">
+    <div className="container max-w-2xl mx-auto px-4">
       <div className="glass rounded-3xl p-6 md:p-8 space-y-6">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">{t('post.create_title')}</h1>
