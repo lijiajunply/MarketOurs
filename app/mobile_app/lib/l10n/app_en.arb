@@ -313,6 +313,8 @@
   "commentBindingSuccessRefreshFailed": "Linked, but profile refresh failed",
   "postEditTitle": "Edit Post",
   "postDeleteTitle": "Delete Post",
+  "postSelectTag": "Select Tag",
+  "postTagAdminPreset": "Tags are preset by admin and optional.",
 
   "passwordResetSuccess": "Password reset, please log in again",
   "registerComplete": "Registration complete, please log in",

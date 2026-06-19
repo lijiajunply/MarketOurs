@@ -906,6 +906,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postDeleteTitle => 'Delete Post';
 
   @override
+  String get postSelectTag => 'Select Tag';
+
+  @override
+  String get postTagAdminPreset => 'Tags are preset by admin and optional.';
+
+  @override
   String get passwordResetSuccess => 'Password reset, please log in again';
 
   @override

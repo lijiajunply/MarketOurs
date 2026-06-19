@@ -1818,6 +1818,18 @@ abstract class AppLocalizations {
   /// **'删除帖子'**
   String get postDeleteTitle;
 
+  /// No description provided for @postSelectTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择标签'**
+  String get postSelectTag;
+
+  /// No description provided for @postTagAdminPreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签由管理员预设，可不选择。'**
+  String get postTagAdminPreset;
+
   /// No description provided for @passwordResetSuccess.
   ///
   /// In zh, this message translates to:

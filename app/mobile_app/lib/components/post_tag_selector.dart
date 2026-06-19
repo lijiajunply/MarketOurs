@@ -16,12 +16,12 @@ Future<PostTagDto?> showPostTagPicker(
   return showCupertinoModalPopup<PostTagDto?>(
     context: context,
     builder: (ctx) => CupertinoActionSheet(
-      title: const Text('选择标签'),
-      message: const Text('标签由管理员预设，可不选择。'),
+      title: Text(AppLocalizations.of(context).postSelectTag),
+      message: Text(AppLocalizations.of(context).postTagAdminPreset),
       actions: [
         CupertinoActionSheetAction(
           onPressed: () => Navigator.of(ctx).pop(null),
-          child: const Text('无标签'),
+          child: Text(AppLocalizations.of(context).postCreateNoTag),
         ),
         for (final tag in tags)
           CupertinoActionSheetAction(

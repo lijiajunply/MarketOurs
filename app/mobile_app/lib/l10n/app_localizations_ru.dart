@@ -906,6 +906,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get postDeleteTitle => '删除帖子';
 
   @override
+  String get postSelectTag => '选择标签';
+
+  @override
+  String get postTagAdminPreset => '标签由管理员预设，可不选择。';
+
+  @override
   String get passwordResetSuccess => 'Password reset, please log in again';
 
   @override
