@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/api_service.dart';
 import '../services/app_logger.dart';
 
 const _prefsKey = 'app.locale_index';
@@ -42,6 +43,7 @@ class LocaleNotifier extends Notifier<Locale?> {
 
   Future<void> setLocale(Locale? locale) async {
     state = locale;
+    ApiService.setLocale(locale?.languageCode ?? 'zh');
     try {
       final prefs = await SharedPreferences.getInstance();
       if (locale == null) {

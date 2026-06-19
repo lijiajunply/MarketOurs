@@ -16,6 +16,12 @@ class ApiService {
   static const Duration _defaultTimeout = Duration(seconds: 15);
   static const Duration _uploadTimeout = Duration(minutes: 2);
 
+  static String? _currentLocale;
+
+  static void setLocale(String locale) {
+    _currentLocale = locale;
+  }
+
   static String get baseUrl => _resolveBaseUrl();
   static const String _skipAuthExtraKey = 'skipAuth';
   static const String _skipUnauthorizedHandlerExtraKey =
@@ -51,6 +57,10 @@ class ApiService {
               : await _authStorage?.readAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
+          }
+
+          if (_currentLocale != null && _currentLocale != 'zh') {
+            options.headers['Accept-Language'] = _currentLocale;
           }
 
           AppLogger.info(
