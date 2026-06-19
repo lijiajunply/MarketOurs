@@ -68,7 +68,7 @@ class PostEditorForm extends StatelessWidget {
             children: [
               _buildImageCard(context),
               const SizedBox(height: 12),
-              _buildTagCard(),
+              _buildTagCard(context),
               if (uploadProgress != null) ...[
                 const SizedBox(height: 12),
                 _buildUploadProgress(context),
@@ -94,7 +94,7 @@ class PostEditorForm extends StatelessWidget {
           const SizedBox(height: 12),
           _buildImageCard(context),
           const SizedBox(height: 12),
-          _buildTagCard(),
+          _buildTagCard(context),
           if (uploadProgress != null) ...[
             const SizedBox(height: 12),
             _buildUploadProgress(context),
@@ -204,12 +204,13 @@ class PostEditorForm extends StatelessWidget {
     );
   }
 
-  Widget _buildTagCard() {
+  Widget _buildTagCard(BuildContext context) {
     return PostTagSelectorCard(
       tag: selectedTag,
       onPressed: onPickTag,
       enabled: onPickTag != null,
       emptyText: tagEmptyText,
+      label: AppLocalizations.of(context).postCreateTag,
     );
   }
 

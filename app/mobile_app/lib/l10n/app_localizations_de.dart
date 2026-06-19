@@ -78,6 +78,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get themeMode => 'Design';
 
   @override
+  String get themeSubtitle => '切换浅色、深色或跟随系统';
+
+  @override
   String get themeHint => 'Zum Wechseln tippen';
 
   @override
@@ -417,7 +420,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String postCreateTitleTooLong(int max) {
-    return 'Title cannot exceed $max characters';
+    return 'Titel darf $max Zeichen nicht überschreiten';
   }
 
   @override
@@ -428,7 +431,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String postCreateContentTooLong(int max) {
-    return 'Content cannot exceed $max characters';
+    return 'Inhalt darf $max Zeichen nicht überschreiten';
   }
 
   @override
@@ -493,7 +496,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String postShareText(String name, String title) {
-    return 'Post by $name: $title';
+    return 'Beitrag von $name: $title';
   }
 
   @override
@@ -582,7 +585,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String hotWatch(int count) {
-    return '$count views';
+    return '$count Aufrufe';
   }
 
   @override
@@ -602,27 +605,27 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String dateMinutesAgo(int minutes) {
-    return '$minutes min ago';
+    return 'vor $minutes Min.';
   }
 
   @override
   String dateHoursAgo(int hours) {
-    return '$hours hr ago';
+    return 'vor $hours Std.';
   }
 
   @override
   String dateDaysAgo(int days) {
-    return '$days days ago';
+    return 'vor $days Tagen';
   }
 
   @override
   String get dateYesterday => 'gestern';
 
   @override
-  String get privacyPolicy => 'Privacy Policy';
+  String get privacyPolicy => 'Datenschutz';
 
   @override
-  String get termsOfService => 'Terms of Service';
+  String get termsOfService => 'Nutzungsbedingungen';
 
   @override
   String get settingsTitle => 'Einstellungen';
@@ -635,105 +638,105 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String successUploadImages(int count) {
-    return 'Successfully uploaded $count images';
+    return '$count Bilder hochgeladen';
   }
 
   @override
-  String get errorGeneral => 'Operation failed, try again later';
+  String get errorGeneral => 'Vorgang fehlgeschlagen';
 
   @override
-  String get errorNetworkTimeout => 'Connection timed out';
+  String get errorNetworkTimeout => 'Zeitüberschreitung';
 
   @override
-  String get errorNetworkFailed => 'Network connection failed';
+  String get errorNetworkFailed => 'Netzwerkverbindung fehlgeschlagen';
 
   @override
-  String get errorRequestCancelled => 'Request cancelled';
+  String get errorRequestCancelled => 'Anfrage abgebrochen';
 
   @override
-  String get errorFileUnsupported =>
-      'Unsupported file type (jpg, png, gif, webp only)';
+  String get errorFileUnsupported => 'Nicht unterstützter Dateityp';
 
   @override
-  String get errorFileNotFound => 'File not found';
+  String get errorFileNotFound => 'Datei nicht gefunden';
 
   @override
-  String get errorFileUploadFailed => 'File upload failed';
+  String get errorFileUploadFailed => 'Datei-Upload fehlgeschlagen';
 
   @override
-  String get errorAvatarUploadFailed => 'Avatar upload failed';
+  String get errorAvatarUploadFailed => 'Avatar-Upload fehlgeschlagen';
 
   @override
-  String get errorServerError => 'Server error, try again later';
+  String get errorServerError => 'Serverfehler';
 
   @override
-  String get errorMessage_k1001 => 'Invalid request format';
+  String get errorMessage_k1001 => 'Ungültiges Anfrageformat';
 
   @override
-  String get errorMessage_k2001 => 'User not found';
+  String get errorMessage_k2001 => 'Benutzer nicht gefunden';
 
   @override
-  String get errorMessage_k2002 => 'Account already exists';
+  String get errorMessage_k2002 => 'Konto existiert bereits';
 
   @override
-  String get errorMessage_k2003 => 'User not found or wrong password';
+  String get errorMessage_k2003 =>
+      'Benutzer nicht gefunden oder falsches Passwort';
 
   @override
-  String get errorMessage_k2004 => 'Account not activated or disabled';
+  String get errorMessage_k2004 => 'Konto deaktiviert';
 
   @override
-  String get errorMessage_k3001 => 'Invalid or expired verification code';
+  String get errorMessage_k3001 => 'Ungültiger oder abgelaufener Code';
 
   @override
-  String get errorMessage_k3002 => 'Registration session expired';
+  String get errorMessage_k3002 => 'Registrierungssitzung abgelaufen';
 
   @override
-  String get errorMessage_k3003 => 'Invalid or expired verification code';
+  String get errorMessage_k3003 => 'Ungültiger oder abgelaufener Code';
 
   @override
-  String get errorMessage_k4001 => 'Insufficient permissions';
+  String get errorMessage_k4001 => 'Unzureichende Berechtigungen';
 
   @override
-  String get errorMessage_k4002 => 'Invalid or expired token';
+  String get errorMessage_k4002 => 'Ungültiges oder abgelaufenes Token';
 
   @override
-  String get errorMessage_k5001 => 'Post not found';
+  String get errorMessage_k5001 => 'Beitrag nicht gefunden';
 
   @override
-  String get errorMessage_k5002 => 'Comment not found';
+  String get errorMessage_k5002 => 'Kommentar nicht gefunden';
 
   @override
-  String get errorMessage_k6001 => 'Operation failed';
+  String get errorMessage_k6001 => 'Vorgang fehlgeschlagen';
 
   @override
-  String get errorMessage_k6002 => 'Cache operation failed';
+  String get errorMessage_k6002 => 'Cache-Vorgang fehlgeschlagen';
 
   @override
-  String get errorMessage_k6003 => 'External service call failed';
+  String get errorMessage_k6003 => 'Externer Dienst fehlgeschlagen';
 
   @override
-  String get errorMessage_k7001 => 'Follow failed';
+  String get errorMessage_k7001 => 'Folgen fehlgeschlagen';
 
   @override
-  String get errorMessage_k7002 => 'Unfollow failed';
+  String get errorMessage_k7002 => 'Entfolgen fehlgeschlagen';
 
   @override
-  String get errorMessage_k7003 => 'Block failed';
+  String get errorMessage_k7003 => 'Blockieren fehlgeschlagen';
 
   @override
-  String get errorMessage_k7004 => 'Unblock failed';
+  String get errorMessage_k7004 => 'Entblocken fehlgeschlagen';
 
   @override
-  String get errorMessage_k8001 => 'Unsupported file type';
+  String get errorMessage_k8001 => 'Nicht unterstützter Typ';
 
   @override
-  String get errorMessage_k8002 => 'File size exceeded';
+  String get errorMessage_k8002 => 'Dateigröße überschritten';
 
   @override
-  String get errorMessage_k9001 => 'Content review failed';
+  String get errorMessage_k9001 => 'Inhaltsprüfung fehlgeschlagen';
 
   @override
-  String get errorMessage_k10001 => 'OAuth provider not supported';
+  String get errorMessage_k10001 => 'Nicht unterstützter Anbieter';
 
   @override
   String get oauthGithub => 'GitHub';
@@ -745,31 +748,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get oauthWeixin => 'WeChat';
 
   @override
-  String get oauthOurs => 'Campus Account';
+  String get oauthOurs => 'Campus-Konto';
 
   @override
-  String get oauthOtherMethods => 'Other Login Methods';
+  String get oauthOtherMethods => 'Andere Methoden';
 
   @override
-  String get oauthBindTitle => 'Link Third-party Account';
+  String get oauthBindTitle => 'Konto verknüpfen';
 
   @override
-  String get oauthBindSuccess => 'Linked successfully';
+  String get oauthBindSuccess => 'Verknüpfung erfolgreich';
 
   @override
-  String get oauthBindFailed => 'Linking failed';
+  String get oauthBindFailed => 'Verknüpfung fehlgeschlagen';
 
   @override
-  String get oauthUnbind => 'Unlink';
+  String get oauthUnbind => 'Verknüpfung lösen';
 
   @override
-  String get oauthUnbindConfirm => 'Unlink this third-party account?';
+  String get oauthUnbindConfirm => 'Diese Verknüpfung lösen?';
 
   @override
-  String get oauthGoBind => 'Link';
+  String get oauthGoBind => 'Verknüpfen';
 
   @override
-  String get oauthNotBound => 'Not linked';
+  String get oauthNotBound => 'Nicht verknüpft';
 
   @override
   String get language_en => 'English';
@@ -796,67 +799,66 @@ class AppLocalizationsDe extends AppLocalizations {
   String get language_ko => '한국어';
 
   @override
-  String get validatorAccountRequired => 'Please enter your account';
+  String get validatorAccountRequired => 'Bitte Konto eingeben';
 
   @override
-  String get validatorPasswordRequired => 'Please enter your password';
+  String get validatorPasswordRequired => 'Bitte Passwort eingeben';
 
   @override
-  String get validatorCodeRequired => 'Please enter verification code';
+  String get validatorCodeRequired => 'Bitte Code eingeben';
 
   @override
-  String get validatorNameRequired => 'Please enter a display name';
+  String get validatorNameRequired => 'Bitte Namen eingeben';
 
   @override
   String validatorNameTooLong(int max) {
-    return 'Name cannot exceed $max characters';
+    return 'Name darf $max Zeichen nicht überschreiten';
   }
 
   @override
-  String get validatorConfirmPasswordMismatch => 'Passwords don\'t match';
+  String get validatorConfirmPasswordMismatch =>
+      'Passwörter stimmen nicht überein';
 
   @override
   String get validatorPasswordWeak =>
-      'At least 6 chars with uppercase, lowercase & digit';
+      '6+ Zeichen mit Groß-, Kleinbuchstaben und Ziffer';
 
   @override
-  String get validatorEmailInvalid => 'Please enter a valid email address';
+  String get validatorEmailInvalid => 'Gültige E-Mail eingeben';
 
   @override
-  String get oauthWebViewCantReceive =>
-      'Cannot receive login callback, please retry';
+  String get oauthWebViewCantReceive => 'Kann Login-Callback nicht empfangen';
 
   @override
   String get oauthWebViewCantOpenBrowser =>
-      'Cannot open system browser, check settings';
+      'Browser kann nicht geöffnet werden';
 
   @override
   String get oauthWebViewCantInitiate =>
-      'Cannot initiate third-party auth, try later';
+      'Authentifizierung kann nicht gestartet werden';
 
   @override
-  String get oauthWebViewLoginFailed => 'Login failed, missing token';
+  String get oauthWebViewLoginFailed => 'Anmeldung fehlgeschlagen, Token fehlt';
 
   @override
-  String get oauthWebViewOpenBrowser => 'Opening system browser';
+  String get oauthWebViewOpenBrowser => 'Browser wird geöffnet';
 
   @override
   String get oauthWebViewAuthorizeInBrowser =>
-      'Complete authorization in browser';
+      'Autorisierung im Browser abschließen';
 
   @override
-  String get oauthWebViewAutoReturn =>
-      'Will return to LightHub after completion';
+  String get oauthWebViewAutoReturn => 'Automatische Rückkehr nach Abschluss';
 
   @override
-  String get oauthWebViewOpening => 'Opening';
+  String get oauthWebViewOpening => 'Öffnen';
 
   @override
-  String get oauthWebViewReopen => 'Reopen';
+  String get oauthWebViewReopen => 'Erneut öffnen';
 
   @override
   String oauthBindProvider(String provider) {
-    return 'Link $provider';
+    return '$provider verknüpfen';
   }
 
   @override
@@ -865,32 +867,32 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get verifyCodeSentContinue => 'Code sent, continue resetting password';
+  String get verifyCodeSentContinue =>
+      'Code gesendet, Passwort zurücksetzen fortsetzen';
 
   @override
-  String get loginFailedCheckAccount =>
-      'Login failed, check account and password';
+  String get loginFailedCheckAccount => 'Anmeldung fehlgeschlagen';
 
   @override
-  String get loginFailedCheckCode => 'Login failed, check verification code';
+  String get loginFailedCheckCode => 'Anmeldung fehlgeschlagen, Code prüfen';
 
   @override
-  String get displayName => 'Display Name';
+  String get displayName => 'Anzeigename';
 
   @override
-  String get uploadingImages => 'Uploading images';
+  String get uploadingImages => 'Bilder werden hochgeladen...';
 
   @override
   String postWatchCount(int count) {
-    return '$count views';
+    return '$count Aufrufe';
   }
 
   @override
-  String get commentBindingSuccess => 'Linked successfully';
+  String get commentBindingSuccess => 'Verknüpfung erfolgreich';
 
   @override
   String get commentBindingSuccessRefreshFailed =>
-      'Linked, but profile refresh failed';
+      'Verknüpft, aber Profil-Update fehlgeschlagen';
 
   @override
   String get postEditTitle => 'Bearbeiten';
@@ -913,97 +915,93 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get passwordResetSuccess => 'Password reset, please log in again';
+  String get passwordResetSuccess =>
+      'Passwort zurückgesetzt, bitte neu anmelden';
 
   @override
-  String get registerComplete => 'Registration complete, please log in';
+  String get registerComplete => 'Registrierung abgeschlossen';
 
   @override
-  String get goBack => 'Go back';
+  String get goBack => 'Zurück';
 
   @override
   String codeSentToAccount(String account) {
-    return 'Code sent to $account';
+    return 'Code an $account gesendet';
   }
 
   @override
-  String get codeMinLength => 'Code must be at least 4 characters';
+  String get codeMinLength => 'Code muss mindestens 4 Zeichen haben';
 
   @override
-  String get regenerateInstructions => 'Get reset instructions again';
+  String get regenerateInstructions => 'Anleitung erneut anfordern';
 
   @override
-  String get passwordNewPlaceholder => 'New password';
+  String get passwordNewPlaceholder => 'Neues Passwort';
 
   @override
-  String get passwordRequirementHint =>
-      'Password, at least 6 chars with upper, lower & digit';
+  String get passwordRequirementHint => 'Passwort: 6+ Zeichen';
 
   @override
-  String get noTagAvailable => 'No tags available';
+  String get noTagAvailable => 'Keine Tags verfügbar';
 
   @override
-  String get enterTagPage => 'Enter Tag Page';
+  String get enterTagPage => 'Tag-Seite öffnen';
 
   @override
-  String get chooseTagHint => 'Choose a tag to view posts.';
+  String get chooseTagHint => 'Wähle einen Tag zum Anzeigen.';
 
   @override
-  String get unnamedTag => 'Unnamed tag';
+  String get unnamedTag => 'Unbenannter Tag';
 
   @override
   String get waitFirstPoster =>
-      'Wait for the first person to post, or refresh later.';
+      'Warte auf den ersten Beitrag oder aktualisiere später.';
 
   @override
-  String get tryDifferentKeyword =>
-      'Try a different keyword, or clear search to go home.';
+  String get tryDifferentKeyword => 'Anderes Stichwort versuchen';
 
   @override
-  String get refreshingPosts => 'Refreshing posts...';
+  String get refreshingPosts => 'Aktualisiere...';
 
   @override
-  String get searching => 'Searching...';
+  String get searching => 'Suche...';
 
   @override
-  String get loadingFailed => 'Loading failed';
+  String get loadingFailed => 'Laden fehlgeschlagen';
 
   @override
-  String get hotListEmpty => 'Hot list is empty';
+  String get hotListEmpty => 'Liste leer';
 
   @override
-  String get hotListEmptyDesc =>
-      'Hot posts will appear here when things pick up.';
+  String get hotListEmptyDesc => 'Beliebte Beiträge erscheinen hier.';
 
   @override
-  String get validatorCodeRequiredToken =>
-      'Please enter verification code or token';
+  String get validatorCodeRequiredToken => 'Code oder Token eingeben';
 
   @override
   String validatorAccountTooLong(int max) {
-    return 'Account cannot exceed $max characters';
+    return 'Konto darf $max Zeichen nicht überschreiten';
   }
 
   @override
   String get validatorEmailOrPhoneRequired =>
-      'Please enter a valid email or phone number';
+      'Gültige E-Mail oder Telefonnummer';
 
   @override
-  String get validatorPasswordMinLength =>
-      'Password must be at least 6 characters';
+  String get validatorPasswordMinLength => 'Passwort mindestens 6 Zeichen';
 
   @override
   String get reply => 'Antworten';
 
   @override
-  String get editPostAction => 'Edit';
+  String get editPostAction => 'Bearbeiten';
 
   @override
-  String get deletePostAction => 'Delete';
+  String get deletePostAction => 'Löschen';
 
   @override
   String get share => 'Teilen';
 
   @override
-  String get myProfile => 'My Profile';
+  String get myProfile => 'Mein Profil';
 }

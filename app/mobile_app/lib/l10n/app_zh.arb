@@ -31,7 +31,8 @@
   "themeLight": "亮色",
   "themeDark": "暗色",
   "themeSystem": "跟随系统",
-  "themeMode": "外观偏好",
+  "themeMode": "主题模式",
+  "themeSubtitle": "切换浅色、深色或跟随系统",
   "themeHint": "点击切换显示模式",
 
   "appearanceModeTitle": "选择外观模式",

@@ -243,8 +243,14 @@ abstract class AppLocalizations {
   /// No description provided for @themeMode.
   ///
   /// In zh, this message translates to:
-  /// **'外观偏好'**
+  /// **'主题模式'**
   String get themeMode;
+
+  /// No description provided for @themeSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换浅色、深色或跟随系统'**
+  String get themeSubtitle;
 
   /// No description provided for @themeHint.
   ///

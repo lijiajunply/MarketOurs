@@ -75,7 +75,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeSystem => 'Follow System';
 
   @override
-  String get themeMode => 'Appearance';
+  String get themeMode => 'Theme Mode';
+
+  @override
+  String get themeSubtitle => 'Switch between light, dark or follow system';
 
   @override
   String get themeHint => 'Tap to change display mode';

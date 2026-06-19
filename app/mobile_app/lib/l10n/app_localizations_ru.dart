@@ -78,6 +78,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get themeMode => 'Тема';
 
   @override
+  String get themeSubtitle => '切换浅色、深色或跟随系统';
+
+  @override
   String get themeHint => 'Нажмите для смены темы';
 
   @override
@@ -417,7 +420,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String postCreateTitleTooLong(int max) {
-    return 'Title cannot exceed $max characters';
+    return 'Заголовок не должен превышать $max симв.';
   }
 
   @override
@@ -428,7 +431,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String postCreateContentTooLong(int max) {
-    return 'Content cannot exceed $max characters';
+    return 'Содержимое не должно превышать $max симв.';
   }
 
   @override
@@ -493,7 +496,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String postShareText(String name, String title) {
-    return 'Post by $name: $title';
+    return 'Пост $name: $title';
   }
 
   @override
@@ -582,7 +585,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String hotWatch(int count) {
-    return '$count views';
+    return '$count просмотров';
   }
 
   @override
@@ -602,27 +605,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String dateMinutesAgo(int minutes) {
-    return '$minutes min ago';
+    return '$minutes мин. назад';
   }
 
   @override
   String dateHoursAgo(int hours) {
-    return '$hours hr ago';
+    return '$hours ч. назад';
   }
 
   @override
   String dateDaysAgo(int days) {
-    return '$days days ago';
+    return '$days дн. назад';
   }
 
   @override
   String get dateYesterday => 'вчера';
 
   @override
-  String get privacyPolicy => 'Privacy Policy';
+  String get privacyPolicy => 'Конфиденциальность';
 
   @override
-  String get termsOfService => 'Terms of Service';
+  String get termsOfService => 'Условия использования';
 
   @override
   String get settingsTitle => 'Настройки';
@@ -635,105 +638,104 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String successUploadImages(int count) {
-    return 'Successfully uploaded $count images';
+    return 'Загружено $count изображений';
   }
 
   @override
-  String get errorGeneral => 'Operation failed, try again later';
+  String get errorGeneral => 'Ошибка операции';
 
   @override
-  String get errorNetworkTimeout => 'Connection timed out';
+  String get errorNetworkTimeout => 'Таймаут соединения';
 
   @override
-  String get errorNetworkFailed => 'Network connection failed';
+  String get errorNetworkFailed => 'Ошибка сети';
 
   @override
-  String get errorRequestCancelled => 'Request cancelled';
+  String get errorRequestCancelled => 'Запрос отменён';
 
   @override
-  String get errorFileUnsupported =>
-      'Unsupported file type (jpg, png, gif, webp only)';
+  String get errorFileUnsupported => 'Неподдерживаемый формат';
 
   @override
-  String get errorFileNotFound => 'File not found';
+  String get errorFileNotFound => 'Файл не найден';
 
   @override
-  String get errorFileUploadFailed => 'File upload failed';
+  String get errorFileUploadFailed => 'Ошибка загрузки файла';
 
   @override
-  String get errorAvatarUploadFailed => 'Avatar upload failed';
+  String get errorAvatarUploadFailed => 'Ошибка загрузки аватара';
 
   @override
-  String get errorServerError => 'Server error, try again later';
+  String get errorServerError => 'Ошибка сервера';
 
   @override
-  String get errorMessage_k1001 => 'Invalid request format';
+  String get errorMessage_k1001 => 'Неверный формат запроса';
 
   @override
-  String get errorMessage_k2001 => 'User not found';
+  String get errorMessage_k2001 => 'Пользователь не найден';
 
   @override
-  String get errorMessage_k2002 => 'Account already exists';
+  String get errorMessage_k2002 => 'Аккаунт уже существует';
 
   @override
-  String get errorMessage_k2003 => 'User not found or wrong password';
+  String get errorMessage_k2003 => 'Неверный логин или пароль';
 
   @override
-  String get errorMessage_k2004 => 'Account not activated or disabled';
+  String get errorMessage_k2004 => 'Аккаунт отключён';
 
   @override
-  String get errorMessage_k3001 => 'Invalid or expired verification code';
+  String get errorMessage_k3001 => 'Неверный или истёкший код';
 
   @override
-  String get errorMessage_k3002 => 'Registration session expired';
+  String get errorMessage_k3002 => 'Сессия регистрации истекла';
 
   @override
-  String get errorMessage_k3003 => 'Invalid or expired verification code';
+  String get errorMessage_k3003 => 'Неверный или истёкший код';
 
   @override
-  String get errorMessage_k4001 => 'Insufficient permissions';
+  String get errorMessage_k4001 => 'Недостаточно прав';
 
   @override
-  String get errorMessage_k4002 => 'Invalid or expired token';
+  String get errorMessage_k4002 => 'Неверный или истёкший токен';
 
   @override
-  String get errorMessage_k5001 => 'Post not found';
+  String get errorMessage_k5001 => 'Пост не найден';
 
   @override
-  String get errorMessage_k5002 => 'Comment not found';
+  String get errorMessage_k5002 => 'Комментарий не найден';
 
   @override
-  String get errorMessage_k6001 => 'Operation failed';
+  String get errorMessage_k6001 => 'Ошибка операции';
 
   @override
-  String get errorMessage_k6002 => 'Cache operation failed';
+  String get errorMessage_k6002 => 'Ошибка кэша';
 
   @override
-  String get errorMessage_k6003 => 'External service call failed';
+  String get errorMessage_k6003 => 'Ошибка внешнего сервиса';
 
   @override
-  String get errorMessage_k7001 => 'Follow failed';
+  String get errorMessage_k7001 => 'Ошибка подписки';
 
   @override
-  String get errorMessage_k7002 => 'Unfollow failed';
+  String get errorMessage_k7002 => 'Ошибка отписки';
 
   @override
-  String get errorMessage_k7003 => 'Block failed';
+  String get errorMessage_k7003 => 'Ошибка блокировки';
 
   @override
-  String get errorMessage_k7004 => 'Unblock failed';
+  String get errorMessage_k7004 => 'Ошибка разблокировки';
 
   @override
-  String get errorMessage_k8001 => 'Unsupported file type';
+  String get errorMessage_k8001 => 'Неподдерживаемый формат';
 
   @override
-  String get errorMessage_k8002 => 'File size exceeded';
+  String get errorMessage_k8002 => 'Превышен размер файла';
 
   @override
-  String get errorMessage_k9001 => 'Content review failed';
+  String get errorMessage_k9001 => 'Ошибка модерации';
 
   @override
-  String get errorMessage_k10001 => 'OAuth provider not supported';
+  String get errorMessage_k10001 => 'Провайдер не поддерживается';
 
   @override
   String get oauthGithub => 'GitHub';
@@ -745,31 +747,31 @@ class AppLocalizationsRu extends AppLocalizations {
   String get oauthWeixin => 'WeChat';
 
   @override
-  String get oauthOurs => 'Campus Account';
+  String get oauthOurs => 'Кампусный аккаунт';
 
   @override
-  String get oauthOtherMethods => 'Other Login Methods';
+  String get oauthOtherMethods => 'Другие способы';
 
   @override
-  String get oauthBindTitle => 'Link Third-party Account';
+  String get oauthBindTitle => 'Привязка аккаунта';
 
   @override
-  String get oauthBindSuccess => 'Linked successfully';
+  String get oauthBindSuccess => 'Привязка выполнена';
 
   @override
-  String get oauthBindFailed => 'Linking failed';
+  String get oauthBindFailed => 'Ошибка привязки';
 
   @override
-  String get oauthUnbind => 'Unlink';
+  String get oauthUnbind => 'Отвязать';
 
   @override
-  String get oauthUnbindConfirm => 'Unlink this third-party account?';
+  String get oauthUnbindConfirm => 'Отвязать этот аккаунт?';
 
   @override
-  String get oauthGoBind => 'Link';
+  String get oauthGoBind => 'Привязать';
 
   @override
-  String get oauthNotBound => 'Not linked';
+  String get oauthNotBound => 'Не привязан';
 
   @override
   String get language_en => 'English';
@@ -796,101 +798,97 @@ class AppLocalizationsRu extends AppLocalizations {
   String get language_ko => '한국어';
 
   @override
-  String get validatorAccountRequired => 'Please enter your account';
+  String get validatorAccountRequired => 'Введите аккаунт';
 
   @override
-  String get validatorPasswordRequired => 'Please enter your password';
+  String get validatorPasswordRequired => 'Введите пароль';
 
   @override
-  String get validatorCodeRequired => 'Please enter verification code';
+  String get validatorCodeRequired => 'Введите код';
 
   @override
-  String get validatorNameRequired => 'Please enter a display name';
+  String get validatorNameRequired => 'Введите имя';
 
   @override
   String validatorNameTooLong(int max) {
-    return 'Name cannot exceed $max characters';
+    return 'Имя не более $max симв.';
   }
 
   @override
-  String get validatorConfirmPasswordMismatch => 'Passwords don\'t match';
+  String get validatorConfirmPasswordMismatch => 'Пароли не совпадают';
 
   @override
   String get validatorPasswordWeak =>
-      'At least 6 chars with uppercase, lowercase & digit';
+      'Минимум 6 символов с заглавными, строчными и цифрами';
 
   @override
-  String get validatorEmailInvalid => 'Please enter a valid email address';
+  String get validatorEmailInvalid => 'Введите корректный email';
 
   @override
-  String get oauthWebViewCantReceive =>
-      'Cannot receive login callback, please retry';
+  String get oauthWebViewCantReceive => 'Не получен ответ';
 
   @override
-  String get oauthWebViewCantOpenBrowser =>
-      'Cannot open system browser, check settings';
+  String get oauthWebViewCantOpenBrowser => 'Не удалось открыть браузер';
 
   @override
-  String get oauthWebViewCantInitiate =>
-      'Cannot initiate third-party auth, try later';
+  String get oauthWebViewCantInitiate => 'Не удалось начать аутентификацию';
 
   @override
-  String get oauthWebViewLoginFailed => 'Login failed, missing token';
+  String get oauthWebViewLoginFailed => 'Ошибка входа, нет токена';
 
   @override
-  String get oauthWebViewOpenBrowser => 'Opening system browser';
+  String get oauthWebViewOpenBrowser => 'Открытие браузера';
 
   @override
   String get oauthWebViewAuthorizeInBrowser =>
-      'Complete authorization in browser';
+      'Завершите авторизацию в браузере';
 
   @override
   String get oauthWebViewAutoReturn =>
-      'Will return to LightHub after completion';
+      'Автоматический возврат после завершения';
 
   @override
-  String get oauthWebViewOpening => 'Opening';
+  String get oauthWebViewOpening => 'Открытие';
 
   @override
-  String get oauthWebViewReopen => 'Reopen';
+  String get oauthWebViewReopen => 'Переоткрыть';
 
   @override
   String oauthBindProvider(String provider) {
-    return 'Link $provider';
+    return 'Привязать $provider';
   }
 
   @override
   String oauthLoginProvider(String provider) {
-    return '$provider Login';
+    return 'Вход через $provider';
   }
 
   @override
-  String get verifyCodeSentContinue => 'Code sent, continue resetting password';
+  String get verifyCodeSentContinue => 'Код отправлен, продолжите сброс';
 
   @override
-  String get loginFailedCheckAccount =>
-      'Login failed, check account and password';
+  String get loginFailedCheckAccount => 'Ошибка входа, проверьте данные';
 
   @override
-  String get loginFailedCheckCode => 'Login failed, check verification code';
+  String get loginFailedCheckCode => 'Ошибка входа, проверьте код';
 
   @override
-  String get displayName => 'Display Name';
+  String get displayName => 'Имя';
 
   @override
-  String get uploadingImages => 'Uploading images';
+  String get uploadingImages => 'Загрузка изображений...';
 
   @override
   String postWatchCount(int count) {
-    return '$count views';
+    return '$count просмотров';
   }
 
   @override
-  String get commentBindingSuccess => 'Linked successfully';
+  String get commentBindingSuccess => 'Привязка выполнена';
 
   @override
   String get commentBindingSuccessRefreshFailed =>
-      'Linked, but profile refresh failed';
+      'Привязка выполнена, но профиль не обновлён';
 
   @override
   String get postEditTitle => 'Редактировать';
@@ -913,97 +911,91 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get passwordResetSuccess => 'Password reset, please log in again';
+  String get passwordResetSuccess => 'Пароль сброшен, войдите заново';
 
   @override
-  String get registerComplete => 'Registration complete, please log in';
+  String get registerComplete => 'Регистрация завершена, войдите';
 
   @override
-  String get goBack => 'Go back';
+  String get goBack => 'Назад';
 
   @override
   String codeSentToAccount(String account) {
-    return 'Code sent to $account';
+    return 'Код отправлен на $account';
   }
 
   @override
-  String get codeMinLength => 'Code must be at least 4 characters';
+  String get codeMinLength => 'Код должен быть не менее 4 символов';
 
   @override
-  String get regenerateInstructions => 'Get reset instructions again';
+  String get regenerateInstructions => 'Получить инструкцию повторно';
 
   @override
-  String get passwordNewPlaceholder => 'New password';
+  String get passwordNewPlaceholder => 'Новый пароль';
 
   @override
   String get passwordRequirementHint =>
-      'Password, at least 6 chars with upper, lower & digit';
+      'Пароль: мин. 6 симв., загл., строчн., цифры';
 
   @override
-  String get noTagAvailable => 'No tags available';
+  String get noTagAvailable => 'Нет доступных тегов';
 
   @override
-  String get enterTagPage => 'Enter Tag Page';
+  String get enterTagPage => 'Войти на страницу тега';
 
   @override
-  String get chooseTagHint => 'Choose a tag to view posts.';
+  String get chooseTagHint => 'Выберите тег для просмотра постов.';
 
   @override
-  String get unnamedTag => 'Unnamed tag';
+  String get unnamedTag => 'Безымянный тег';
 
   @override
-  String get waitFirstPoster =>
-      'Wait for the first person to post, or refresh later.';
+  String get waitFirstPoster => 'Ждите первого поста или обновите позже.';
 
   @override
-  String get tryDifferentKeyword =>
-      'Try a different keyword, or clear search to go home.';
+  String get tryDifferentKeyword => 'Попробуйте другой запрос';
 
   @override
-  String get refreshingPosts => 'Refreshing posts...';
+  String get refreshingPosts => 'Обновление...';
 
   @override
-  String get searching => 'Searching...';
+  String get searching => 'Поиск...';
 
   @override
-  String get loadingFailed => 'Loading failed';
+  String get loadingFailed => 'Ошибка загрузки';
 
   @override
-  String get hotListEmpty => 'Hot list is empty';
+  String get hotListEmpty => 'Список пуст';
 
   @override
-  String get hotListEmptyDesc =>
-      'Hot posts will appear here when things pick up.';
+  String get hotListEmptyDesc => 'Популярные посты появятся здесь.';
 
   @override
-  String get validatorCodeRequiredToken =>
-      'Please enter verification code or token';
+  String get validatorCodeRequiredToken => 'Введите код или токен';
 
   @override
   String validatorAccountTooLong(int max) {
-    return 'Account cannot exceed $max characters';
+    return 'Аккаунт не более $max симв.';
   }
 
   @override
-  String get validatorEmailOrPhoneRequired =>
-      'Please enter a valid email or phone number';
+  String get validatorEmailOrPhoneRequired => 'Введите email или телефон';
 
   @override
-  String get validatorPasswordMinLength =>
-      'Password must be at least 6 characters';
+  String get validatorPasswordMinLength => 'Пароль не менее 6 симв.';
 
   @override
   String get reply => 'Ответить';
 
   @override
-  String get editPostAction => 'Edit';
+  String get editPostAction => 'Править';
 
   @override
-  String get deletePostAction => 'Delete';
+  String get deletePostAction => 'Удалить';
 
   @override
   String get share => 'Поделиться';
 
   @override
-  String get myProfile => 'My Profile';
+  String get myProfile => 'Мой профиль';
 }

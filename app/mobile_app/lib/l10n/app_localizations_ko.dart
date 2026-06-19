@@ -78,6 +78,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get themeMode => '테마';
 
   @override
+  String get themeSubtitle => '切换浅色、深色或跟随系统';
+
+  @override
   String get themeHint => '탭하여 모드 변경';
 
   @override
@@ -415,7 +418,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String postCreateTitleTooLong(int max) {
-    return 'Title cannot exceed $max characters';
+    return '제목은 $max자를 초과할 수 없습니다';
   }
 
   @override
@@ -426,7 +429,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String postCreateContentTooLong(int max) {
-    return 'Content cannot exceed $max characters';
+    return '내용은 $max자를 초과할 수 없습니다';
   }
 
   @override
@@ -491,7 +494,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String postShareText(String name, String title) {
-    return 'Post by $name: $title';
+    return '$name님의 게시물: $title';
   }
 
   @override
@@ -580,7 +583,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String hotWatch(int count) {
-    return '$count views';
+    return '조회 $count';
   }
 
   @override
@@ -600,27 +603,27 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String dateMinutesAgo(int minutes) {
-    return '$minutes min ago';
+    return '$minutes분 전';
   }
 
   @override
   String dateHoursAgo(int hours) {
-    return '$hours hr ago';
+    return '$hours시간 전';
   }
 
   @override
   String dateDaysAgo(int days) {
-    return '$days days ago';
+    return '$days일 전';
   }
 
   @override
   String get dateYesterday => '어제';
 
   @override
-  String get privacyPolicy => 'Privacy Policy';
+  String get privacyPolicy => '개인정보처리방침';
 
   @override
-  String get termsOfService => 'Terms of Service';
+  String get termsOfService => '이용약관';
 
   @override
   String get settingsTitle => '설정';
@@ -633,105 +636,104 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String successUploadImages(int count) {
-    return 'Successfully uploaded $count images';
+    return '$count개 이미지 업로드 완료';
   }
 
   @override
-  String get errorGeneral => 'Operation failed, try again later';
+  String get errorGeneral => '작업 실패';
 
   @override
-  String get errorNetworkTimeout => 'Connection timed out';
+  String get errorNetworkTimeout => '연결 시간 초과';
 
   @override
-  String get errorNetworkFailed => 'Network connection failed';
+  String get errorNetworkFailed => '네트워크 연결 실패';
 
   @override
-  String get errorRequestCancelled => 'Request cancelled';
+  String get errorRequestCancelled => '요청 취소됨';
 
   @override
-  String get errorFileUnsupported =>
-      'Unsupported file type (jpg, png, gif, webp only)';
+  String get errorFileUnsupported => '지원되지 않는 파일 형식';
 
   @override
-  String get errorFileNotFound => 'File not found';
+  String get errorFileNotFound => '파일을 찾을 수 없음';
 
   @override
-  String get errorFileUploadFailed => 'File upload failed';
+  String get errorFileUploadFailed => '파일 업로드 실패';
 
   @override
-  String get errorAvatarUploadFailed => 'Avatar upload failed';
+  String get errorAvatarUploadFailed => '아바타 업로드 실패';
 
   @override
-  String get errorServerError => 'Server error, try again later';
+  String get errorServerError => '서버 오류';
 
   @override
-  String get errorMessage_k1001 => 'Invalid request format';
+  String get errorMessage_k1001 => '잘못된 요청 형식';
 
   @override
-  String get errorMessage_k2001 => 'User not found';
+  String get errorMessage_k2001 => '사용자 없음';
 
   @override
-  String get errorMessage_k2002 => 'Account already exists';
+  String get errorMessage_k2002 => '이미 존재하는 계정';
 
   @override
-  String get errorMessage_k2003 => 'User not found or wrong password';
+  String get errorMessage_k2003 => '사용자 없음 또는 비밀번호 오류';
 
   @override
-  String get errorMessage_k2004 => 'Account not activated or disabled';
+  String get errorMessage_k2004 => '비활성화된 계정';
 
   @override
-  String get errorMessage_k3001 => 'Invalid or expired verification code';
+  String get errorMessage_k3001 => '유효하지 않거나 만료된 코드';
 
   @override
-  String get errorMessage_k3002 => 'Registration session expired';
+  String get errorMessage_k3002 => '등록 세션 만료';
 
   @override
-  String get errorMessage_k3003 => 'Invalid or expired verification code';
+  String get errorMessage_k3003 => '유효하지 않거나 만료된 코드';
 
   @override
-  String get errorMessage_k4001 => 'Insufficient permissions';
+  String get errorMessage_k4001 => '권한 부족';
 
   @override
-  String get errorMessage_k4002 => 'Invalid or expired token';
+  String get errorMessage_k4002 => '유효하지 않거나 만료된 토큰';
 
   @override
-  String get errorMessage_k5001 => 'Post not found';
+  String get errorMessage_k5001 => '게시물 없음';
 
   @override
-  String get errorMessage_k5002 => 'Comment not found';
+  String get errorMessage_k5002 => '댓글 없음';
 
   @override
-  String get errorMessage_k6001 => 'Operation failed';
+  String get errorMessage_k6001 => '작업 실패';
 
   @override
-  String get errorMessage_k6002 => 'Cache operation failed';
+  String get errorMessage_k6002 => '캐시 작업 실패';
 
   @override
-  String get errorMessage_k6003 => 'External service call failed';
+  String get errorMessage_k6003 => '외부 서비스 호출 실패';
 
   @override
-  String get errorMessage_k7001 => 'Follow failed';
+  String get errorMessage_k7001 => '팔로우 실패';
 
   @override
-  String get errorMessage_k7002 => 'Unfollow failed';
+  String get errorMessage_k7002 => '언팔로우 실패';
 
   @override
-  String get errorMessage_k7003 => 'Block failed';
+  String get errorMessage_k7003 => '차단 실패';
 
   @override
-  String get errorMessage_k7004 => 'Unblock failed';
+  String get errorMessage_k7004 => '차단 해제 실패';
 
   @override
-  String get errorMessage_k8001 => 'Unsupported file type';
+  String get errorMessage_k8001 => '지원되지 않는 파일 형식';
 
   @override
-  String get errorMessage_k8002 => 'File size exceeded';
+  String get errorMessage_k8002 => '파일 크기 초과';
 
   @override
-  String get errorMessage_k9001 => 'Content review failed';
+  String get errorMessage_k9001 => '콘텐츠 검토 실패';
 
   @override
-  String get errorMessage_k10001 => 'OAuth provider not supported';
+  String get errorMessage_k10001 => '지원되지 않는 OAuth';
 
   @override
   String get oauthGithub => 'GitHub';
@@ -743,31 +745,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get oauthWeixin => 'WeChat';
 
   @override
-  String get oauthOurs => 'Campus Account';
+  String get oauthOurs => '캠퍼스 계정';
 
   @override
-  String get oauthOtherMethods => 'Other Login Methods';
+  String get oauthOtherMethods => '다른 로그인 방법';
 
   @override
-  String get oauthBindTitle => 'Link Third-party Account';
+  String get oauthBindTitle => '외부 계정 연동';
 
   @override
-  String get oauthBindSuccess => 'Linked successfully';
+  String get oauthBindSuccess => '연동 완료';
 
   @override
-  String get oauthBindFailed => 'Linking failed';
+  String get oauthBindFailed => '연동 실패';
 
   @override
-  String get oauthUnbind => 'Unlink';
+  String get oauthUnbind => '연동 해제';
 
   @override
-  String get oauthUnbindConfirm => 'Unlink this third-party account?';
+  String get oauthUnbindConfirm => '연동을 해제할까요?';
 
   @override
-  String get oauthGoBind => 'Link';
+  String get oauthGoBind => '연동';
 
   @override
-  String get oauthNotBound => 'Not linked';
+  String get oauthNotBound => '연동 안됨';
 
   @override
   String get language_en => 'English';
@@ -794,101 +796,93 @@ class AppLocalizationsKo extends AppLocalizations {
   String get language_ko => '한국어';
 
   @override
-  String get validatorAccountRequired => 'Please enter your account';
+  String get validatorAccountRequired => '계정을 입력하세요';
 
   @override
-  String get validatorPasswordRequired => 'Please enter your password';
+  String get validatorPasswordRequired => '비밀번호를 입력하세요';
 
   @override
-  String get validatorCodeRequired => 'Please enter verification code';
+  String get validatorCodeRequired => '인증 코드를 입력하세요';
 
   @override
-  String get validatorNameRequired => 'Please enter a display name';
+  String get validatorNameRequired => '표시명을 입력하세요';
 
   @override
   String validatorNameTooLong(int max) {
-    return 'Name cannot exceed $max characters';
+    return '이름은 $max자를 초과할 수 없습니다';
   }
 
   @override
-  String get validatorConfirmPasswordMismatch => 'Passwords don\'t match';
+  String get validatorConfirmPasswordMismatch => '비밀번호 불일치';
 
   @override
-  String get validatorPasswordWeak =>
-      'At least 6 chars with uppercase, lowercase & digit';
+  String get validatorPasswordWeak => '6자 이상, 대소문자 및 숫자 포함';
 
   @override
-  String get validatorEmailInvalid => 'Please enter a valid email address';
+  String get validatorEmailInvalid => '유효한 이메일 입력';
 
   @override
-  String get oauthWebViewCantReceive =>
-      'Cannot receive login callback, please retry';
+  String get oauthWebViewCantReceive => '로그인 콜백 수신 실패';
 
   @override
-  String get oauthWebViewCantOpenBrowser =>
-      'Cannot open system browser, check settings';
+  String get oauthWebViewCantOpenBrowser => '브라우저 열기 실패';
 
   @override
-  String get oauthWebViewCantInitiate =>
-      'Cannot initiate third-party auth, try later';
+  String get oauthWebViewCantInitiate => '인증 시작 실패';
 
   @override
-  String get oauthWebViewLoginFailed => 'Login failed, missing token';
+  String get oauthWebViewLoginFailed => '로그인 실패, 토큰 없음';
 
   @override
-  String get oauthWebViewOpenBrowser => 'Opening system browser';
+  String get oauthWebViewOpenBrowser => '브라우저 열기';
 
   @override
-  String get oauthWebViewAuthorizeInBrowser =>
-      'Complete authorization in browser';
+  String get oauthWebViewAuthorizeInBrowser => '브라우저에서 인증 완료';
 
   @override
-  String get oauthWebViewAutoReturn =>
-      'Will return to LightHub after completion';
+  String get oauthWebViewAutoReturn => '완료 후 자동으로 복귀';
 
   @override
-  String get oauthWebViewOpening => 'Opening';
+  String get oauthWebViewOpening => '열기';
 
   @override
-  String get oauthWebViewReopen => 'Reopen';
+  String get oauthWebViewReopen => '다시 열기';
 
   @override
   String oauthBindProvider(String provider) {
-    return 'Link $provider';
+    return '$provider 연동';
   }
 
   @override
   String oauthLoginProvider(String provider) {
-    return '$provider Login';
+    return '$provider 로그인';
   }
 
   @override
-  String get verifyCodeSentContinue => 'Code sent, continue resetting password';
+  String get verifyCodeSentContinue => '코드 전송됨, 비밀번호 재설정 계속';
 
   @override
-  String get loginFailedCheckAccount =>
-      'Login failed, check account and password';
+  String get loginFailedCheckAccount => '로그인 실패, 계정 확인';
 
   @override
-  String get loginFailedCheckCode => 'Login failed, check verification code';
+  String get loginFailedCheckCode => '로그인 실패, 코드 확인';
 
   @override
-  String get displayName => 'Display Name';
+  String get displayName => '표시명';
 
   @override
-  String get uploadingImages => 'Uploading images';
+  String get uploadingImages => '이미지 업로드 중...';
 
   @override
   String postWatchCount(int count) {
-    return '$count views';
+    return '조회 $count';
   }
 
   @override
-  String get commentBindingSuccess => 'Linked successfully';
+  String get commentBindingSuccess => '연동 완료';
 
   @override
-  String get commentBindingSuccessRefreshFailed =>
-      'Linked, but profile refresh failed';
+  String get commentBindingSuccessRefreshFailed => '연동 완료, 프로필 새로고침 실패';
 
   @override
   String get postEditTitle => '게시물 편집';
@@ -911,97 +905,90 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get passwordResetSuccess => 'Password reset, please log in again';
+  String get passwordResetSuccess => '비밀번호 재설정 완료, 다시 로그인';
 
   @override
-  String get registerComplete => 'Registration complete, please log in';
+  String get registerComplete => '가입 완료, 로그인하세요';
 
   @override
-  String get goBack => 'Go back';
+  String get goBack => '뒤로';
 
   @override
   String codeSentToAccount(String account) {
-    return 'Code sent to $account';
+    return '$account (으)로 코드 전송됨';
   }
 
   @override
-  String get codeMinLength => 'Code must be at least 4 characters';
+  String get codeMinLength => '코드는 4자 이상이어야 합니다';
 
   @override
-  String get regenerateInstructions => 'Get reset instructions again';
+  String get regenerateInstructions => '재설정 안내 다시 받기';
 
   @override
-  String get passwordNewPlaceholder => 'New password';
+  String get passwordNewPlaceholder => '새 비밀번호';
 
   @override
-  String get passwordRequirementHint =>
-      'Password, at least 6 chars with upper, lower & digit';
+  String get passwordRequirementHint => '비밀번호, 6자 이상 대소문자 숫자';
 
   @override
-  String get noTagAvailable => 'No tags available';
+  String get noTagAvailable => '사용 가능한 태그 없음';
 
   @override
-  String get enterTagPage => 'Enter Tag Page';
+  String get enterTagPage => '태그 페이지';
 
   @override
-  String get chooseTagHint => 'Choose a tag to view posts.';
+  String get chooseTagHint => '태그를 선택하여 게시물을 확인하세요.';
 
   @override
-  String get unnamedTag => 'Unnamed tag';
+  String get unnamedTag => '이름 없는 태그';
 
   @override
-  String get waitFirstPoster =>
-      'Wait for the first person to post, or refresh later.';
+  String get waitFirstPoster => '첫 게시자를 기다리거나 새로고침하세요.';
 
   @override
-  String get tryDifferentKeyword =>
-      'Try a different keyword, or clear search to go home.';
+  String get tryDifferentKeyword => '다른 키워드로 검색하세요';
 
   @override
-  String get refreshingPosts => 'Refreshing posts...';
+  String get refreshingPosts => '게시물 새로고침...';
 
   @override
-  String get searching => 'Searching...';
+  String get searching => '검색 중...';
 
   @override
-  String get loadingFailed => 'Loading failed';
+  String get loadingFailed => '로딩 실패';
 
   @override
-  String get hotListEmpty => 'Hot list is empty';
+  String get hotListEmpty => '인기 목록 없음';
 
   @override
-  String get hotListEmptyDesc =>
-      'Hot posts will appear here when things pick up.';
+  String get hotListEmptyDesc => '인기 게시물이 여기에 표시됩니다.';
 
   @override
-  String get validatorCodeRequiredToken =>
-      'Please enter verification code or token';
+  String get validatorCodeRequiredToken => '인증 코드 또는 토큰 입력';
 
   @override
   String validatorAccountTooLong(int max) {
-    return 'Account cannot exceed $max characters';
+    return '계정은 $max자를 초과할 수 없습니다';
   }
 
   @override
-  String get validatorEmailOrPhoneRequired =>
-      'Please enter a valid email or phone number';
+  String get validatorEmailOrPhoneRequired => '유효한 이메일 또는 전화번호 입력';
 
   @override
-  String get validatorPasswordMinLength =>
-      'Password must be at least 6 characters';
+  String get validatorPasswordMinLength => '비밀번호 6자 이상';
 
   @override
   String get reply => '답글';
 
   @override
-  String get editPostAction => 'Edit';
+  String get editPostAction => '편집';
 
   @override
-  String get deletePostAction => 'Delete';
+  String get deletePostAction => '삭제';
 
   @override
   String get share => '공유';
 
   @override
-  String get myProfile => 'My Profile';
+  String get myProfile => '내 프로필';
 }

@@ -25,7 +25,8 @@
   "themeLight": "Light",
   "themeDark": "Dark",
   "themeSystem": "Follow System",
-  "themeMode": "Appearance",
+  "themeMode": "Theme Mode",
+  "themeSubtitle": "Switch between light, dark or follow system",
   "themeHint": "Tap to change display mode",
   "appearanceModeTitle": "Choose Appearance",
 

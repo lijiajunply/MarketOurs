@@ -75,7 +75,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themeSystem => '跟随系统';
 
   @override
-  String get themeMode => '外观偏好';
+  String get themeMode => '主题模式';
+
+  @override
+  String get themeSubtitle => '切换浅色、深色或跟随系统';
 
   @override
   String get themeHint => '点击切换显示模式';

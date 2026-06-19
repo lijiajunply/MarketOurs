@@ -487,7 +487,10 @@ class _ThemeModeSection extends ConsumerWidget {
               color: AppColors.primary,
             ),
           ),
-          subtitle: const Text(''),
+          subtitle: Text(
+            AppLocalizations.of(context).themeSubtitle,
+            style: const TextStyle(fontSize: 13),
+          ),
           trailing: const Icon(
             CupertinoIcons.chevron_right,
             size: 14,
