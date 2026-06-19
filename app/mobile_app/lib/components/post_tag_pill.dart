@@ -9,7 +9,7 @@ class PostTagPill extends StatelessWidget {
   const PostTagPill({
     super.key,
     required this.tag,
-    this.emptyText = '标签',
+    this.emptyText = 'Tag',
     this.clickable = true,
   });
 

@@ -114,7 +114,7 @@ class PostDetailHero extends StatelessWidget {
         ),
         if (post.tag != null) ...[
           const SizedBox(height: 12),
-          PostTagPill(tag: post.tag),
+          PostTagPill(tag: post.tag, emptyText: AppLocalizations.of(context).postCreateNoTag),
         ],
         const SizedBox(height: 16),
         Text(

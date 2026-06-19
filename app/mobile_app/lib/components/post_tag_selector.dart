@@ -42,9 +42,9 @@ class PostTagSelectorCard extends StatelessWidget {
     super.key,
     required this.tag,
     required this.onPressed,
-    this.emptyText = '无标签',
+    this.emptyText = '',
     this.enabled = true,
-    this.label = '标签',
+    this.label = 'Tag',
   });
 
   final PostTagDto? tag;
@@ -95,9 +95,9 @@ class PostTagInlineSelector extends StatelessWidget {
     super.key,
     required this.tag,
     required this.onPressed,
-    this.emptyText = '无标签',
+    this.emptyText = '',
     this.enabled = true,
-    this.label = '标签',
+    this.label = 'Tag',
     this.actionLabel = '更改',
   });
 
