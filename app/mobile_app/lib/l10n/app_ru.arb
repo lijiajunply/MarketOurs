@@ -314,5 +314,7 @@
   "postDeleteTitle": "Удалить пост",
   "postEditTitle": "Редактировать",
   "postSelectTag": "Выбрать тег",
-  "postTagAdminPreset": "Теги заданы администратором"
+  "postTagAdminPreset": "Теги заданы администратором",
+  "postEmptyCommentCTA": "Поделитесь мыслями, будьте первым.",
+  "postCommentCount": "{count} комментариев"
 }

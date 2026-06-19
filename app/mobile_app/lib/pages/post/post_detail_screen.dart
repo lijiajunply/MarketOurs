@@ -1230,7 +1230,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            '评论 ${_comments.length}',
+                            AppLocalizations.of(context).postCommentCount(_comments.length),
                             style: AppTextStyles.sectionTitle(context),
                           ),
                         ),
@@ -1277,7 +1277,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       AppEmptyState(
                         icon: CupertinoIcons.chat_bubble,
                         title: AppLocalizations.of(context).postNoComments,
-                        description: '分享你的见解，成为第一个评论的人。',
+                        description: AppLocalizations.of(context).postEmptyCommentCTA,
                       )
                     else
                       ..._comments.map(

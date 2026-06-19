@@ -314,5 +314,7 @@
   "postDeleteTitle": "投稿を削除",
   "postEditTitle": "投稿を編集",
   "postSelectTag": "タグを選択",
-  "postTagAdminPreset": "タグは管理者が設定します"
+  "postTagAdminPreset": "タグは管理者が設定します",
+  "postEmptyCommentCTA": "あなたの意見を共有し、最初のコメントを残そう。",
+  "postCommentCount": "{count} コメント"
 }

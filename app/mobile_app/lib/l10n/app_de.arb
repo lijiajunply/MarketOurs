@@ -314,5 +314,7 @@
   "postDeleteTitle": "Beitrag löschen",
   "postEditTitle": "Bearbeiten",
   "postSelectTag": "Tag wählen",
-  "postTagAdminPreset": "Voreingestellte Tags"
+  "postTagAdminPreset": "Voreingestellte Tags",
+  "postEmptyCommentCTA": "Teile deine Gedanken, sei der Erste!",
+  "postCommentCount": "{count} Kommentare"
 }

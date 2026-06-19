@@ -335,6 +335,9 @@
   "postDeleteTitle": "删除帖子",
   "postSelectTag": "选择标签",
   "postTagAdminPreset": "标签由管理员预设，可不选择。",
+  "postEmptyCommentCTA": "分享你的见解，成为第一个评论的人。",
+  "postCommentCount": "评论 {count}",
+  "@postCommentCount": {"placeholders": {"count": {"type": "int"}}},
 
   "passwordResetSuccess": "密码已重置，请重新登录",
   "registerComplete": "注册完成，请使用账号密码登录",

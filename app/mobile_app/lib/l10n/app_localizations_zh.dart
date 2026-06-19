@@ -894,6 +894,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get postTagAdminPreset => '标签由管理员预设，可不选择。';
 
   @override
+  String get postEmptyCommentCTA => '分享你的见解，成为第一个评论的人。';
+
+  @override
+  String postCommentCount(int count) {
+    return '评论 $count';
+  }
+
+  @override
   String get passwordResetSuccess => '密码已重置，请重新登录';
 
   @override

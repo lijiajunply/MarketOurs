@@ -314,5 +314,7 @@
   "postDeleteTitle": "게시물 삭제",
   "postEditTitle": "게시물 편집",
   "postSelectTag": "태그 선택",
-  "postTagAdminPreset": "관리자가 설정한 태그"
+  "postTagAdminPreset": "관리자가 설정한 태그",
+  "postEmptyCommentCTA": "의견을 공유하고 첫 댓글을 남겨보세요.",
+  "postCommentCount": "댓글 {count}"
 }

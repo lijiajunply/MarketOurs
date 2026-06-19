@@ -905,6 +905,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get postTagAdminPreset => 'Tags prédéfinis';
 
   @override
+  String get postEmptyCommentCTA => 'Partagez votre avis, soyez le premier !';
+
+  @override
+  String postCommentCount(int count) {
+    return '$count commentaires';
+  }
+
+  @override
   String get passwordResetSuccess => 'Password reset, please log in again';
 
   @override

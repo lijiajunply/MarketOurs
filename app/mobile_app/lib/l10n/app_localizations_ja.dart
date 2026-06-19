@@ -903,6 +903,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get postTagAdminPreset => 'タグは管理者が設定します';
 
   @override
+  String get postEmptyCommentCTA => 'あなたの意見を共有し、最初のコメントを残そう。';
+
+  @override
+  String postCommentCount(int count) {
+    return '$count コメント';
+  }
+
+  @override
   String get passwordResetSuccess => 'Password reset, please log in again';
 
   @override

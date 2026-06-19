@@ -315,6 +315,8 @@
   "postDeleteTitle": "Delete Post",
   "postSelectTag": "Select Tag",
   "postTagAdminPreset": "Tags are preset by admin and optional.",
+  "postEmptyCommentCTA": "Share your thoughts, be the first to comment.",
+  "postCommentCount": "{count} Comments",
 
   "passwordResetSuccess": "Password reset, please log in again",
   "registerComplete": "Registration complete, please log in",

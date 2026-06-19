@@ -314,5 +314,7 @@
   "postDeleteTitle": "Supprimer",
   "postEditTitle": "Modifier",
   "postSelectTag": "Choisir tag",
-  "postTagAdminPreset": "Tags prédéfinis"
+  "postTagAdminPreset": "Tags prédéfinis",
+  "postEmptyCommentCTA": "Partagez votre avis, soyez le premier !",
+  "postCommentCount": "{count} commentaires"
 }

@@ -1830,6 +1830,18 @@ abstract class AppLocalizations {
   /// **'标签由管理员预设，可不选择。'**
   String get postTagAdminPreset;
 
+  /// No description provided for @postEmptyCommentCTA.
+  ///
+  /// In zh, this message translates to:
+  /// **'分享你的见解，成为第一个评论的人。'**
+  String get postEmptyCommentCTA;
+
+  /// No description provided for @postCommentCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'评论 {count}'**
+  String postCommentCount(int count);
+
   /// No description provided for @passwordResetSuccess.
   ///
   /// In zh, this message translates to:

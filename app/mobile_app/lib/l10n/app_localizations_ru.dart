@@ -905,6 +905,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get postTagAdminPreset => 'Теги заданы администратором';
 
   @override
+  String get postEmptyCommentCTA => 'Поделитесь мыслями, будьте первым.';
+
+  @override
+  String postCommentCount(int count) {
+    return '$count комментариев';
+  }
+
+  @override
   String get passwordResetSuccess => 'Password reset, please log in again';
 
   @override

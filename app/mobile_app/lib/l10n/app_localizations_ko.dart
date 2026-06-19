@@ -903,6 +903,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get postTagAdminPreset => '관리자가 설정한 태그';
 
   @override
+  String get postEmptyCommentCTA => '의견을 공유하고 첫 댓글을 남겨보세요.';
+
+  @override
+  String postCommentCount(int count) {
+    return '댓글 $count';
+  }
+
+  @override
   String get passwordResetSuccess => 'Password reset, please log in again';
 
   @override
