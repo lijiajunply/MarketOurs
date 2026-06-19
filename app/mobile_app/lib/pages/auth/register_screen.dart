@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -14,6 +15,7 @@ import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/app_widgets.dart';
+import '../../widgets/slider_captcha.dart';
 import '../../utils/dto_validation.dart';
 import 'auth_scaffold.dart';
 import 'password_form_field.dart';
@@ -149,6 +151,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
+  Future<String?> _showCaptcha() {
+    final completer = Completer<String?>();
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => SliderCaptcha(
+        onVerify: (token) {
+          Navigator.of(ctx).pop();
+          completer.complete(token);
+        },
+        onCancel: () {
+          Navigator.of(ctx).pop();
+          completer.complete();
+        },
+      ),
+    );
+    return completer.future;
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -192,9 +213,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       if (!mounted) return;
 
+      final captchaToken = await _showCaptcha();
+      if (captchaToken == null) return;
+
       await ref
           .read(authControllerProvider.notifier)
-          .sendRegistrationCode(registrationToken);
+          .sendRegistrationCode(registrationToken, captchaToken: captchaToken);
 
       if (!mounted) return;
 

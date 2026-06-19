@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { authService } from "@/services/authService";
 import { Mail, Lock, Loader2, ArrowRight, Key, CheckCircle2, AlertCircle } from "lucide-react";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { SliderCaptcha } from "@/components/auth/SliderCaptcha";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -34,6 +35,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [showCaptcha, setShowCaptcha] = useState(false);
 
   useEffect(() => {
     let timer: any;
@@ -47,11 +49,20 @@ export default function ForgotPasswordPage() {
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
+    setShowCaptcha(true);
+  };
+
+  const handleResendCode = () => {
+    setShowCaptcha(true);
+  };
+
+  const handleCaptchaVerified = async (captchaToken: string) => {
+    setShowCaptcha(false);
+    setIsLoading(true);
 
     try {
-      await authService.forgotPassword({ account });
+      await authService.forgotPassword({ account, captchaToken });
       setStep(2);
       setCountdown(60);
     } catch (err: any) {
@@ -194,7 +205,7 @@ export default function ForgotPasswordPage() {
             {step === 2 && countdown === 0 && (
               <button
                 type="button"
-                onClick={handleSendCode}
+                onClick={handleResendCode}
                 className="w-full text-sm font-bold text-primary hover:underline"
               >
                 {t("auth.resend_code_action")}
@@ -209,6 +220,13 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
       </div>
+
+      {showCaptcha && (
+        <SliderCaptcha
+          onVerify={handleCaptchaVerified}
+          onCancel={() => setShowCaptcha(false)}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { compressImage } from "@/services/imageCompression";
 import { toast } from "@/lib/toast";
 import { User, Mail, Lock, Loader2, ArrowRight, RefreshCw, Image, Camera } from "lucide-react";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { SliderCaptcha } from "@/components/auth/SliderCaptcha";
 import { DTO_LIMITS, passwordLength, requiredMax } from "@/lib/dtoValidation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ export default function RegisterPage() {
   const [regToken, setRegToken] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [countdown, setCountdown] = useState(0);
+  const [showCaptcha, setShowCaptcha] = useState(false);
 
   const navigate = useNavigate();
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -126,9 +128,7 @@ export default function RegisterPage() {
       const response = await authService.register({ name, account, password, avatar });
       if (response.data) {
         setRegToken(response.data);
-        await authService.sendRegistrationCode(response.data);
-        setStep(2);
-        setCountdown(60);
+        setShowCaptcha(true);
       }
     } catch (err: any) {
       setError(err.message || t("auth.error_registration_failed"));
@@ -139,9 +139,15 @@ export default function RegisterPage() {
 
   const handleResendCode = async () => {
     if (countdown > 0 || !regToken) return;
+    setShowCaptcha(true);
+  };
+
+  const handleCaptchaVerified = async (captchaToken: string) => {
+    setShowCaptcha(false);
     setIsLoading(true);
     try {
-      await authService.sendRegistrationCode(regToken);
+      await authService.sendRegistrationCode(regToken, captchaToken);
+      setStep(2);
       setCountdown(60);
     } catch (err: any) {
       setError(err.message || t("auth.error_registration_failed"));
@@ -366,6 +372,13 @@ export default function RegisterPage() {
           </p>
         </div>
       </div>
+
+      {showCaptcha && (
+        <SliderCaptcha
+          onVerify={handleCaptchaVerified}
+          onCancel={() => setShowCaptcha(false)}
+        />
+      )}
     </div>
   );
 }

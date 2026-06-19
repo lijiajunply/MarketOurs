@@ -27,6 +27,7 @@ export interface TokenDto {
 
 export interface ForgotPasswordRequest {
   account: string;
+  captchaToken?: string;
 }
 
 export interface ResetPasswordRequest {
@@ -51,6 +52,7 @@ export interface UnbindThirdPartyRequest {
 
 export interface SendCodeRequest {
   account: string;
+  captchaToken?: string;
 }
 
 export interface LoginByCodeRequest {

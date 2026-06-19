@@ -24,7 +24,8 @@ export const authService = {
 
   register: (data: UserCreateDto) => apiClient.post<string>('/Auth/register', data),
 
-  sendRegistrationCode: (regToken: string) => apiClient.post<void>(`/Auth/send-registration-code?regToken=${regToken}`),
+  sendRegistrationCode: (regToken: string, captchaToken?: string) =>
+    apiClient.post<void>(`/Auth/send-registration-code?regToken=${regToken}${captchaToken ? `&captchaToken=${encodeURIComponent(captchaToken)}` : ''}`),
 
   verifyRegistration: (data: VerifyRegistrationRequest) => apiClient.post<UserDto>('/Auth/verify-registration', data),
 
@@ -55,7 +56,6 @@ export const authService = {
 
   getExternalLoginUrl: (provider: string, returnUrl: string, purpose: 'login' | 'bind' = 'login') => {
     let url = `${BASE_URL}/Auth/external-login?provider=${provider}&returnUrl=${encodeURIComponent(returnUrl)}&purpose=${purpose}`;
-    // 绑定操作需要传递 access_token，因为页面跳转不会携带 Authorization 头
     if (purpose === 'bind') {
       const token = getAccessToken();
       if (token) {
@@ -64,4 +64,8 @@ export const authService = {
     }
     return url;
   },
+
+  getCaptchaChallenge: () => apiClient.get<{ token: string; backgroundImage: string; puzzleImage: string; puzzleWidth: number; puzzleHeight: number }>('/Auth/captcha-challenge'),
+
+  verifyCaptcha: (data: { token: string; x: number }) => apiClient.post<string>('/Auth/verify-captcha', data),
 };

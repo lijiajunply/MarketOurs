@@ -444,7 +444,7 @@ class _FakeAuthService extends AuthService {
   }
 
   @override
-  Future<ApiResponse> sendRegistrationCode(String regToken) async {
+  Future<ApiResponse> sendRegistrationCode(String regToken, {String? captchaToken}) async {
     return ApiResponse(message: 'ok');
   }
 

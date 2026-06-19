@@ -49,8 +49,9 @@ class RefreshRequest {
 @JsonSerializable()
 class ForgotPasswordRequest {
   final String account;
+  final String? captchaToken;
 
-  ForgotPasswordRequest({required this.account});
+  ForgotPasswordRequest({required this.account, this.captchaToken});
 
   factory ForgotPasswordRequest.fromJson(Map<String, dynamic> json) =>
       _$ForgotPasswordRequestFromJson(json);
@@ -120,8 +121,9 @@ class VerifyRegistrationRequest {
 @JsonSerializable()
 class SendCodeRequest {
   final String account;
+  final String? captchaToken;
 
-  SendCodeRequest({required this.account});
+  SendCodeRequest({required this.account, this.captchaToken});
 
   factory SendCodeRequest.fromJson(Map<String, dynamic> json) =>
       _$SendCodeRequestFromJson(json);

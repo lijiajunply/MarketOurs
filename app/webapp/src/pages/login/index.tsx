@@ -8,6 +8,7 @@ import { setCredentials } from "@/stores/authSlice";
 import { toast } from "@/lib/toast";
 import { Mail, Lock, Loader2, ArrowRight, ShieldCheck, GraduationCap } from "lucide-react";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { SliderCaptcha } from "@/components/auth/SliderCaptcha";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [error, setError] = useState("");
+  const [showCaptcha, setShowCaptcha] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -40,10 +42,15 @@ export default function LoginPage() {
       setError(t("auth.invalid_account"));
       return;
     }
+    setShowCaptcha(true);
+  };
+
+  const handleCaptchaVerified = async (captchaToken: string) => {
+    setShowCaptcha(false);
     setIsSendingCode(true);
     setError("");
     try {
-      await authService.sendLoginCode({ account });
+      await authService.sendLoginCode({ account, captchaToken });
       setCountdown(60);
     } catch (err: any) {
       setError(err.message || t("auth.error_failed_to_send_code"));
@@ -291,6 +298,13 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      {showCaptcha && (
+        <SliderCaptcha
+          onVerify={handleCaptchaVerified}
+          onCancel={() => setShowCaptcha(false)}
+        />
+      )}
     </div>
   );
 }

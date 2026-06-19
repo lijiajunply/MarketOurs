@@ -199,12 +199,9 @@ class AuthController extends AsyncNotifier<AuthState> {
     }
   }
 
-  Future<void> sendLoginCode({required String account}) async {
-    // We don't want to use _runGuestAction here because it sets isSubmitting to true
-    // on the main AuthState, which might trigger router listeners or UI overlays.
-    // Instead, we call the service directly. The UI manages its own loading state (_isSendingCode).
+  Future<void> sendLoginCode({required String account, String? captchaToken}) async {
     try {
-      await _authService.sendLoginCode(SendCodeRequest(account: account));
+      await _authService.sendLoginCode(SendCodeRequest(account: account, captchaToken: captchaToken));
     } catch (error) {
       final current = state.asData?.value ?? AuthState.unauthenticated();
       state = AsyncData(current.copyWith(errorMessage: _normalizeError(error)));
@@ -314,9 +311,9 @@ class AuthController extends AsyncNotifier<AuthState> {
     }
   }
 
-  Future<void> sendRegistrationCode(String registrationToken) async {
+  Future<void> sendRegistrationCode(String registrationToken, {String? captchaToken}) async {
     await _runGuestAction(
-      () => _authService.sendRegistrationCode(registrationToken),
+      () => _authService.sendRegistrationCode(registrationToken, captchaToken: captchaToken),
     );
   }
 
@@ -334,10 +331,10 @@ class AuthController extends AsyncNotifier<AuthState> {
     );
   }
 
-  Future<void> forgotPassword({required String account}) async {
+  Future<void> forgotPassword({required String account, String? captchaToken}) async {
     await _runGuestAction(
       () =>
-          _authService.forgotPassword(ForgotPasswordRequest(account: account)),
+          _authService.forgotPassword(ForgotPasswordRequest(account: account, captchaToken: captchaToken)),
     );
   }
 

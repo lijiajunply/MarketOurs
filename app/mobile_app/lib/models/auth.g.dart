@@ -43,11 +43,17 @@ Map<String, dynamic> _$RefreshRequestToJson(RefreshRequest instance) =>
 
 ForgotPasswordRequest _$ForgotPasswordRequestFromJson(
   Map<String, dynamic> json,
-) => ForgotPasswordRequest(account: json['account'] as String);
+) => ForgotPasswordRequest(
+  account: json['account'] as String,
+  captchaToken: json['captchaToken'] as String?,
+);
 
 Map<String, dynamic> _$ForgotPasswordRequestToJson(
   ForgotPasswordRequest instance,
-) => <String, dynamic>{'account': instance.account};
+) => <String, dynamic>{
+  'account': instance.account,
+  'captchaToken': instance.captchaToken,
+};
 
 ResetPasswordRequest _$ResetPasswordRequestFromJson(
   Map<String, dynamic> json,
@@ -100,10 +106,16 @@ Map<String, dynamic> _$VerifyRegistrationRequestToJson(
 };
 
 SendCodeRequest _$SendCodeRequestFromJson(Map<String, dynamic> json) =>
-    SendCodeRequest(account: json['account'] as String);
+    SendCodeRequest(
+      account: json['account'] as String,
+      captchaToken: json['captchaToken'] as String?,
+    );
 
 Map<String, dynamic> _$SendCodeRequestToJson(SendCodeRequest instance) =>
-    <String, dynamic>{'account': instance.account};
+    <String, dynamic>{
+      'account': instance.account,
+      'captchaToken': instance.captchaToken,
+    };
 
 LoginByCodeRequest _$LoginByCodeRequestFromJson(Map<String, dynamic> json) =>
     LoginByCodeRequest(

@@ -51,10 +51,14 @@ class AuthService {
     );
   }
 
-  Future<ApiResponse> sendRegistrationCode(String regToken) async {
+  Future<ApiResponse> sendRegistrationCode(String regToken, {String? captchaToken}) async {
+    var queryParams = <String, dynamic>{'regToken': regToken};
+    if (captchaToken != null) {
+      queryParams['captchaToken'] = captchaToken;
+    }
     final response = await _api.post(
       '/Auth/send-registration-code',
-      queryParameters: {'regToken': regToken},
+      queryParameters: queryParams,
       options: ApiService.anonymousOptions(),
     );
     return ApiResponse.fromJson(response.data, (json) => json);
@@ -213,5 +217,53 @@ class AuthService {
         uri.host == mobileOAuthCallbackHost;
     final isWebCallback = uri.toString().startsWith(oauthCallbackUrl);
     return isMobileCallback || isWebCallback;
+  }
+
+  Future<CaptchaChallenge> getCaptchaChallenge() async {
+    final response = await _api.get(
+      '/Auth/captcha-challenge',
+      options: ApiService.anonymousOptions(),
+    );
+    return CaptchaChallenge.fromJson(
+      response.data['data'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<String> verifyCaptcha({
+    required String token,
+    required int x,
+  }) async {
+    final response = await _api.post(
+      '/Auth/verify-captcha',
+      data: {'token': token, 'x': x},
+      options: ApiService.anonymousOptions(),
+    );
+    return response.data['data'] as String;
+  }
+}
+
+class CaptchaChallenge {
+  final String token;
+  final String backgroundImage;
+  final String puzzleImage;
+  final int puzzleWidth;
+  final int puzzleHeight;
+
+  CaptchaChallenge({
+    required this.token,
+    required this.backgroundImage,
+    required this.puzzleImage,
+    required this.puzzleWidth,
+    required this.puzzleHeight,
+  });
+
+  factory CaptchaChallenge.fromJson(Map<String, dynamic> json) {
+    return CaptchaChallenge(
+      token: json['token'] as String,
+      backgroundImage: json['backgroundImage'] as String,
+      puzzleImage: json['puzzleImage'] as String,
+      puzzleWidth: json['puzzleWidth'] as int,
+      puzzleHeight: json['puzzleHeight'] as int,
+    );
   }
 }

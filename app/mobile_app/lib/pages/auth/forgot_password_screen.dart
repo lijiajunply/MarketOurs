@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import '../../router/app_router.dart';
 import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_widgets.dart';
+import '../../widgets/slider_captcha.dart';
 import 'auth_scaffold.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -32,10 +35,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       return;
     }
 
+    final captchaToken = await _showCaptcha();
+    if (captchaToken == null) return;
+
     try {
       await ref
           .read(authControllerProvider.notifier)
-          .forgotPassword(account: _accountController.text.trim());
+          .forgotPassword(
+            account: _accountController.text.trim(),
+            captchaToken: captchaToken,
+          );
 
       if (!mounted) {
         return;
@@ -62,6 +71,25 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             : '发送验证码失败，请稍后重试',
       );
     }
+  }
+
+  Future<String?> _showCaptcha() {
+    final completer = Completer<String?>();
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => SliderCaptcha(
+        onVerify: (token) {
+          Navigator.of(ctx).pop();
+          completer.complete(token);
+        },
+        onCancel: () {
+          Navigator.of(ctx).pop();
+          completer.complete();
+        },
+      ),
+    );
+    return completer.future;
   }
 
   @override

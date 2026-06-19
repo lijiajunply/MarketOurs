@@ -14,7 +14,7 @@ namespace MarketOurs.WebAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-public class AuthController(ILoginService loginService, IUserService userService, ILogger<AuthController> logger)
+public class AuthController(ILoginService loginService, IUserService userService, ICaptchaService captchaService, ILogger<AuthController> logger)
     : ControllerBase
 {
     /// <summary>
@@ -39,6 +39,7 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse> SendLoginCode([FromBody] SendCodeRequest request)
     {
+        await ValidateCaptchaAsync(request.CaptchaToken);
         logger.LogInformation("用户请求登录验证码: {Account}", request.Account);
         await loginService.SendLoginCodeAsync(request.Account);
         return ApiResponse.Success("验证码已发送");
@@ -77,8 +78,9 @@ public class AuthController(ILoginService loginService, IUserService userService
     /// <param name="regToken">注册令牌</param>
     [HttpPost("send-registration-code")]
     [AllowAnonymous]
-    public async Task<ApiResponse> SendRegistrationCode([FromQuery] string regToken)
+    public async Task<ApiResponse> SendRegistrationCode([FromQuery] string regToken, [FromQuery] string? captchaToken)
     {
+        await ValidateCaptchaAsync(captchaToken);
         await loginService.SendRegistrationCodeAsync(regToken);
         return ApiResponse.Success("验证码已发送");
     }
@@ -177,6 +179,7 @@ public class AuthController(ILoginService loginService, IUserService userService
     [AllowAnonymous]
     public async Task<ApiResponse> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
+        await ValidateCaptchaAsync(request.CaptchaToken);
         await userService.ForgotPasswordAsync(request.Account);
         return ApiResponse.Success("重置密码验证码已发送至您的邮箱或手机");
     }
@@ -282,6 +285,41 @@ public class AuthController(ILoginService loginService, IUserService userService
             "verification" or "email-verification" => EmailVerificationPurpose.EmailVerification,
             _ => throw new BusinessException(ErrorCode.ParameterFormatError, "不支持的邮箱验证码用途")
         };
+    }
+
+    private async Task ValidateCaptchaAsync(string? captchaToken)
+    {
+        if (string.IsNullOrWhiteSpace(captchaToken))
+            throw new BusinessException(ErrorCode.ParameterEmpty, "请先完成滑块验证");
+
+        var valid = await captchaService.ValidateCaptchaTokenAsync(captchaToken);
+        if (!valid)
+            throw new BusinessException(ErrorCode.VerificationCodeInvalid, "滑块验证已过期，请重新验证");
+    }
+
+    /// <summary>
+    /// 获取滑块验证码挑战
+    /// </summary>
+    [HttpGet("captcha-challenge")]
+    [AllowAnonymous]
+    public async Task<ApiResponse<CaptchaChallengeDto>> GetCaptchaChallenge()
+    {
+        var challenge = await captchaService.GenerateChallengeAsync();
+        return ApiResponse<CaptchaChallengeDto>.Success(challenge, "获取验证挑战成功");
+    }
+
+    /// <summary>
+    /// 验证滑块位置
+    /// </summary>
+    [HttpPost("verify-captcha")]
+    [AllowAnonymous]
+    public async Task<ApiResponse<string>> VerifyCaptcha([FromBody] VerifyCaptchaRequest request)
+    {
+        var captchaToken = await captchaService.VerifyChallengeAsync(request.Token, request.X);
+        if (captchaToken == null)
+            throw new BusinessException(ErrorCode.VerificationCodeInvalid, "滑块验证失败，请重试");
+
+        return ApiResponse<string>.Success(captchaToken, "验证成功");
     }
 
     /// <summary>
@@ -464,12 +502,11 @@ public class RefreshRequest
 /// </summary>
 public class ForgotPasswordRequest
 {
-    /// <summary>
-    /// 账号 (邮箱或手机号)
-    /// </summary>
     [Required(ErrorMessage = "账号不能为空")]
     [MaxLength(128, ErrorMessage = "账号长度不能超过128位")]
     public string Account { get; set; } = string.Empty;
+
+    public string? CaptchaToken { get; set; }
 }
 
 /// <summary>
@@ -551,11 +588,10 @@ public class UnbindThirdPartyRequest
 /// </summary>
 public class SendCodeRequest
 {
-    /// <summary>
-    /// 账号 (邮箱或手机号)
-    /// </summary>
     [Required(ErrorMessage = "账号不能为空")]
     public string Account { get; set; } = string.Empty;
+
+    public string? CaptchaToken { get; set; }
 }
 
 /// <summary>
@@ -563,20 +599,20 @@ public class SendCodeRequest
 /// </summary>
 public class LoginByCodeRequest
 {
-    /// <summary>
-    /// 账号 (邮箱或手机号)
-    /// </summary>
     [Required(ErrorMessage = "账号不能为空")]
     public string Account { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 验证码
-    /// </summary>
     [Required(ErrorMessage = "验证码不能为空")]
     public string Code { get; set; } = string.Empty;
 
-    /// <summary>
-    /// 设备类型 (Web/Mobile)
-    /// </summary>
     public string DeviceType { get; set; } = "Web";
+}
+
+public class VerifyCaptchaRequest
+{
+    [Required(ErrorMessage = "验证令牌不能为空")]
+    public string Token { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "滑块位置不能为空")]
+    public int X { get; set; }
 }

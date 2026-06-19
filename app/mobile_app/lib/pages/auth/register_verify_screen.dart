@@ -10,6 +10,7 @@ import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/app_widgets.dart';
+import '../../widgets/slider_captcha.dart';
 import 'auth_scaffold.dart';
 
 class RegisterVerifyScreen extends ConsumerStatefulWidget {
@@ -70,10 +71,16 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
   Future<void> _resendCode() async {
     if (_countdown > 0) return;
 
+    final captchaToken = await _showCaptcha();
+    if (captchaToken == null) return;
+
     try {
       await ref
           .read(authControllerProvider.notifier)
-          .sendRegistrationCode(widget.registrationToken);
+          .sendRegistrationCode(
+            widget.registrationToken,
+            captchaToken: captchaToken,
+          );
       if (mounted) {
         setState(() => _countdown = 60);
         _startCountdown();
@@ -92,6 +99,25 @@ class _RegisterVerifyScreenState extends ConsumerState<RegisterVerifyScreen> {
             : '重发验证码失败，请稍后重试',
       );
     }
+  }
+
+  Future<String?> _showCaptcha() {
+    final completer = Completer<String?>();
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => SliderCaptcha(
+        onVerify: (token) {
+          Navigator.of(ctx).pop();
+          completer.complete(token);
+        },
+        onCancel: () {
+          Navigator.of(ctx).pop();
+          completer.complete();
+        },
+      ),
+    );
+    return completer.future;
   }
 
   Future<void> _submit() async {

@@ -55,6 +55,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISensitiveWordService, SensitiveWordService>();
 
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<ICaptchaService, CaptchaService>();
     }
 
     private static void RegisterPushService(IServiceCollection services)

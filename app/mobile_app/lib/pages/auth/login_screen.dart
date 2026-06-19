@@ -11,6 +11,7 @@ import '../../ui/app_feedback.dart';
 import '../../ui/app_fields.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/app_widgets.dart';
+import '../../widgets/slider_captcha.dart';
 import 'auth_scaffold.dart';
 import 'password_form_field.dart';
 
@@ -49,11 +50,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
+    final captchaToken = await _showCaptcha();
+    if (captchaToken == null || !mounted) return;
+
     setState(() => _isSendingCode = true);
     try {
       await ref
           .read(authControllerProvider.notifier)
-          .sendLoginCode(account: account);
+          .sendLoginCode(account: account, captchaToken: captchaToken);
       if (!mounted) return;
       _startCountdown();
       await AppFeedback.showSuccess(context, message: '验证码已发送');
@@ -68,6 +72,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         setState(() => _isSendingCode = false);
       }
     }
+  }
+
+  Future<String?> _showCaptcha() {
+    final completer = Completer<String?>();
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => SliderCaptcha(
+        onVerify: (token) {
+          Navigator.of(ctx).pop();
+          completer.complete(token);
+        },
+        onCancel: () {
+          Navigator.of(ctx).pop();
+          completer.complete();
+        },
+      ),
+    );
+    return completer.future;
   }
 
   void _startCountdown() {

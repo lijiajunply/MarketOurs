@@ -70,6 +70,12 @@ public static class CacheKeys
     // 登录验证码 (Redis) - Key 为 Account, Value 为 Code
     public static string LoginCode(string account) => $"login_code:{account}";
 
+    // 滑块验证码挑战 (Redis) - Key 为 ChallengeToken, Value 为 "puzzleX:puzzleY"
+    public static string CaptchaChallenge(string token) => $"captcha_challenge:{token}";
+
+    // 滑块验证码通过令牌 (Redis) - Key 为 CaptchaToken, Value 为 "1"
+    public static string CaptchaToken(string token) => $"captcha_token:{token}";
+
     #endregion
 
     #region Follow & Block (关注/屏蔽相关 - Redis Set)
