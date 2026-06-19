@@ -882,6 +882,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commentBindingSuccessRefreshFailed => '绑定成功，但刷新资料失败，请稍后下拉刷新';
 
   @override
+  String get postEditTitle => '编辑帖子';
+
+  @override
+  String get postDeleteTitle => '删除帖子';
+
+  @override
   String get passwordResetSuccess => '密码已重置，请重新登录';
 
   @override

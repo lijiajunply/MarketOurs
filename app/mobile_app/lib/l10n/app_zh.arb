@@ -331,6 +331,8 @@
 
   "commentBindingSuccess": "绑定成功",
   "commentBindingSuccessRefreshFailed": "绑定成功，但刷新资料失败，请稍后下拉刷新",
+  "postEditTitle": "编辑帖子",
+  "postDeleteTitle": "删除帖子",
 
   "passwordResetSuccess": "密码已重置，请重新登录",
   "registerComplete": "注册完成，请使用账号密码登录",

@@ -916,7 +916,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
               ),
               child: PostEditorForm(
                 layout: PostEditorLayout.sheet,
-                headerText: '编辑帖子',
+                headerText: AppLocalizations.of(context).postEditTitle,
                 titleController: titleController,
                 contentController: contentController,
                 selectedTag: selectedTag,
@@ -1153,7 +1153,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                         Navigator.of(context).pop();
                         _editPost();
                       },
-                      child: const Text('编辑帖子'),
+                      child: Text(AppLocalizations.of(context).postEditTitle),
                     ),
                     CupertinoActionSheetAction(
                       isDestructiveAction: true,
@@ -1161,7 +1161,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                         Navigator.of(context).pop();
                         _deletePost();
                       },
-                      child: const Text('删除帖子'),
+                      child: Text(AppLocalizations.of(context).postDeleteTitle),
                     ),
                   ],
                   cancelButton: CupertinoActionSheetAction(

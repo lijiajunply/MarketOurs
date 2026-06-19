@@ -311,6 +311,8 @@
 
   "commentBindingSuccess": "Linked successfully",
   "commentBindingSuccessRefreshFailed": "Linked, but profile refresh failed",
+  "postEditTitle": "Edit Post",
+  "postDeleteTitle": "Delete Post",
 
   "passwordResetSuccess": "Password reset, please log in again",
   "registerComplete": "Registration complete, please log in",

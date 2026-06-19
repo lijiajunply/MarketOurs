@@ -900,6 +900,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Linked, but profile refresh failed';
 
   @override
+  String get postEditTitle => '编辑帖子';
+
+  @override
+  String get postDeleteTitle => '删除帖子';
+
+  @override
   String get passwordResetSuccess => 'Password reset, please log in again';
 
   @override

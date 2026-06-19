@@ -1806,6 +1806,18 @@ abstract class AppLocalizations {
   /// **'绑定成功，但刷新资料失败，请稍后下拉刷新'**
   String get commentBindingSuccessRefreshFailed;
 
+  /// No description provided for @postEditTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑帖子'**
+  String get postEditTitle;
+
+  /// No description provided for @postDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除帖子'**
+  String get postDeleteTitle;
+
   /// No description provided for @passwordResetSuccess.
   ///
   /// In zh, this message translates to:
