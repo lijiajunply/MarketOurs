@@ -182,9 +182,7 @@ class ProfileScreen extends ConsumerWidget {
                           destructive: true,
                           onTap: isSubmitting
                               ? null
-                              : () => ref
-                                    .read(authControllerProvider.notifier)
-                                    .logout(),
+                              : () => _logout(context, ref),
                         ),
                       ],
                     ),
@@ -201,6 +199,31 @@ class ProfileScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('确认退出登录？'),
+        content: const Text('退出登录将清除当前会话，可能需要重新登录。'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('退出登录'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    await ref.read(authControllerProvider.notifier).logout();
   }
 
   Future<void> _openEditSheet(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -29,6 +30,8 @@ class SliderCaptcha extends StatefulWidget {
 class _SliderCaptchaState extends State<SliderCaptcha> {
   final _authService = AuthService();
   CaptchaChallenge? _challenge;
+  ui.Image? _bgImage;
+  ui.Image? _puzzleImage;
   bool _loading = true;
   bool _verifying = false;
   bool _success = false;
@@ -37,12 +40,24 @@ class _SliderCaptchaState extends State<SliderCaptcha> {
   final double _trackWidth = 280;
 
   @override
+  void dispose() {
+    _bgImage?.dispose();
+    _puzzleImage?.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _fetchChallenge();
   }
 
   Future<void> _fetchChallenge() async {
+    _bgImage?.dispose();
+    _puzzleImage?.dispose();
+    _bgImage = null;
+    _puzzleImage = null;
+
     setState(() {
       _loading = true;
       _error = null;
@@ -51,9 +66,13 @@ class _SliderCaptchaState extends State<SliderCaptcha> {
     });
     try {
       final challenge = await _authService.getCaptchaChallenge();
+      final bgImg = await _decodeBase64(challenge.backgroundImage);
+      final puzzleImg = await _decodeBase64(challenge.puzzleImage);
       if (mounted) {
         setState(() {
           _challenge = challenge;
+          _bgImage = bgImg;
+          _puzzleImage = puzzleImg;
           _loading = false;
         });
       }
@@ -72,6 +91,13 @@ class _SliderCaptchaState extends State<SliderCaptcha> {
         });
       }
     }
+  }
+
+  Future<ui.Image> _decodeBase64(String base64) {
+    final bytes = base64Decode(base64);
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromList(bytes, (image) => completer.complete(image));
+    return completer.future;
   }
 
   Future<void> _verify() async {
@@ -177,14 +203,19 @@ class _SliderCaptchaState extends State<SliderCaptcha> {
                         child: CupertinoActivityIndicator(),
                       ),
                     )
-                  else if (_challenge != null) ...[
+                  else if (_challenge != null &&
+                      _bgImage != null &&
+                      _puzzleImage != null)
                     _CaptchaCanvas(
                       challenge: _challenge!,
+                      bgImage: _bgImage!,
+                      puzzleImage: _puzzleImage!,
                       offset: _sliderValue,
                     ),
-                    const SizedBox(height: 16),
-                    _buildSlider(),
-                    const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+                  if (!_loading) _buildSlider(),
+                  const SizedBox(height: 12),
+                  if (!_loading)
                     Row(
                       children: [
                         Expanded(
@@ -219,7 +250,6 @@ class _SliderCaptchaState extends State<SliderCaptcha> {
                         ),
                       ],
                     ),
-                  ],
                 ],
               ),
             ),
@@ -337,10 +367,14 @@ class _SliderCaptchaState extends State<SliderCaptcha> {
 class _CaptchaCanvas extends StatelessWidget {
   const _CaptchaCanvas({
     required this.challenge,
+    required this.bgImage,
+    required this.puzzleImage,
     required this.offset,
   });
 
   final CaptchaChallenge challenge;
+  final ui.Image bgImage;
+  final ui.Image puzzleImage;
   final double offset;
 
   @override
@@ -355,8 +389,8 @@ class _CaptchaCanvas extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: CustomPaint(
           painter: _CaptchaPainter(
-            bgBytes: base64Decode(challenge.backgroundImage),
-            puzzleBytes: base64Decode(challenge.puzzleImage),
+            bgImage: bgImage,
+            puzzleImage: puzzleImage,
             puzzleWidth: challenge.puzzleWidth.toDouble(),
             puzzleHeight: challenge.puzzleHeight.toDouble(),
             puzzleY: challenge.puzzleY.toDouble(),
@@ -370,8 +404,8 @@ class _CaptchaCanvas extends StatelessWidget {
 }
 
 class _CaptchaPainter extends CustomPainter {
-  final Uint8List bgBytes;
-  final Uint8List puzzleBytes;
+  final ui.Image bgImage;
+  final ui.Image puzzleImage;
   final double puzzleWidth;
   final double puzzleHeight;
   final double puzzleY;
@@ -379,8 +413,8 @@ class _CaptchaPainter extends CustomPainter {
   final double scale;
 
   _CaptchaPainter({
-    required this.bgBytes,
-    required this.puzzleBytes,
+    required this.bgImage,
+    required this.puzzleImage,
     required this.puzzleWidth,
     required this.puzzleHeight,
     required this.puzzleY,
@@ -390,42 +424,28 @@ class _CaptchaPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawImage(canvas, bgBytes,
-        Rect.fromLTWH(0, 0, _kBgOriginalWidth, _kBgOriginalHeight),
-        Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawImageRect(
+      bgImage,
+      Rect.fromLTWH(0, 0, _kBgOriginalWidth, _kBgOriginalHeight),
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint(),
+    );
 
     final pw = puzzleWidth * scale;
     final ph = puzzleHeight * scale;
     final px = offset;
     final py = puzzleY * scale;
 
-    _drawImage(
-      canvas,
-      puzzleBytes,
+    canvas.drawImageRect(
+      puzzleImage,
       Rect.fromLTWH(0, 0, puzzleWidth, puzzleHeight),
       Rect.fromLTWH(px, py, pw, ph),
+      Paint(),
     );
-  }
-
-  void _drawImage(
-    Canvas canvas,
-    Uint8List bytes,
-    Rect src,
-    Rect dst,
-  ) {
-    final codec = ui.instantiateImageCodec(bytes);
-    codec.then((imageCodec) {
-      imageCodec.getNextFrame().then((frameInfo) {
-        canvas.drawImageRect(frameInfo.image, src, dst, Paint());
-        frameInfo.image.dispose();
-      });
-    });
   }
 
   @override
   bool shouldRepaint(_CaptchaPainter oldDelegate) {
-    return offset != oldDelegate.offset ||
-        bgBytes != oldDelegate.bgBytes ||
-        puzzleBytes != oldDelegate.puzzleBytes;
+    return offset != oldDelegate.offset || bgImage != oldDelegate.bgImage;
   }
 }
