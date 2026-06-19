@@ -1,3 +1,5 @@
+using System.Text.Json;
+using MarketOurs.Data.DataModels;
 using MarketOurs.Data.DTOs;
 using MarketOurs.DataAPI.Exceptions;
 using MarketOurs.DataAPI.Services;
@@ -15,6 +17,47 @@ namespace MarketOurs.WebAPI.Controllers;
 [Authorize]
 public class NotificationController(INotificationService notificationService) : ControllerBase
 {
+    private static readonly Dictionary<string, Dictionary<string, string>> HotListTranslations = new()
+    {
+        ["title"] = new() { ["en"] = "🔥 Today's Hot List", ["ja"] = "🔥 今日のランキング", ["ko"] = "🔥 오늘의 인기", ["ru"] = "🔥 Горячее сегодня", ["fr"] = "🔥 Top du jour", ["de"] = "🔥 Heute top" },
+        ["header"] = new() { ["en"] = "See what everyone is talking about:", ["ja"] = "みんなが話題にしていること：", ["ko"] = "모두가 이야기하는 주제:", ["ru"] = "Смотрите, что все обсуждают:", ["fr"] = "Voyez ce dont tout le monde parle :", ["de"] = "Schau, worüber alle reden:" },
+    };
+
+    private string GetLanguageCode()
+    {
+        var lang = Request.Headers.AcceptLanguage.FirstOrDefault()?.Trim() ?? "zh";
+        if (lang.StartsWith("zh")) return "zh";
+        var code = lang.Split(',')[0].Split(';')[0].Split('-')[0].ToLower();
+        return code is "en" or "ja" or "ko" or "ru" or "fr" or "de" ? code : "zh";
+    }
+
+    private void LocalizeNotifications(List<NotificationDto> notifications)
+    {
+        var lang = GetLanguageCode();
+        if (lang == "zh") return;
+
+        foreach (var n in notifications)
+        {
+            if (n.Type != NotificationType.HotList) continue;
+
+            var key = HotListTranslations["title"].TryGetValue(lang, out var t) ? t : "🔥 Today's Hot List";
+            var headerReplacement = HotListTranslations["header"].TryGetValue(lang, out var h) ? h : "See what everyone is talking about:";
+
+            n.Title = key;
+
+            try
+            {
+                var json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(n.Content);
+                if (json != null && json.TryGetValue("header", out var _))
+                {
+                    json["header"] = JsonSerializer.SerializeToElement(headerReplacement);
+                    n.Content = JsonSerializer.Serialize(json);
+                }
+            }
+            catch { /* keep original content */ }
+        }
+    }
+
     /// <summary>
     /// 获取当前登录用户的通知列表 (支持分页)
     /// </summary>
@@ -27,6 +70,7 @@ public class NotificationController(INotificationService notificationService) : 
         if (string.IsNullOrEmpty(userId)) return ApiResponse<PagedResultDto<NotificationDto>>.Fail(ErrorCode.Unauthorized);
 
         var result = await notificationService.GetUserNotificationsAsync(userId, @params);
+        LocalizeNotifications(result.Items);
         return ApiResponse<PagedResultDto<NotificationDto>>.Success(result, "获取通知成功");
     }
 
