@@ -114,12 +114,15 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     public async Task<List<PostModel>> GetHotAsync(int count)
     {
         await using var context = await factory.CreateDbContextAsync();
+        var now = DateTime.UtcNow;
+        const double gravity = 1.3;
         return await context.Posts
             .AsNoTracking()
             .Include(x => x.User)
             .Include(x => x.Tag)
             .Where(x => x.IsReview)
-            .OrderByDescending(x => x.Watch + (x.Likes * 3) - (x.Dislikes * 2))
+            .OrderByDescending(x => (x.Watch + (x.Likes * 3) - (x.Dislikes * 2))
+                / Math.Pow(((now - x.CreatedAt).TotalDays + 2), gravity))
             .Take(count)
             .ToListAsync();
     }
@@ -127,10 +130,13 @@ public class PostRepo(IDbContextFactory<MarketContext> factory) : IPostRepo
     public async Task<List<PostDto>> GetHotDtosAsync(int count)
     {
         await using var context = await factory.CreateDbContextAsync();
+        var now = DateTime.UtcNow;
+        const double gravity = 1.3;
         return await ProjectPostDtos(context.Posts
             .AsNoTracking()
             .Where(x => x.IsReview)
-            .OrderByDescending(x => x.Watch + (x.Likes * 3) - (x.Dislikes * 2))
+            .OrderByDescending(x => (x.Watch + (x.Likes * 3) - (x.Dislikes * 2))
+                / Math.Pow(((now - x.CreatedAt).TotalDays + 2), gravity))
             .Take(count))
             .ToListAsync();
     }
