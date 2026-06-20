@@ -9,20 +9,17 @@ type SharePayload = {
   url: string;
 };
 
-const POST_EXCERPT_LENGTH = 80;
-
 export function buildPostShareUrl(postId: string, origin = window.location.origin) {
   return new URL(`/post/${postId}`, origin).toString();
 }
 
 export function buildPostSharePayload(post: PostDto, origin = window.location.origin): SharePayload {
   const title = post.title.trim() || i18n.t("post.share_fallback_title");
-  const excerpt = buildPostShareExcerpt(post.content);
   const url = buildPostShareUrl(post.id, origin);
 
   return {
     title,
-    text: excerpt ? `${title}\n${excerpt}\n${url}` : `${title}\n${url}`,
+    text: url,
     url,
   };
 }
@@ -60,17 +57,4 @@ export async function sharePost(post: PostDto): Promise<ShareOutcome> {
   }
 
   throw new Error("Sharing is not supported in this browser.");
-}
-
-function buildPostShareExcerpt(content: string) {
-  const normalized = content.trim().replace(/\s+/g, " ");
-  if (!normalized) {
-    return "";
-  }
-
-  if (normalized.length <= POST_EXCERPT_LENGTH) {
-    return normalized;
-  }
-
-  return `${normalized.slice(0, POST_EXCERPT_LENGTH).trimEnd()}...`;
 }
