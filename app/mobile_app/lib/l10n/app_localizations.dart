@@ -1236,6 +1236,88 @@ abstract class AppLocalizations {
   /// **'保存失败'**
   String get notificationSaveFailed;
 
+  /// Notification title for comment reply type
+  ///
+  /// In zh, this message translates to:
+  /// **'回复提醒'**
+  String get notificationTypeCommentReplyTitle;
+
+  /// No description provided for @notificationTypeCommentReplyContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'{commenterName} 回复了你: {bodySnippet}'**
+  String notificationTypeCommentReplyContent(
+    String commenterName,
+    String bodySnippet,
+  );
+
+  /// No description provided for @notificationTypePostReplyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'新评论'**
+  String get notificationTypePostReplyTitle;
+
+  /// No description provided for @notificationTypePostReplyContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'{commenterName} 评论了你的帖子: {bodySnippet}'**
+  String notificationTypePostReplyContent(
+    String commenterName,
+    String bodySnippet,
+  );
+
+  /// No description provided for @notificationTypeHotListTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'🔥 今日校园热榜'**
+  String get notificationTypeHotListTitle;
+
+  /// No description provided for @notificationTypeHotListHeader.
+  ///
+  /// In zh, this message translates to:
+  /// **'来看看大家都在聊什么：'**
+  String get notificationTypeHotListHeader;
+
+  /// No description provided for @notificationTypeReviewTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'审核信息'**
+  String get notificationTypeReviewTitle;
+
+  /// No description provided for @notificationTypeReviewEntityPost.
+  ///
+  /// In zh, this message translates to:
+  /// **'帖子'**
+  String get notificationTypeReviewEntityPost;
+
+  /// No description provided for @notificationTypeReviewEntityComment.
+  ///
+  /// In zh, this message translates to:
+  /// **'评论'**
+  String get notificationTypeReviewEntityComment;
+
+  /// No description provided for @notificationTypeReviewApproved.
+  ///
+  /// In zh, this message translates to:
+  /// **'您的{entity} \'\'{name}\'\' 已通过审核'**
+  String notificationTypeReviewApproved(String entity, String name);
+
+  /// No description provided for @notificationTypeReviewRejected.
+  ///
+  /// In zh, this message translates to:
+  /// **'您的{entity} \'\'{name}\'\' 未通过审核: {reason}'**
+  String notificationTypeReviewRejected(
+    String entity,
+    String name,
+    String reason,
+  );
+
+  /// No description provided for @notificationTypeSystemTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统通知'**
+  String get notificationTypeSystemTitle;
+
   /// No description provided for @hotRank.
   ///
   /// In zh, this message translates to:

@@ -41,7 +41,10 @@ public class NotificationSyncBackgroundService(
                         Type = message.Type,
                         TargetId = message.TargetId,
                         IsRead = false,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        Params = message.Params != null
+                            ? System.Text.Json.JsonSerializer.Serialize(message.Params)
+                            : null
                     };
 
                     await notificationService.CreateNotificationAsync(notification);
@@ -75,7 +78,10 @@ public class NotificationSyncBackgroundService(
                                 var data = new Dictionary<string, string>
                                 {
                                     ["type"] = message.Type.ToString(),
-                                    ["targetId"] = message.TargetId ?? ""
+                                    ["targetId"] = message.TargetId ?? "",
+                                    ["params"] = message.Params != null
+                                        ? System.Text.Json.JsonSerializer.Serialize(message.Params)
+                                        : "{}"
                                 };
                                 try
                                 {

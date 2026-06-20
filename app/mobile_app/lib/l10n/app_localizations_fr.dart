@@ -581,6 +581,61 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notificationSaveFailed => 'Échec';
 
   @override
+  String get notificationTypeCommentReplyTitle => 'Réponse';
+
+  @override
+  String notificationTypeCommentReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName vous a répondu: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypePostReplyTitle => 'Nouveau commentaire';
+
+  @override
+  String notificationTypePostReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName a commenté votre publication: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypeHotListTitle => '🔥 Top du jour';
+
+  @override
+  String get notificationTypeHotListHeader =>
+      'Voyez ce dont tout le monde parle :';
+
+  @override
+  String get notificationTypeReviewTitle => 'Résultat de l\'examen';
+
+  @override
+  String get notificationTypeReviewEntityPost => 'votre publication';
+
+  @override
+  String get notificationTypeReviewEntityComment => 'votre commentaire';
+
+  @override
+  String notificationTypeReviewApproved(String entity, String name) {
+    return '$entity \'$name\' a été approuvé(e)';
+  }
+
+  @override
+  String notificationTypeReviewRejected(
+    String entity,
+    String name,
+    String reason,
+  ) {
+    return '$entity \'$name\' a été rejeté(e): $reason';
+  }
+
+  @override
+  String get notificationTypeSystemTitle => 'Notification système';
+
+  @override
   String get hotRank => 'Tendances';
 
   @override

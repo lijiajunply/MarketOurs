@@ -579,6 +579,60 @@ class AppLocalizationsJa extends AppLocalizations {
   String get notificationSaveFailed => '保存に失敗しました';
 
   @override
+  String get notificationTypeCommentReplyTitle => '返信';
+
+  @override
+  String notificationTypeCommentReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName があなたに返信しました: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypePostReplyTitle => '新しいコメント';
+
+  @override
+  String notificationTypePostReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName があなたの投稿にコメントしました: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypeHotListTitle => '🔥 今日のランキング';
+
+  @override
+  String get notificationTypeHotListHeader => 'みんなが話題にしていること：';
+
+  @override
+  String get notificationTypeReviewTitle => '審査結果';
+
+  @override
+  String get notificationTypeReviewEntityPost => 'あなたの投稿';
+
+  @override
+  String get notificationTypeReviewEntityComment => 'あなたのコメント';
+
+  @override
+  String notificationTypeReviewApproved(String entity, String name) {
+    return '$entity \'$name\' が承認されました';
+  }
+
+  @override
+  String notificationTypeReviewRejected(
+    String entity,
+    String name,
+    String reason,
+  ) {
+    return '$entity \'$name\' が却下されました: $reason';
+  }
+
+  @override
+  String get notificationTypeSystemTitle => 'システム通知';
+
+  @override
   String get hotRank => 'トレンド';
 
   @override

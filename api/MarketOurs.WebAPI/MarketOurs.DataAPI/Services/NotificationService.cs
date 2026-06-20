@@ -126,7 +126,8 @@ public class NotificationService(
             Type = model.Type,
             TargetId = model.TargetId,
             IsRead = model.IsRead,
-            CreatedAt = model.CreatedAt
+            CreatedAt = model.CreatedAt,
+            Params = model.GetParams()
         };
     }
 }

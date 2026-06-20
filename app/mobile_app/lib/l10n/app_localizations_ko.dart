@@ -579,6 +579,60 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notificationSaveFailed => '저장 실패';
 
   @override
+  String get notificationTypeCommentReplyTitle => '답글';
+
+  @override
+  String notificationTypeCommentReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName 님이 답글을 남겼습니다: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypePostReplyTitle => '새 댓글';
+
+  @override
+  String notificationTypePostReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName 님이 게시물에 댓글을 남겼습니다: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypeHotListTitle => '🔥 오늘의 인기';
+
+  @override
+  String get notificationTypeHotListHeader => '모두가 이야기하는 주제:';
+
+  @override
+  String get notificationTypeReviewTitle => '검토 결과';
+
+  @override
+  String get notificationTypeReviewEntityPost => '게시물';
+
+  @override
+  String get notificationTypeReviewEntityComment => '댓글';
+
+  @override
+  String notificationTypeReviewApproved(String entity, String name) {
+    return '$entity \'$name\' 승인되었습니다';
+  }
+
+  @override
+  String notificationTypeReviewRejected(
+    String entity,
+    String name,
+    String reason,
+  ) {
+    return '$entity \'$name\' 거부되었습니다: $reason';
+  }
+
+  @override
+  String get notificationTypeSystemTitle => '시스템 알림';
+
+  @override
   String get hotRank => '트렌드';
 
   @override

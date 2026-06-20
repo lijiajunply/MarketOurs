@@ -32,6 +32,11 @@ public class NotificationMessage
     /// 关联的业务对象 ID (可选)
     /// </summary>
     public string? TargetId { get; set; }
+
+    /// <summary>
+    /// 结构化参数，用于前端根据 NotificationType 进行多语言渲染
+    /// </summary>
+    public NotificationParams? Params { get; set; }
 }
 
 /// <summary>

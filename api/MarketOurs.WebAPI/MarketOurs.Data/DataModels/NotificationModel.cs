@@ -87,6 +87,26 @@ public class NotificationModel : DataModel
     public string? TargetId { get; set; }
 
     /// <summary>
+    /// 结构化参数 (JSON)，用于前端根据 NotificationType 进行多语言渲染
+    /// </summary>
+    [MaxLength(2048)]
+    public string? Params { get; set; }
+
+    /// <summary>
+    /// 将数据库中的 JSON 字符串反序列化为强类型参数对象
+    /// </summary>
+    public NotificationParams? GetParams() =>
+        !string.IsNullOrEmpty(Params)
+            ? System.Text.Json.JsonSerializer.Deserialize<NotificationParams>(Params)
+            : null;
+
+    /// <summary>
+    /// 将强类型参数对象序列化为 JSON 字符串写入数据库字段
+    /// </summary>
+    public void SetParams(NotificationParams? value) =>
+        Params = value != null ? System.Text.Json.JsonSerializer.Serialize(value) : null;
+
+    /// <summary>
     /// 是否已读
     /// </summary>
     public bool IsRead { get; set; }

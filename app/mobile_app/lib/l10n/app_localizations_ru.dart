@@ -581,6 +581,60 @@ class AppLocalizationsRu extends AppLocalizations {
   String get notificationSaveFailed => 'Ошибка сохранения';
 
   @override
+  String get notificationTypeCommentReplyTitle => 'Ответ';
+
+  @override
+  String notificationTypeCommentReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName ответил(а) вам: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypePostReplyTitle => 'Новый комментарий';
+
+  @override
+  String notificationTypePostReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName прокомментировал(а) ваш пост: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypeHotListTitle => '🔥 Горячее сегодня';
+
+  @override
+  String get notificationTypeHotListHeader => 'Смотрите, что все обсуждают:';
+
+  @override
+  String get notificationTypeReviewTitle => 'Результат проверки';
+
+  @override
+  String get notificationTypeReviewEntityPost => 'ваш пост';
+
+  @override
+  String get notificationTypeReviewEntityComment => 'ваш комментарий';
+
+  @override
+  String notificationTypeReviewApproved(String entity, String name) {
+    return '$entity \'$name\' одобрен(а)';
+  }
+
+  @override
+  String notificationTypeReviewRejected(
+    String entity,
+    String name,
+    String reason,
+  ) {
+    return '$entity \'$name\' отклонён(а): $reason';
+  }
+
+  @override
+  String get notificationTypeSystemTitle => 'Системное уведомление';
+
+  @override
   String get hotRank => 'Популярное';
 
   @override

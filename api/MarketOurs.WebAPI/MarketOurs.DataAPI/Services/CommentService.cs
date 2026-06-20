@@ -68,8 +68,8 @@ public interface ICommentService
 }
 
 public class CommentService(
-    ICommentRepo commentRepo, 
-    IUserRepo userRepo, 
+    ICommentRepo commentRepo,
+    IUserRepo userRepo,
     IPostRepo postRepo,
     ILikeManager likeManager,
     IMemoryCache memoryCache,
@@ -92,6 +92,7 @@ public class CommentService(
             dto.Likes = await likeManager.GetCommentLikesAsync(dto.Id, dto.Likes);
             dto.Dislikes = await likeManager.GetCommentDislikesAsync(dto.Id, dto.Dislikes);
         }
+
         return PagedResultDto<CommentDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
@@ -101,12 +102,14 @@ public class CommentService(
             return PagedResultDto<CommentDto>.Success([], 0, @params.PageIndex, @params.PageSize);
 
         var totalCount = await commentRepo.SearchCountAsync(@params.Keyword, includeUnreviewed);
-        var comments = await commentRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize, includeUnreviewed);
+        var comments =
+            await commentRepo.SearchAsync(@params.Keyword, @params.PageIndex, @params.PageSize, includeUnreviewed);
         var dtos = comments.Select(MapToDto).ToList();
         foreach (var dto in dtos)
         {
             await FillDynamicData(dto);
         }
+
         return PagedResultDto<CommentDto>.Success(dtos, totalCount, @params.PageIndex, @params.PageSize);
     }
 
@@ -142,10 +145,11 @@ public class CommentService(
 
             try
             {
-                await distributedCache.SetStringAsync(distKey, JsonSerializer.Serialize(dto), new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = DistCacheTtl
-                });
+                await distributedCache.SetStringAsync(distKey, JsonSerializer.Serialize(dto),
+                    new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = DistCacheTtl
+                    });
             }
             catch (Exception ex)
             {
@@ -186,7 +190,7 @@ public class CommentService(
 
         var comment = new CommentModel
         {
-            Content = createDto.Content?.Trim() ?? string.Empty,
+            Content = createDto.Content.Trim(),
             Images = NormalizeImages(createDto.Images),
             UserId = createDto.UserId,
             PostId = createDto.PostId,
@@ -216,13 +220,15 @@ public class CommentService(
                 // 贴子主评论，通知贴子作者
                 if (post.UserId != comment.UserId)
                 {
-                    notificationQueue.Enqueue(new Background.NotificationMessage
+                    notificationQueue.Enqueue(new NotificationMessage
                     {
                         UserId = post.UserId,
                         Title = "你的帖子收到了新评论",
-                        Content = $"{commenter.Name} 评论了你的帖子: {comment.Content.Substring(0, Math.Min(comment.Content.Length, 20))}...",
+                        Content =
+                            $"{commenter.Name} 评论了你的帖子: {comment.Content.Substring(0, Math.Min(comment.Content.Length, 20))}...",
                         Type = NotificationType.PostReply,
-                        TargetId = comment.PostId
+                        TargetId = comment.PostId,
+                        Params = new PostReplyParams(commenter.Name, comment.Content[..Math.Min(comment.Content.Length, 20)])
                     });
                 }
             }
@@ -232,13 +238,15 @@ public class CommentService(
                 var parentComment = await commentRepo.GetByIdAsync(comment.ParentCommentId);
                 if (parentComment != null && parentComment.UserId != comment.UserId)
                 {
-                    notificationQueue.Enqueue(new Background.NotificationMessage
+                    notificationQueue.Enqueue(new NotificationMessage
                     {
                         UserId = parentComment.UserId,
                         Title = "你的评论收到了回复",
-                        Content = $"{commenter.Name} 回复了你: {comment.Content[..Math.Min(comment.Content.Length, 20)]}...",
+                        Content =
+                            $"{commenter.Name} 回复了你: {comment.Content[..Math.Min(comment.Content.Length, 20)]}...",
                         Type = NotificationType.CommentReply,
-                        TargetId = comment.PostId // 指向贴子
+                        TargetId = comment.PostId,
+                        Params = new CommentReplyParams(commenter.Name, comment.Content[..Math.Min(comment.Content.Length, 20)])
                     });
                 }
             }
@@ -262,7 +270,7 @@ public class CommentService(
         var comment = await commentRepo.GetByIdAsync(id);
         if (comment == null) throw new ResourceAccessException(ErrorCode.CommentNotFound, "评论不存在");
 
-        comment.Content = updateDto.Content?.Trim() ?? string.Empty;
+        comment.Content = updateDto.Content.Trim();
         comment.Images = NormalizeImages(updateDto.Images);
         comment.UpdatedAt = DateTime.UtcNow;
         comment.IsReview = isAdmin;
@@ -344,12 +352,14 @@ public class CommentService(
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             UserId = comment.UserId,
-            Author = comment.User != null ? new UserSimpleDto
-            {
-                Id = comment.User.Id,
-                Name = comment.User.Name,
-                Avatar = comment.User.Avatar
-            } : null,
+            Author = comment.User != null!
+                ? new UserSimpleDto
+                {
+                    Id = comment.User.Id,
+                    Name = comment.User.Name,
+                    Avatar = comment.User.Avatar
+                }
+                : null,
             PostId = comment.PostId,
             ParentCommentId = comment.ParentCommentId
         };

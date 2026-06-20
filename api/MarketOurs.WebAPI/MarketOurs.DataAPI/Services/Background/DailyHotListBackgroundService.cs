@@ -81,7 +81,11 @@ public class DailyHotListBackgroundService(
                     Title = title,
                     Content = content,
                     Type = NotificationType.HotList,
-                    TargetId = hotPosts[0].Id
+                    TargetId = hotPosts[0].Id,
+                    Params = new HotListParams(
+                        "来看看大家都在聊什么：",
+                        top3.Select(p => new HotListPost(p.Id, $"{p.i + 1}. {p.Title}")).ToList()
+                    )
                 });
             }
 

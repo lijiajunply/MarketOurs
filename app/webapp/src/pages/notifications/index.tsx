@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux"
 import type { RootState, AppDispatch } from "@/stores"
 import { fetchNotifications, markReadLocal, markAllReadLocal } from "@/stores/notificationSlice"
 import { notificationService } from "@/services/notificationService"
-import { NotificationType, type PushSettingsDto } from "@/types"
+import { NotificationType, type PushSettingsDto, type NotificationParams } from "@/types"
 import { Bell, MessageSquare, Reply, Flame, Check, Save, Loader2 } from "lucide-react"
 import { Link } from "react-router"
 import { cn } from "@/lib/utils"
@@ -91,6 +91,71 @@ export default function NotificationsPage() {
     }
   }
 
+  const formatTitle = (type: NotificationType) => {
+    switch (type) {
+      case NotificationType.CommentReply:
+        return t("notifications.types.comment_reply.title")
+      case NotificationType.PostReply:
+        return t("notifications.types.post_reply.title")
+      case NotificationType.HotList:
+        return t("notifications.types.hot_list.title")
+      case NotificationType.Review:
+        return t("notifications.types.review.title")
+      case NotificationType.System:
+        return t("notifications.types.system.title")
+      default:
+        return t("notifications.title")
+    }
+  }
+
+  const formatContent = (type: NotificationType, p?: NotificationParams) => {
+    switch (type) {
+      case NotificationType.CommentReply:
+        if (p?.$type === "commentReply") {
+          return t("notifications.types.comment_reply.content", {
+            commenterName: p.commenterName || "",
+            bodySnippet: p.bodySnippet || "",
+          })
+        }
+        break
+      case NotificationType.PostReply:
+        if (p?.$type === "postReply") {
+          return t("notifications.types.post_reply.content", {
+            commenterName: p.commenterName || "",
+            bodySnippet: p.bodySnippet || "",
+          })
+        }
+        break
+      case NotificationType.Review:
+        if (p?.$type === "review") {
+          const entityType = p.entityType || "post"
+          if (p.approved) {
+            return t("notifications.types.review.approved", {
+              entity: t(`notifications.types.review.entity_${entityType}`),
+              name: p.name || "",
+            })
+          }
+          return t("notifications.types.review.rejected", {
+            entity: t(`notifications.types.review.entity_${entityType}`),
+            name: p.name || "",
+            reason: p.reason || "",
+          })
+        }
+        break
+      case NotificationType.HotList:
+        if (p?.$type === "hotList") {
+          const header = t("notifications.types.hot_list.header")
+          const list = (p.posts || []).map((post) => post.title).join(" / ")
+          return `${header} ${list}`
+        }
+        break
+      default:
+        if (p?.$type === "system" && p.message) return p.message
+        return ""
+    }
+    return ""
+  }
+
   const getTargetLink = (notification: any) => {
     if (!notification.targetId) return null
     return `/post/${notification.targetId}`
@@ -161,13 +226,13 @@ export default function NotificationsPage() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold">{n.title}</h3>
+                          <h3 className="font-semibold">{formatTitle(n.type)}</h3>
                           <span className="text-xs text-muted-foreground">
                             {formatRelativeDateFromNow(n.createdAt, i18n.resolvedLanguage)}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                          {n.content}
+                          {formatContent(n.type, n.params) || n.content}
                         </p>
                         <div className="flex items-center justify-between">
                           {link ? (

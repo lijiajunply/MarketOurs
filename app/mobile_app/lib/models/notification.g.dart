@@ -20,6 +20,7 @@ NotificationDto _$NotificationDtoFromJson(Map<String, dynamic> json) =>
       targetId: json['targetId'] as String?,
       isRead: json['isRead'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      params: json['params'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$NotificationDtoToJson(NotificationDto instance) =>
@@ -32,6 +33,7 @@ Map<String, dynamic> _$NotificationDtoToJson(NotificationDto instance) =>
       'targetId': instance.targetId,
       'isRead': instance.isRead,
       'createdAt': instance.createdAt.toIso8601String(),
+      'params': instance.params,
     };
 
 const _$NotificationTypeEnumMap = {

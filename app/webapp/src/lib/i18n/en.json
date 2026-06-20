@@ -257,7 +257,31 @@
     "settings_load_error": "Failed to load notification settings",
     "settings_save_error": "Failed to save settings",
     "settings_saved": "Notification settings saved",
-    "mark_read_error": "Failed to mark notification as read"
+    "mark_read_error": "Failed to mark notification as read",
+    "types": {
+      "comment_reply": {
+        "title": "Reply",
+        "content": "{{commenterName}} replied to you: {{bodySnippet}}"
+      },
+      "post_reply": {
+        "title": "New Comment",
+        "content": "{{commenterName}} commented on your post: {{bodySnippet}}"
+      },
+      "hot_list": {
+        "title": "🔥 Today's Hot List",
+        "header": "See what everyone is talking about:"
+      },
+      "review": {
+        "title": "Review Result",
+        "entity_post": "your post",
+        "entity_comment": "your comment",
+        "approved": "{{entity}} '{{name}}' has been approved",
+        "rejected": "{{entity}} '{{name}}' was rejected: {{reason}}"
+      },
+      "system": {
+        "title": "System Notice"
+      }
+    }
   },
   "hot": {
     "badge": "Campus Trending",

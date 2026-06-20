@@ -38,6 +38,11 @@ public class NotificationDto
     public string? TargetId { get; set; }
 
     /// <summary>
+    /// 结构化参数，用于前端根据 NotificationType 进行多语言渲染
+    /// </summary>
+    public NotificationParams? Params { get; set; }
+
+    /// <summary>
     /// 是否已读
     /// </summary>
     public bool IsRead { get; set; }

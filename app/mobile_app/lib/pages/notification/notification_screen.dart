@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
@@ -218,6 +216,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       targetId: n.targetId,
       isRead: isRead,
       createdAt: n.createdAt,
+      params: n.params,
     );
   }
 
@@ -362,18 +361,9 @@ class _NotificationCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        notification.title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: notification.isRead
-                              ? FontWeight.w600
-                              : FontWeight.w800,
-                          color: CupertinoDynamicColor.resolve(
-                            AppColors.foreground,
-                            context,
-                          ),
-                        ),
+                      child: _NotificationTitle(
+                        type: notification.type,
+                        isRead: notification.isRead,
                       ),
                     ),
                     if (!notification.isRead)
@@ -388,7 +378,8 @@ class _NotificationCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                _NotificationBody(
+                _NotificationBodyV2(
+                  params: notification.typedParams,
                   content: notification.content,
                   type: notification.type,
                   onPostTap: (postId) {
@@ -411,64 +402,122 @@ class _NotificationCard extends StatelessWidget {
   }
 }
 
-class _NotificationBody extends StatelessWidget {
-  const _NotificationBody({
+class _NotificationTitle extends StatelessWidget {
+  const _NotificationTitle({
+    required this.type,
+    required this.isRead,
+  });
+
+  final NotificationType type;
+  final bool isRead;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final title = switch (type) {
+      NotificationType.commentReply => loc.notificationTypeCommentReplyTitle,
+      NotificationType.postReply => loc.notificationTypePostReplyTitle,
+      NotificationType.hotList => loc.notificationTypeHotListTitle,
+      NotificationType.review => loc.notificationTypeReviewTitle,
+      NotificationType.system => loc.notificationTypeSystemTitle,
+      _ => loc.tabNotifications,
+    };
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: isRead ? FontWeight.w600 : FontWeight.w800,
+        color: CupertinoDynamicColor.resolve(
+          AppColors.foreground,
+          context,
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationBodyV2 extends StatelessWidget {
+  const _NotificationBodyV2({
+    required this.params,
     required this.content,
     required this.type,
     required this.onPostTap,
   });
 
+  final NotificationParams? params;
   final String content;
   final NotificationType type;
   final ValueChanged<String> onPostTap;
 
   @override
   Widget build(BuildContext context) {
-    if (type != NotificationType.hotList) {
-      return Text(
-        content,
-        style: AppTextStyles.muted(context).copyWith(
-          fontSize: 14,
-          height: 1.4,
-        ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      );
-    }
+    final loc = AppLocalizations.of(context);
+    final p = params;
 
-    try {
-      final json = jsonDecode(content) as Map<String, dynamic>;
-      final header = json['header'] as String?;
-      final posts = json['posts'] as List<dynamic>?;
-
-      if (header == null || posts == null || posts.isEmpty) {
+    switch (type) {
+      case NotificationType.commentReply:
+        if (p is CommentReplyParams) {
+          return _plainText(
+            loc.notificationTypeCommentReplyContent(p.commenterName, p.bodySnippet),
+            context,
+          );
+        }
         return _plainText(content, context);
-      }
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            header,
-            style: AppTextStyles.muted(context).copyWith(
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 4),
-          for (final post in posts)
-            _HotPostLine(
-              title: (post as Map<String, dynamic>)['title'] as String? ?? '',
-              onTap: () {
-                final id = post['id'] as String?;
-                if (id != null) onPostTap(id);
-              },
-            ),
-        ],
-      );
-    } catch (_) {
-      return _plainText(content, context);
+      case NotificationType.postReply:
+        if (p is PostReplyParams) {
+          return _plainText(
+            loc.notificationTypePostReplyContent(p.commenterName, p.bodySnippet),
+            context,
+          );
+        }
+        return _plainText(content, context);
+
+      case NotificationType.hotList:
+        final header = loc.notificationTypeHotListHeader;
+        if (p is HotListParams && p.posts.isNotEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                header,
+                style: AppTextStyles.muted(context).copyWith(
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 4),
+              for (final post in p.posts)
+                _HotPostLine(
+                  title: post.title,
+                  onTap: () => onPostTap(post.id),
+                ),
+            ],
+          );
+        }
+        return _plainText(content, context);
+
+      case NotificationType.review:
+        if (p is ReviewParams) {
+          final entity = p.entityType == 'post'
+              ? loc.notificationTypeReviewEntityPost
+              : loc.notificationTypeReviewEntityComment;
+          if (p.approved) {
+            return _plainText(
+              loc.notificationTypeReviewApproved(entity, p.name),
+              context,
+            );
+          }
+          return _plainText(
+            loc.notificationTypeReviewRejected(entity, p.name, p.reason ?? ''),
+            context,
+          );
+        }
+        return _plainText(content, context);
+
+      default:
+        return _plainText(content, context);
     }
   }
 

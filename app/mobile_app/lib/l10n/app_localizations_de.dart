@@ -581,6 +581,60 @@ class AppLocalizationsDe extends AppLocalizations {
   String get notificationSaveFailed => 'Fehlgeschlagen';
 
   @override
+  String get notificationTypeCommentReplyTitle => 'Antwort';
+
+  @override
+  String notificationTypeCommentReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName hat dir geantwortet: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypePostReplyTitle => 'Neuer Kommentar';
+
+  @override
+  String notificationTypePostReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName hat deinen Beitrag kommentiert: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypeHotListTitle => '🔥 Heute top';
+
+  @override
+  String get notificationTypeHotListHeader => 'Schau, worüber alle reden:';
+
+  @override
+  String get notificationTypeReviewTitle => 'Prüfergebnis';
+
+  @override
+  String get notificationTypeReviewEntityPost => 'dein Beitrag';
+
+  @override
+  String get notificationTypeReviewEntityComment => 'dein Kommentar';
+
+  @override
+  String notificationTypeReviewApproved(String entity, String name) {
+    return '$entity \'$name\' wurde genehmigt';
+  }
+
+  @override
+  String notificationTypeReviewRejected(
+    String entity,
+    String name,
+    String reason,
+  ) {
+    return '$entity \'$name\' wurde abgelehnt: $reason';
+  }
+
+  @override
+  String get notificationTypeSystemTitle => 'Systemmeldung';
+
+  @override
   String get hotRank => 'Trends';
 
   @override

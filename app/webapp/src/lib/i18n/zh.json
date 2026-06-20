@@ -257,7 +257,31 @@
     "settings_load_error": "通知设置加载失败",
     "settings_save_error": "设置保存失败",
     "settings_saved": "通知设置已保存",
-    "mark_read_error": "标记已读失败"
+    "mark_read_error": "标记已读失败",
+    "types": {
+      "comment_reply": {
+        "title": "回复提醒",
+        "content": "{{commenterName}} 回复了你: {{bodySnippet}}"
+      },
+      "post_reply": {
+        "title": "新评论",
+        "content": "{{commenterName}} 评论了你的帖子: {{bodySnippet}}"
+      },
+      "hot_list": {
+        "title": "🔥 今日校园热榜",
+        "header": "来看看大家都在聊什么："
+      },
+      "review": {
+        "title": "审核信息",
+        "entity_post": "帖子",
+        "entity_comment": "评论",
+        "approved": "您的{{entity}} '{{name}}' 已通过审核",
+        "rejected": "您的{{entity}} '{{name}}' 未通过审核: {{reason}}"
+      },
+      "system": {
+        "title": "系统通知"
+      }
+    }
   },
   "hot": {
     "badge": "校园热榜",

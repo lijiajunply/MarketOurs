@@ -104,7 +104,12 @@ public class ReviewBackgroundService(
                     Type = NotificationType.Review,
                     Content = isApproved ? $"您的{a}: {name} 已通过" : reviewResult,
                     TargetId = notificationTargetId,
-                    Title = "审核信息"
+                    Title = "审核信息",
+                    Params = new ReviewParams(
+                        isPost ? "post" : "comment",
+                        name,
+                        isApproved,
+                        isApproved ? null : reviewResult)
                 });
 
                 logger.LogInformation(

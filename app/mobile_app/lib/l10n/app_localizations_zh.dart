@@ -579,6 +579,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notificationSaveFailed => '保存失败';
 
   @override
+  String get notificationTypeCommentReplyTitle => '回复提醒';
+
+  @override
+  String notificationTypeCommentReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName 回复了你: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypePostReplyTitle => '新评论';
+
+  @override
+  String notificationTypePostReplyContent(
+    String commenterName,
+    String bodySnippet,
+  ) {
+    return '$commenterName 评论了你的帖子: $bodySnippet';
+  }
+
+  @override
+  String get notificationTypeHotListTitle => '🔥 今日校园热榜';
+
+  @override
+  String get notificationTypeHotListHeader => '来看看大家都在聊什么：';
+
+  @override
+  String get notificationTypeReviewTitle => '审核信息';
+
+  @override
+  String get notificationTypeReviewEntityPost => '帖子';
+
+  @override
+  String get notificationTypeReviewEntityComment => '评论';
+
+  @override
+  String notificationTypeReviewApproved(String entity, String name) {
+    return '您的$entity \'$name\' 已通过审核';
+  }
+
+  @override
+  String notificationTypeReviewRejected(
+    String entity,
+    String name,
+    String reason,
+  ) {
+    return '您的$entity \'$name\' 未通过审核: $reason';
+  }
+
+  @override
+  String get notificationTypeSystemTitle => '系统通知';
+
+  @override
   String get hotRank => '热榜';
 
   @override

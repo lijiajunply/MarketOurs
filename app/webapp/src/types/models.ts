@@ -320,6 +320,13 @@ export const NotificationType = {
 
 export type NotificationType = typeof NotificationType[keyof typeof NotificationType];
 
+export type NotificationParams =
+  | { $type: "commentReply"; commenterName: string; bodySnippet: string }
+  | { $type: "postReply"; commenterName: string; bodySnippet: string }
+  | { $type: "hotList"; header: string; posts: Array<{ id: string; title: string }> }
+  | { $type: "review"; entityType: "post" | "comment"; name: string; approved: boolean; reason?: string | null }
+  | { $type: "system"; message: string }
+
 export interface NotificationDto {
   id: string;
   userId: string;
@@ -329,6 +336,7 @@ export interface NotificationDto {
   targetId: string | null;
   isRead: boolean;
   createdAt: string;
+  params?: NotificationParams;
 }
 
 export interface PushSettingsDto {
