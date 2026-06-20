@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/locale_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../router/app_router.dart';
 import '../../services/file_service.dart';
@@ -47,10 +48,14 @@ class ProfileScreen extends ConsumerWidget {
                       AppEmptyState(
                         icon: CupertinoIcons.person,
                         title: AppLocalizations.of(context).profileNotLoggedIn,
-                        description: AppLocalizations.of(context).profileNotLoggedInDesc,
+                        description: AppLocalizations.of(
+                          context,
+                        ).profileNotLoggedInDesc,
                         action: AppPrimaryButton(
                           onPressed: () => context.go(AppRoutePaths.login),
-                          child: Text(AppLocalizations.of(context).profileGoLogin),
+                          child: Text(
+                            AppLocalizations.of(context).profileGoLogin,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -100,17 +105,28 @@ class ProfileScreen extends ConsumerWidget {
                     _ProfileSection(
                       title: AppLocalizations.of(context).profileInfo,
                       children: [
-                        _InfoRow(label: AppLocalizations.of(context).profileNickname, value: _fallback(user.name, '未设置')),
+                        _InfoRow(
+                          label: AppLocalizations.of(context).profileNickname,
+                          value: _fallback(user.name, '未设置'),
+                        ),
                         _InfoRow(
                           label: AppLocalizations.of(context).profileBio,
-                          value: _fallback(user.info, AppLocalizations.of(context).profileNoBio),
+                          value: _fallback(
+                            user.info,
+                            AppLocalizations.of(context).profileNoBio,
+                          ),
                         ),
                         _InfoRow(
                           label: AppLocalizations.of(context).profileEmail,
-                          value: _fallback(user.email, AppLocalizations.of(context).profileNoEmail),
+                          value: _fallback(
+                            user.email,
+                            AppLocalizations.of(context).profileNoEmail,
+                          ),
                         ),
                         _VerificationRow(
-                          label: AppLocalizations.of(context).profileVerifyEmailTitle,
+                          label: AppLocalizations.of(
+                            context,
+                          ).profileVerifyEmailTitle,
                           isVerified: user.isEmailVerified ?? false,
                           isBusy: isSubmitting,
                           onVerify: () => _startVerification(
@@ -122,7 +138,9 @@ class ProfileScreen extends ConsumerWidget {
                             verifyCode: (code) => ref
                                 .read(authControllerProvider.notifier)
                                 .verifyEmailCode(code: code),
-                            successMessage: AppLocalizations.of(context).profileEmailVerifySuccess,
+                            successMessage: AppLocalizations.of(
+                              context,
+                            ).profileEmailVerifySuccess,
                           ),
                         ),
                       ],
@@ -133,16 +151,21 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         _NavRow(
                           icon: CupertinoIcons.person_2,
-                          title: AppLocalizations.of(context).profileFollowBlock,
-                          subtitle: AppLocalizations.of(context).profileFollowBlockDesc,
+                          title: AppLocalizations.of(
+                            context,
+                          ).profileFollowBlock,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).profileFollowBlockDesc,
                           onTap: () => context.push(AppRoutePaths.following),
                         ),
                         _NavRow(
                           icon: CupertinoIcons.link,
                           title: AppLocalizations.of(context).profileBindings,
-                          subtitle: AppLocalizations.of(context).profileManageSocialDesc,
-                          onTap: () =>
-                              context.push(AppRoutePaths.bindings),
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).profileManageSocialDesc,
+                          onTap: () => context.push(AppRoutePaths.bindings),
                         ),
                       ],
                     ),
@@ -150,30 +173,22 @@ class ProfileScreen extends ConsumerWidget {
                     const _ThemeModeSection(),
                     const SizedBox(height: 16),
                     _ProfileSection(
-                      title: AppLocalizations.of(context).settingsTitle,
-                      children: [
-                        _NavRow(
-                          icon: CupertinoIcons.globe,
-                          title: AppLocalizations.of(context).settingsLanguage,
-                          subtitle: AppLocalizations.of(context).themeHint,
-                          onTap: () => context.push(AppRoutePaths.language),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _ProfileSection(
                       title: AppLocalizations.of(context).profileAbout,
                       children: [
                         _NavRow(
                           icon: CupertinoIcons.doc_text,
                           title: AppLocalizations.of(context).profileTerms,
-                          subtitle: AppLocalizations.of(context).profileTermsDesc,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).profileTermsDesc,
                           onTap: () => context.push(AppRoutePaths.terms),
                         ),
                         _NavRow(
                           icon: CupertinoIcons.shield_lefthalf_fill,
                           title: AppLocalizations.of(context).profilePrivacy,
-                          subtitle: AppLocalizations.of(context).profilePrivacyDesc,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).profilePrivacyDesc,
                           onTap: () => context.push(AppRoutePaths.privacy),
                         ),
                       ],
@@ -184,9 +199,14 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         _NavRow(
                           icon: CupertinoIcons.lock_rotation,
-                          title: AppLocalizations.of(context).profileChangePasswordTitle,
-                          subtitle: AppLocalizations.of(context).profileChangePasswordDesc,
-                          onTap: () => context.push(AppRoutePaths.changePassword),
+                          title: AppLocalizations.of(
+                            context,
+                          ).profileChangePasswordTitle,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          ).profileChangePasswordDesc,
+                          onTap: () =>
+                              context.push(AppRoutePaths.changePassword),
                         ),
                         _NavRow(
                           icon: CupertinoIcons.square_arrow_right,
@@ -262,7 +282,10 @@ class ProfileScreen extends ConsumerWidget {
     try {
       await sendCode();
       if (!context.mounted) return;
-      await AppFeedback.showSuccess(context, message: AppLocalizations.of(context).authSendCodeSuccess);
+      await AppFeedback.showSuccess(
+        context,
+        message: AppLocalizations.of(context).authSendCodeSuccess,
+      );
     } catch (_) {
       final errorMessage = ref
           .read(authControllerProvider)
@@ -295,7 +318,10 @@ class ProfileScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(AppLocalizations.of(context).profileEnterCode, style: AppTextStyles.sectionTitle(context)),
+              Text(
+                AppLocalizations.of(context).profileEnterCode,
+                style: AppTextStyles.sectionTitle(context),
+              ),
               const SizedBox(height: 16),
               AppTextField(
                 controller: codeController,
@@ -314,7 +340,9 @@ class ProfileScreen extends ConsumerWidget {
                   Expanded(
                     child: AppPrimaryButton(
                       onPressed: () => Navigator.of(dialogContext).pop(true),
-                      child: Text(AppLocalizations.of(context).profileConfirmVerify),
+                      child: Text(
+                        AppLocalizations.of(context).profileConfirmVerify,
+                      ),
                     ),
                   ),
                 ],
@@ -352,7 +380,6 @@ class ProfileScreen extends ConsumerWidget {
     final trimmed = value?.trim();
     return trimmed == null || trimmed.isEmpty ? fallback : trimmed;
   }
-
 }
 
 class _ProfileHero extends StatelessWidget {
@@ -487,9 +514,11 @@ class _ThemeModeSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeNotifierProvider);
+    final currentLocale = ref.watch(localeNotifierProvider);
+    final l10n = AppLocalizations.of(context);
 
     return _ProfileSection(
-      title: AppLocalizations.of(context).profileDisplaySettings,
+      title: l10n.profileDisplaySettings,
       children: [
         AppListTile(
           onTap: () => _showThemeModeSheet(context, ref, themeMode),
@@ -503,7 +532,7 @@ class _ThemeModeSection extends ConsumerWidget {
             child: Icon(themeMode.icon, color: AppColors.primary, size: 18),
           ),
           title: Text(
-            AppLocalizations.of(context).themeMode,
+            l10n.themeMode,
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -511,7 +540,7 @@ class _ThemeModeSection extends ConsumerWidget {
             ),
           ),
           subtitle: Text(
-            AppLocalizations.of(context).themeSubtitle,
+            l10n.themeSubtitle,
             style: const TextStyle(fontSize: 13),
           ),
           trailing: const Icon(
@@ -519,6 +548,13 @@ class _ThemeModeSection extends ConsumerWidget {
             size: 14,
             color: AppColors.mutedForeground,
           ),
+        ),
+        const SizedBox(height: 4),
+        _NavRow(
+          icon: CupertinoIcons.globe,
+          title: l10n.settingsLanguage,
+          subtitle: _localeLabel(currentLocale, l10n),
+          onTap: () => _showLanguageSheet(context, ref, currentLocale),
         ),
       ],
     );
@@ -565,6 +601,65 @@ class _ThemeModeSection extends ConsumerWidget {
       ),
     );
   }
+
+  String _localeLabel(Locale? locale, AppLocalizations l10n) {
+    if (locale == null) return l10n.followSystem;
+
+    return switch (locale.languageCode) {
+      'zh' => l10n.language_zh,
+      'en' => l10n.language_en,
+      'ja' => l10n.language_ja,
+      'ru' => l10n.language_ru,
+      'fr' => l10n.language_fr,
+      'de' => l10n.language_de,
+      'ko' => l10n.language_ko,
+      _ => locale.toString(),
+    };
+  }
+
+  void _showLanguageSheet(
+    BuildContext context,
+    WidgetRef ref,
+    Locale? currentLocale,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: Text(l10n.settingsLanguageTitle),
+        actions: [
+          CupertinoActionSheetAction(
+            isDefaultAction: currentLocale == null,
+            onPressed: () {
+              Navigator.of(sheetContext).pop();
+              ref.read(localeNotifierProvider.notifier).setLocale(null);
+            },
+            child: _LanguageActionLabel(
+              label: l10n.followSystem,
+              isSelected: currentLocale == null,
+            ),
+          ),
+          for (final locale in supportedLocales)
+            CupertinoActionSheetAction(
+              isDefaultAction: currentLocale == locale,
+              onPressed: () {
+                Navigator.of(sheetContext).pop();
+                ref.read(localeNotifierProvider.notifier).setLocale(locale);
+              },
+              child: _LanguageActionLabel(
+                label: _localeLabel(locale, l10n),
+                isSelected: currentLocale == locale,
+              ),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.of(sheetContext).pop(),
+          child: Text(l10n.cancel),
+        ),
+      ),
+    );
+  }
 }
 
 class _ThemeModeActionLabel extends StatelessWidget {
@@ -589,6 +684,39 @@ class _ThemeModeActionLabel extends StatelessWidget {
       children: [
         Icon(mode.icon, size: 18, color: color),
         const SizedBox(width: 8),
+        Text(label, style: TextStyle(color: color)),
+        const SizedBox(width: 8),
+        Opacity(
+          opacity: isSelected ? 1 : 0,
+          child: const Icon(
+            CupertinoIcons.check_mark,
+            size: 18,
+            color: AppColors.primary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LanguageActionLabel extends StatelessWidget {
+  const _LanguageActionLabel({
+    required this.label,
+    required this.isSelected,
+  });
+
+  final String label;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSelected
+        ? AppColors.primary
+        : CupertinoDynamicColor.resolve(AppColors.foreground, context);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
         Text(label, style: TextStyle(color: color)),
         const SizedBox(width: 8),
         Opacity(
@@ -644,7 +772,11 @@ class _VerificationRow extends StatelessWidget {
         label,
         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
       ),
-      subtitle: Text(isVerified ? AppLocalizations.of(context).profileEmailVerified : AppLocalizations.of(context).profileEmailNotVerified),
+      subtitle: Text(
+        isVerified
+            ? AppLocalizations.of(context).profileEmailVerified
+            : AppLocalizations.of(context).profileEmailNotVerified,
+      ),
       trailing: isVerified
           ? const Icon(
               CupertinoIcons.check_mark_circled_solid,
@@ -804,12 +936,18 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
             avatar = url;
           } else {
             if (!mounted) return;
-            await AppFeedback.showError(context, message: AppLocalizations.of(context).errorAvatarUploadFailed);
+            await AppFeedback.showError(
+              context,
+              message: AppLocalizations.of(context).errorAvatarUploadFailed,
+            );
             return;
           }
         } catch (_) {
           if (!mounted) return;
-          await AppFeedback.showError(context, message: AppLocalizations.of(context).errorAvatarUploadFailed);
+          await AppFeedback.showError(
+            context,
+            message: AppLocalizations.of(context).errorAvatarUploadFailed,
+          );
           return;
         }
       }
@@ -826,7 +964,10 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
             ),
           );
       if (!mounted) return;
-      await AppFeedback.showSuccess(context, message: AppLocalizations.of(context).profileUpdated);
+      await AppFeedback.showSuccess(
+        context,
+        message: AppLocalizations.of(context).profileUpdated,
+      );
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (_) {
@@ -869,7 +1010,10 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            Text(AppLocalizations.of(context).profileEditProfile, style: AppTextStyles.sectionTitle(context)),
+            Text(
+              AppLocalizations.of(context).profileEditProfile,
+              style: AppTextStyles.sectionTitle(context),
+            ),
             const SizedBox(height: 20),
 
             // Avatar picker
@@ -939,7 +1083,11 @@ class _ProfileEditSheetState extends ConsumerState<_ProfileEditSheet> {
             const SizedBox(height: 24),
             AppPrimaryButton(
               onPressed: isSubmitting ? null : _submit,
-              child: Text(isSubmitting ? AppLocalizations.of(context).profileSaving : AppLocalizations.of(context).profileSaveChanges),
+              child: Text(
+                isSubmitting
+                    ? AppLocalizations.of(context).profileSaving
+                    : AppLocalizations.of(context).profileSaveChanges,
+              ),
             ),
           ],
         ),
