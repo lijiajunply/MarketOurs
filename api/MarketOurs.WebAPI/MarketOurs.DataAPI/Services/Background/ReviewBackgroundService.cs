@@ -96,7 +96,7 @@ public class ReviewBackgroundService(
                     InvalidateCommentCaches(targetId, relatedPostId);
                 }
 
-                var a = isPost ? "贴子" : "评论";
+                var a = isPost ? "帖子" : "评论";
 
                 notificationQueue.Enqueue(new NotificationMessage()
                 {

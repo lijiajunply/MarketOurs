@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:mobile_app/models/post.dart';
 import 'package:mobile_app/router/app_router.dart';
 import 'package:mobile_app/services/share_service.dart';
@@ -64,7 +65,7 @@ class PostCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _formatCreatedAt(post.createdAt),
+                        _formatCreatedAt(post.createdAt, AppLocalizations.of(context)),
                         style: AppTextStyles.label(context),
                       ),
                     ],
@@ -176,14 +177,14 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  String _formatCreatedAt(DateTime? dateTime) {
-    if (dateTime == null) return '刚刚';
+  String _formatCreatedAt(DateTime? dateTime, AppLocalizations l10n) {
+    if (dateTime == null) return l10n.dateJustNow;
     final now = DateTime.now();
     final diff = now.difference(dateTime);
-    if (diff.inMinutes < 1) return '刚刚';
-    if (diff.inHours < 1) return '${diff.inMinutes}分钟前';
-    if (diff.inDays < 1) return '${diff.inHours}小时前';
-    if (diff.inDays < 7) return '${diff.inDays}天前';
+    if (diff.inMinutes < 1) return l10n.dateJustNow;
+    if (diff.inHours < 1) return l10n.dateMinutesAgo(diff.inMinutes);
+    if (diff.inDays < 1) return l10n.dateHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.dateDaysAgo(diff.inDays);
     return '${dateTime.year}-${dateTime.month}-${dateTime.day}';
   }
 }

@@ -24,6 +24,7 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   List<NotificationDto> _notifications = [];
   bool _isLoading = true;
+  Locale? _lastLocale;
 
   @override
   void initState() {
@@ -34,7 +35,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadNotifications();
+    final currentLocale = Localizations.localeOf(context);
+    if (_lastLocale != null && _lastLocale != currentLocale) {
+      _lastLocale = currentLocale;
+      _loadNotifications();
+    } else if (_lastLocale == null) {
+      _lastLocale = currentLocale;
+    }
   }
 
   Future<void> _loadNotifications() async {
@@ -241,15 +248,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, BuildContext context) {
     final now = DateTime.now();
     final diff = now.difference(date);
     if (diff.inDays == 0) {
       return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     } else if (diff.inDays == 1) {
-      return '昨天';
+      return AppLocalizations.of(context).dateYesterday;
     } else if (diff.inDays < 7) {
-      return '${diff.inDays}天前';
+      return AppLocalizations.of(context).dateDaysAgo(diff.inDays);
     }
     return '${date.year}/${date.month}/${date.day}';
   }
@@ -267,7 +274,7 @@ class _NotificationList extends StatelessWidget {
   final List<NotificationDto> notifications;
   final IconData Function(NotificationType type) iconForType;
   final Color Function(NotificationType type) iconColorForType;
-  final String Function(DateTime date) formatDate;
+  final String Function(DateTime date, BuildContext context) formatDate;
   final Future<void> Function(int index) onOpen;
 
   @override
@@ -284,7 +291,7 @@ class _NotificationList extends StatelessWidget {
                 notification: entry.$2,
                 icon: iconForType(entry.$2.type),
                 iconColor: iconColorForType(entry.$2.type),
-                formattedDate: formatDate(entry.$2.createdAt),
+                formattedDate: formatDate(entry.$2.createdAt, context),
                 onPressed: () {
                   onOpen(entry.$1);
                 },
@@ -310,7 +317,7 @@ class _NotificationList extends StatelessWidget {
                   notification: entry.$2,
                   icon: iconForType(entry.$2.type),
                   iconColor: iconColorForType(entry.$2.type),
-                  formattedDate: formatDate(entry.$2.createdAt),
+                  formattedDate: formatDate(entry.$2.createdAt, context),
                   onPressed: () {
                     onOpen(entry.$1);
                   },
