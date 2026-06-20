@@ -479,23 +479,21 @@ class _NavRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = destructive ? AppColors.destructive : AppColors.primary;
+    final color = destructive
+        ? AppColors.destructive
+        : ColorManager.generateSoftColor(
+            title,
+            isDark: CupertinoTheme.of(context).brightness == Brightness.dark,
+          );
     return AppListTile(
       onTap: onTap,
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: color, size: 18),
-      ),
+      leading: Icon(icon, color: color, size: 24),
       title: Text(
         title,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: color,
+          color: destructive ? AppColors.destructive : AppColors.primary,
         ),
       ),
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 13)),
@@ -520,34 +518,11 @@ class _ThemeModeSection extends ConsumerWidget {
     return _ProfileSection(
       title: l10n.profileDisplaySettings,
       children: [
-        AppListTile(
+        _NavRow(
+          icon: themeMode.icon,
+          title: l10n.themeMode,
+          subtitle: l10n.themeSubtitle,
           onTap: () => _showThemeModeSheet(context, ref, themeMode),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(themeMode.icon, color: AppColors.primary, size: 18),
-          ),
-          title: Text(
-            l10n.themeMode,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-            ),
-          ),
-          subtitle: Text(
-            l10n.themeSubtitle,
-            style: const TextStyle(fontSize: 13),
-          ),
-          trailing: const Icon(
-            CupertinoIcons.chevron_right,
-            size: 14,
-            color: AppColors.mutedForeground,
-          ),
         ),
         const SizedBox(height: 4),
         _NavRow(
@@ -700,10 +675,7 @@ class _ThemeModeActionLabel extends StatelessWidget {
 }
 
 class _LanguageActionLabel extends StatelessWidget {
-  const _LanguageActionLabel({
-    required this.label,
-    required this.isSelected,
-  });
+  const _LanguageActionLabel({required this.label, required this.isSelected});
 
   final String label;
   final bool isSelected;
