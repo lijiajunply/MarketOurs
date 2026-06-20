@@ -45,6 +45,10 @@ public class NotificationSyncBackgroundServiceTests
                 request.Data["type"] == NotificationType.CommentReply.ToString() &&
                 request.Data["targetId"] == "post_1")),
             Times.Once);
+
+        fixture.NotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<NotificationModel>()),
+            Times.Once);
     }
 
     [Test]
@@ -72,6 +76,10 @@ public class NotificationSyncBackgroundServiceTests
 
         fixture.PushService.Verify(x => x.SendPushNotificationAsync(
             It.IsAny<PushSendRequest>()),
+            Times.Never);
+
+        fixture.NotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<NotificationModel>()),
             Times.Never);
     }
 
@@ -104,6 +112,42 @@ public class NotificationSyncBackgroundServiceTests
                 request.Title == "系统标题" &&
                 request.Body == "系统内容")),
             Times.Once);
+
+        fixture.NotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<NotificationModel>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task ExecuteAsync_WhenHotListPushDisabled_ShouldNotCreateNotification()
+    {
+        var fixture = CreateFixture(
+            user: new UserModel
+            {
+                Id = "user_1",
+                PushProvider = PushProviderType.JPush,
+                PushToken = "token_1",
+                PushSettings = "{\"enableEmailNotifications\":false,\"enableHotListPush\":false,\"enableCommentReplyPush\":true}"
+            });
+
+        fixture.Queue.Enqueue(new NotificationMessage
+        {
+            UserId = "user_1",
+            Title = "🔥 今日校园热榜",
+            Content = "热榜内容",
+            Type = NotificationType.HotList,
+            TargetId = "post_1"
+        });
+
+        await fixture.RunUntilProcessedAsync();
+
+        fixture.NotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<NotificationModel>()),
+            Times.Never);
+
+        fixture.PushService.Verify(x => x.SendPushNotificationAsync(
+            It.IsAny<PushSendRequest>()),
+            Times.Never);
     }
 
     [Test]

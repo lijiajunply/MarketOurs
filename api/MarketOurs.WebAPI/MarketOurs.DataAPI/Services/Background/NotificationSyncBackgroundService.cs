@@ -32,7 +32,28 @@ public class NotificationSyncBackgroundService(
                     var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
                     var pushService = scope.ServiceProvider.GetRequiredService<IPushService>();
 
-                    // 1. 创建站内通知
+                    var user = await userRepo.GetByIdAsync(message.UserId);
+                    if (user == null) continue;
+
+                    // 1. 检查推送设置，确定是否应该发送此通知
+                    var settings = await notificationService.GetPushSettingsAsync(message.UserId);
+
+                    bool shouldNotify = message.Type switch
+                    {
+                        NotificationType.HotList => settings.EnableHotListPush,
+                        NotificationType.CommentReply or NotificationType.PostReply => settings.EnableCommentReplyPush,
+                        _ => true // 默认系统通知始终推送
+                    };
+
+                    if (!shouldNotify)
+                    {
+                        logger.LogInformation(
+                            "Skipped notification type {Type} for user {UserId} per push settings",
+                            message.Type, message.UserId);
+                        continue;
+                    }
+
+                    // 2. 创建站内通知
                     var notification = new NotificationModel
                     {
                         UserId = message.UserId,
@@ -49,63 +70,48 @@ public class NotificationSyncBackgroundService(
 
                     await notificationService.CreateNotificationAsync(notification);
 
-                    var user = await userRepo.GetByIdAsync(message.UserId);
-                    if (user != null)
+                    // 3. 检查是否需要发送邮件
+                    if (settings.EnableEmailNotifications)
                     {
-                        // 2. 检查是否需要发送邮件
-                        var settings = await notificationService.GetPushSettingsAsync(message.UserId);
-                        if (settings.EnableEmailNotifications)
+                        if (!string.IsNullOrEmpty(user.Email) && user.IsEmailVerified)
                         {
-                            if (!string.IsNullOrEmpty(user.Email) && user.IsEmailVerified)
-                            {
-                                await emailService.SendEmailAsync(user.Email, message.Title, message.Content);
-                                logger.LogInformation("Sent email notification to {Email}", user.Email);
-                            }
+                            await emailService.SendEmailAsync(user.Email, message.Title, message.Content);
+                            logger.LogInformation("Sent email notification to {Email}", user.Email);
                         }
+                    }
 
-                        // 3. 发送移动端推送 (如果有 PushToken)
-                        if (!string.IsNullOrEmpty(user.PushToken) && !string.IsNullOrEmpty(user.PushProvider))
+                    // 4. 发送移动端推送 (如果有 PushToken)
+                    if (!string.IsNullOrEmpty(user.PushToken) && !string.IsNullOrEmpty(user.PushProvider))
+                    {
+                        var data = new Dictionary<string, string>
                         {
-                            bool shouldPush = message.Type switch
+                            ["type"] = message.Type.ToString(),
+                            ["targetId"] = message.TargetId ?? "",
+                            ["params"] = message.Params != null
+                                ? System.Text.Json.JsonSerializer.Serialize(message.Params)
+                                : "{}"
+                        };
+                        try
+                        {
+                            await pushService.SendPushNotificationAsync(new PushSendRequest
                             {
-                                NotificationType.CommentReply or NotificationType.PostReply => settings.EnableCommentReplyPush,
-                                NotificationType.HotList => settings.EnableHotListPush,
-                                _ => true // 默认系统通知始终推送
-                            };
-
-                            if (shouldPush)
-                            {
-                                var data = new Dictionary<string, string>
-                                {
-                                    ["type"] = message.Type.ToString(),
-                                    ["targetId"] = message.TargetId ?? "",
-                                    ["params"] = message.Params != null
-                                        ? System.Text.Json.JsonSerializer.Serialize(message.Params)
-                                        : "{}"
-                                };
-                                try
-                                {
-                                    await pushService.SendPushNotificationAsync(new PushSendRequest
-                                    {
-                                        Provider = user.PushProvider,
-                                        PushToken = user.PushToken,
-                                        Title = message.Title,
-                                        Body = message.Content,
-                                        Data = data
-                                    });
-                                    logger.LogInformation("Sent mobile push notification to user {UserId}", message.UserId);
-                                }
-                                catch (PushSendException ex) when (ex.IsTokenInvalid)
-                                {
-                                    user.PushProvider = null;
-                                    user.PushToken = string.Empty;
-                                    await userRepo.UpdateAsync(user);
-                                    logger.LogWarning(
-                                        ex,
-                                        "Cleared invalid push token for user {UserId}",
-                                        message.UserId);
-                                }
-                            }
+                                Provider = user.PushProvider,
+                                PushToken = user.PushToken,
+                                Title = message.Title,
+                                Body = message.Content,
+                                Data = data
+                            });
+                            logger.LogInformation("Sent mobile push notification to user {UserId}", message.UserId);
+                        }
+                        catch (PushSendException ex) when (ex.IsTokenInvalid)
+                        {
+                            user.PushProvider = null;
+                            user.PushToken = string.Empty;
+                            await userRepo.UpdateAsync(user);
+                            logger.LogWarning(
+                                ex,
+                                "Cleared invalid push token for user {UserId}",
+                                message.UserId);
                         }
                     }
                 }
