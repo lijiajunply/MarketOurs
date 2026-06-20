@@ -316,6 +316,7 @@ export const NotificationType = {
   PostReply: 1,
   HotList: 2,
   System: 3,
+  Review: 4,
 } as const;
 
 export type NotificationType = typeof NotificationType[keyof typeof NotificationType];
