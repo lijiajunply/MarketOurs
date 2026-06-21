@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
-import { Search, Eye, Trash2, CheckCircle, XCircle } from "lucide-react"
+import { Search, Eye, Trash2, CheckCircle, XCircle, Pencil } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
 import { toast } from "../../lib/toast"
-import type { CommentDto, PagedResult } from "../../types"
+import type { CommentDto, CommentUpdateDto, PagedResult } from "../../types"
 import { formatLocalDate } from "../../lib/dateTime"
 import { Button } from "../../components/ui/button"
 import {
@@ -18,6 +18,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog"
 
 const PAGE_SIZE = 10
 
@@ -30,6 +38,9 @@ export default function AdminCommentsPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "review"; comment: CommentDto } | null>(null)
+  const [editingComment, setEditingComment] = useState<CommentDto | null>(null)
+  const [editContent, setEditContent] = useState("")
+  const [contentFormError, setContentFormError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -117,6 +128,38 @@ export default function AdminCommentsPage() {
   }
 
   const confirmContent = getConfirmDialogContent()
+
+  const handleOpenContentEdit = (comment: CommentDto) => {
+    setEditingComment(comment)
+    setEditContent(comment.content || "")
+    setContentFormError(null)
+  }
+
+  const handleSaveContentEdit = async () => {
+    if (!editingComment) return
+    if (!editContent.trim()) {
+      setContentFormError(t("admin.comments.field_content") + " " + t("admin.users.validation_name_required"))
+      return
+    }
+
+    const comment = editingComment
+    const payload: CommentUpdateDto = {
+      content: editContent,
+      images: comment.images ?? [],
+    }
+    setEditingComment(null)
+
+    try {
+      setActiveCommentId(comment.id)
+      await adminService.updateComment(comment.id, payload)
+      await refreshCurrentPage()
+      toast.success(t("admin.comments.content_updated"))
+    } catch (err) {
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
+    } finally {
+      setActiveCommentId(null)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -208,6 +251,15 @@ export default function AdminCommentsPage() {
                             variant="ghost"
                             size="icon"
                             disabled={isBusy}
+                            title={t("admin.comments.action_edit")}
+                            onClick={() => handleOpenContentEdit(comment)}
+                          >
+                            <Pencil size={18} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isBusy}
                             title={comment.isReview ? t("admin.comments.action_unapprove") : t("admin.comments.action_approve")}
                             onClick={() => setConfirmAction({ type: "review", comment })}
                           >
@@ -271,6 +323,38 @@ export default function AdminCommentsPage() {
           </div>
         </div>
       )}
+
+      {/* Edit Comment Content Dialog */}
+      <Dialog open={editingComment !== null} onOpenChange={(open) => { if (!open) setEditingComment(null) }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("admin.comments.edit_content_title")}</DialogTitle>
+            <DialogDescription>{t("admin.comments.edit_content_description")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">{t("admin.comments.field_content")}</label>
+              <textarea
+                rows={6}
+                className="w-full rounded-xl border border-border/50 bg-muted/40 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+              />
+            </div>
+            {contentFormError && (
+              <p className="text-sm text-destructive">{contentFormError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingComment(null)}>
+              {t("admin.common.cancel")}
+            </Button>
+            <Button onClick={() => void handleSaveContentEdit()}>
+              {t("admin.comments.edit_content_save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={confirmAction !== null} onOpenChange={(open) => { if (!open) setConfirmAction(null) }}>
         <AlertDialogContent>

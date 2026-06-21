@@ -126,6 +126,13 @@ public interface IUserService
     /// 修改密码
     /// </summary>
     Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword);
+
+    /// <summary>
+    /// 管理员重置用户密码 (不需要旧密码)
+    /// </summary>
+    /// <param name="userId">目标用户 ID</param>
+    /// <param name="newPassword">新密码</param>
+    Task<bool> AdminResetPasswordAsync(string userId, string newPassword);
 }
 
 public enum EmailVerificationPurpose
@@ -553,6 +560,17 @@ public class UserService(
         if (user == null) throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
         if (!DataTool.IsOk(oldPassword, user.Password))
             throw new ValidationException(ErrorCode.PasswordMismatch, "旧密码错误");
+
+        user.Password = newPassword.StringToHash();
+        await userRepo.UpdateAsync(user);
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> AdminResetPasswordAsync(string userId, string newPassword)
+    {
+        var user = await userRepo.GetByIdAsync(userId)
+                   ?? throw new ResourceAccessException(ErrorCode.UserNotFound, "用户不存在");
 
         user.Password = newPassword.StringToHash();
         await userRepo.UpdateAsync(user);

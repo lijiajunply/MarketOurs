@@ -2,8 +2,10 @@ import { apiClient } from './apiClient';
 import type {
   AddIpRequest,
   AdminOverviewDto,
+  AdminResetPasswordRequest,
   BlacklistStats,
   CommentDto,
+  CommentUpdateDto,
   IpCheckResult,
   LogDistribution,
   LogEntry,
@@ -14,9 +16,12 @@ import type {
   PostTagCreateDto,
   PostTagDto,
   PostTagUpdateDto,
+  PostUpdateDto,
   RemoveIpRequest,
   UpdateUserStatusRequest,
+  UserCreateDto,
   UserDto,
+  UserUpdateDto,
 } from '../types';
 
 export const adminService = {
@@ -70,6 +75,21 @@ export const adminService = {
   updateUserStatus: (id: string, data: UpdateUserStatusRequest) =>
     apiClient.put<UserDto>(`/Admin/users/${id}/status`, data),
 
+  createUser: (data: UserCreateDto) =>
+    apiClient.post<UserDto>(`/User`, data),
+
+  updateUser: (id: string, data: UserUpdateDto) =>
+    apiClient.put<UserDto>(`/User/${id}`, data),
+
+  resetUserPassword: (id: string, data: AdminResetPasswordRequest) =>
+    apiClient.put<void>(`/User/${id}/password`, data),
+
+  getUserById: (id: string) =>
+    apiClient.get<UserDto>(`/User/${id}`),
+
+  updatePost: (id: string, data: PostUpdateDto) =>
+    apiClient.put<PostDto>(`/Post/${id}`, data),
+
   updatePostReview: (id: string, data: { isReview: boolean }) =>
     apiClient.put<PostDto>(`/Post/${id}/review`, data),
 
@@ -90,6 +110,9 @@ export const adminService = {
 
   updateCommentReview: (id: string, data: { isReview: boolean }) =>
     apiClient.put<CommentDto>(`/Comment/${id}/review`, data),
+
+  updateComment: (id: string, data: CommentUpdateDto) =>
+    apiClient.put<CommentDto>(`/Comment/${id}`, data),
 
   getUsers: (pageIndex: number = 1, pageSize: number = 10, keyword?: string) => {
     const params = new URLSearchParams({

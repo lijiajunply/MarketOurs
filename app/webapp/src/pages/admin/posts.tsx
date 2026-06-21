@@ -5,7 +5,7 @@ import { Link } from "react-router"
 import { adminService } from "../../services/adminService"
 import { extractUserMessage } from "../../services/errorCodes"
 import { toast } from "../../lib/toast"
-import type { PagedResult, PostDto, PostTagDto } from "../../types"
+import type { PagedResult, PostDto, PostTagDto, PostUpdateDto } from "../../types"
 import { formatLocalDate } from "../../lib/dateTime"
 import { Button } from "../../components/ui/button"
 import {
@@ -41,6 +41,11 @@ export default function AdminPostsPage() {
   const [confirmAction, setConfirmAction] = useState<{ type: "delete" | "review"; post: PostDto } | null>(null)
   const [editingPost, setEditingPost] = useState<PostDto | null>(null)
   const [editTagId, setEditTagId] = useState("")
+  const [contentEditingPost, setContentEditingPost] = useState<PostDto | null>(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [editContent, setEditContent] = useState("")
+  const [editContentTagId, setEditContentTagId] = useState("")
+  const [contentFormError, setContentFormError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -148,6 +153,46 @@ export default function AdminPostsPage() {
   const handleOpenTagEdit = (post: PostDto) => {
     setEditingPost(post)
     setEditTagId(post.tagId ?? "")
+  }
+
+  const handleOpenContentEdit = (post: PostDto) => {
+    setContentEditingPost(post)
+    setEditTitle(post.title || "")
+    setEditContent(post.content || "")
+    setEditContentTagId(post.tagId ?? "")
+    setContentFormError(null)
+  }
+
+  const handleSaveContentEdit = async () => {
+    if (!contentEditingPost) return
+    if (!editTitle.trim()) {
+      setContentFormError(t("admin.users.validation_name_required"))
+      return
+    }
+    if (!editContent.trim()) {
+      setContentFormError(t("admin.posts.field_content") + " " + t("admin.users.validation_name_required"))
+      return
+    }
+
+    const post = contentEditingPost
+    const payload: PostUpdateDto = {
+      title: editTitle.trim(),
+      content: editContent,
+      images: post.images ?? [],
+      tagId: editContentTagId || null,
+    }
+    setContentEditingPost(null)
+
+    try {
+      setActivePostId(post.id)
+      await adminService.updatePost(post.id, payload)
+      await refreshCurrentPage()
+      toast.success(t("admin.posts.content_updated"))
+    } catch (err) {
+      toast.error(extractUserMessage(err, t("admin.common.action_error")))
+    } finally {
+      setActivePostId(null)
+    }
   }
 
   const handleSaveTagEdit = async () => {
@@ -267,6 +312,15 @@ export default function AdminPostsPage() {
                             variant="ghost"
                             size="icon"
                             disabled={isBusy}
+                            title={t("admin.posts.action_edit_content")}
+                            onClick={() => handleOpenContentEdit(post)}
+                          >
+                            <Pencil size={18} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isBusy}
                             title={post.isReview ? t("admin.posts.action_unapprove") : t("admin.posts.action_approve")}
                             onClick={() => setConfirmAction({ type: "review", post })}
                           >
@@ -357,6 +411,62 @@ export default function AdminPostsPage() {
               onClick={() => void handleSaveTagEdit()}
             >
               {t("admin.posts.edit_tag_save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Post Content Dialog */}
+      <Dialog open={contentEditingPost !== null} onOpenChange={(open) => { if (!open) setContentEditingPost(null) }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("admin.posts.edit_content_title")}</DialogTitle>
+            <DialogDescription>{t("admin.posts.edit_content_description")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">{t("admin.posts.field_title")}</label>
+              <input
+                type="text"
+                className="h-11 w-full rounded-xl border border-border/50 bg-muted/40 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">{t("admin.posts.field_content")}</label>
+              <textarea
+                rows={10}
+                className="w-full rounded-xl border border-border/50 bg-muted/40 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">{t("admin.posts.table_tag")}</label>
+              <select
+                className="h-11 w-full rounded-xl border border-border/50 bg-muted/40 px-4 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                value={editContentTagId}
+                onChange={(e) => setEditContentTagId(e.target.value)}
+              >
+                <option value="">{t("post.tag_none")}</option>
+                {tags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name}{tag.isActive ? "" : ` (${t("admin.tags.inactive")})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {contentFormError && (
+              <p className="text-sm text-destructive">{contentFormError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setContentEditingPost(null)}>
+              {t("admin.common.cancel")}
+            </Button>
+            <Button onClick={() => void handleSaveContentEdit()}>
+              {t("admin.posts.edit_content_save")}
             </Button>
           </DialogFooter>
         </DialogContent>

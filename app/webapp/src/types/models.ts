@@ -133,6 +133,10 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface AdminResetPasswordRequest {
+  newPassword: string;
+}
+
 /**
  * Post Models
  */

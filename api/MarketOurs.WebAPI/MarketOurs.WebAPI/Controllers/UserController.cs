@@ -124,6 +124,27 @@ public class UserController(
         return ApiResponse.Success("删除用户成功");
     }
 
+    /// <summary>
+    /// 管理员重置指定用户的密码 (仅限管理员，且不能重置自己的密码)
+    /// </summary>
+    /// <param name="id">目标用户 ID</param>
+    /// <param name="request">新密码请求对象</param>
+    /// <returns>操作结果描述</returns>
+    [HttpPut("{id}/password")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ApiResponse> ResetUserPassword(string id, [FromBody] AdminResetPasswordRequest request)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (currentUserId == id)
+        {
+            throw new BusinessException(ErrorCode.OperationFailed, "请使用个人设置修改自己的密码");
+        }
+
+        logger.LogInformation("Admin resetting password for user: {Id}", id);
+        await userService.AdminResetPasswordAsync(id, request.NewPassword);
+        return ApiResponse.Success("密码重置成功");
+    }
+
     #endregion
 
     #region Normal Operations (普通用户操作)

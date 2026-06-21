@@ -224,6 +224,20 @@ public class UserUpdateDto
 }
 
 /// <summary>
+/// 管理员重置用户密码的请求对象
+/// </summary>
+public class AdminResetPasswordRequest
+{
+    /// <summary>
+    /// 新密码 (不需要旧密码)
+    /// </summary>
+    [Required(ErrorMessage = "新密码不能为空")]
+    [MinLength(6, ErrorMessage = "新密码长度不能少于6位")]
+    [MaxLength(128, ErrorMessage = "新密码长度不能超过128位")]
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// 更新用户推送 token 的请求对象
 /// </summary>
 public class UpdatePushTokenRequest
