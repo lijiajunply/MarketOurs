@@ -20,7 +20,10 @@ class ShareService {
         ? post.title!.trim()
         : '';
     return SharePlus.instance.share(
-      ShareParams(text: title, url: buildPostShareUrl(post.id)),
+      ShareParams(
+        text: title,
+        uri: Uri.parse(buildPostShareUrl(post.id)),
+      ),
     );
   }
 
