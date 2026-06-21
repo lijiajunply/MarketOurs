@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:mobile_app/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mobile_app/components/post_card.dart';
 import 'package:mobile_app/ui/app_theme.dart';
 
@@ -9,7 +8,6 @@ import '../../models/post.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/post_feed_provider.dart';
-import '../../router/app_router.dart';
 import '../../services/follow_service.dart';
 import '../../services/user_service.dart';
 import '../../services/error_messages.dart';
@@ -174,7 +172,9 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
       }
 
       final existingIds = _recentPosts.map((post) => post.id).toSet();
-      final nextItems = page.items.where((post) => !existingIds.contains(post.id)).toList();
+      final nextItems = page.items
+          .where((post) => !existingIds.contains(post.id))
+          .toList();
 
       setState(() {
         _recentPosts = [..._recentPosts, ...nextItems];
@@ -281,19 +281,13 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                       onToggleBlock: _handleToggleBlock,
                     ),
                   ],
-                  if (isMe) ...[
-                    const SizedBox(height: 12),
-                    AppSecondaryButton(
-                      onPressed: () => context.go(AppRoutePaths.profile),
-                      child: Text(AppLocalizations.of(context).profileManageMyProfile),
-                    ),
-                  ],
                 ],
               ),
               primary: _RecentPostsSection(
                 posts: _recentPosts,
                 isLoadingMore: _isLoadingMore,
                 hasNextPage: _hasNextPage,
+                isMe: isMe,
               ),
             ),
           ),
@@ -308,11 +302,13 @@ class _RecentPostsSection extends StatelessWidget {
     required this.posts,
     required this.isLoadingMore,
     required this.hasNextPage,
+    required this.isMe,
   });
 
   final List<PostDto> posts;
   final bool isLoadingMore;
   final bool hasNextPage;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
@@ -327,14 +323,18 @@ class _RecentPostsSection extends StatelessWidget {
             color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context).profileRecentPostsSubtitle,
-          style: TextStyle(color: CupertinoColors.systemGrey),
-        ),
+        if (isMe) ...[
+          const SizedBox(height: 8),
+          Text(
+            AppLocalizations.of(context).profileRecentPostsSubtitle,
+            style: TextStyle(color: CupertinoColors.systemGrey),
+          ),
+        ],
         const SizedBox(height: 16),
         if (posts.isEmpty)
-          AppSectionCard(child: Text(AppLocalizations.of(context).profileNoPublicPosts))
+          AppSectionCard(
+            child: Text(AppLocalizations.of(context).profileNoPublicPosts),
+          )
         else
           ...posts.map(
             (post) => Padding(
@@ -384,14 +384,20 @@ class _ProfileHero extends StatelessWidget {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
+              color: CupertinoDynamicColor.resolve(
+                AppColors.foreground,
+                context,
+              ),
             ),
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [if (isMe) _MetaChip(label: AppLocalizations.of(context).profileThisIsYou)],
+            children: [
+              if (isMe)
+                _MetaChip(label: AppLocalizations.of(context).profileThisIsYou),
+            ],
           ),
           const SizedBox(height: 14),
           Text(
@@ -401,7 +407,10 @@ class _ProfileHero extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               height: 1.5,
-              color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
+              color: CupertinoDynamicColor.resolve(
+                AppColors.mutedForeground,
+                context,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -410,7 +419,10 @@ class _ProfileHero extends StatelessWidget {
             '${formatYmdDate(profile.createdAt).isEmpty ? AppLocalizations.of(context).profileUnknownDate : formatYmdDate(profile.createdAt)}',
             style: TextStyle(
               fontSize: 12,
-              color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
+              color: CupertinoDynamicColor.resolve(
+                AppColors.mutedForeground,
+                context,
+              ),
             ),
           ),
         ],
@@ -465,7 +477,10 @@ class _FollowStats extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
+                    color: CupertinoDynamicColor.resolve(
+                      AppColors.foreground,
+                      context,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -473,7 +488,10 @@ class _FollowStats extends StatelessWidget {
                   AppLocalizations.of(context).profileFollowers,
                   style: TextStyle(
                     fontSize: 13,
-                    color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
+                    color: CupertinoDynamicColor.resolve(
+                      AppColors.mutedForeground,
+                      context,
+                    ),
                   ),
                 ),
               ],
@@ -491,7 +509,10 @@ class _FollowStats extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: CupertinoDynamicColor.resolve(AppColors.foreground, context),
+                    color: CupertinoDynamicColor.resolve(
+                      AppColors.foreground,
+                      context,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -499,7 +520,10 @@ class _FollowStats extends StatelessWidget {
                   AppLocalizations.of(context).profileFollowing,
                   style: TextStyle(
                     fontSize: 13,
-                    color: CupertinoDynamicColor.resolve(AppColors.mutedForeground, context),
+                    color: CupertinoDynamicColor.resolve(
+                      AppColors.mutedForeground,
+                      context,
+                    ),
                   ),
                 ),
               ],
@@ -552,7 +576,9 @@ class _FollowBlockButtons extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isFollowing ? AppLocalizations.of(context).profileUnfollow : AppLocalizations.of(context).profileFollowing,
+                  isFollowing
+                      ? AppLocalizations.of(context).profileUnfollow
+                      : AppLocalizations.of(context).profileFollowing,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -587,7 +613,9 @@ class _FollowBlockButtons extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                isBlocked ? AppLocalizations.of(context).profileUnblock : AppLocalizations.of(context).profileBlock,
+                isBlocked
+                    ? AppLocalizations.of(context).profileUnblock
+                    : AppLocalizations.of(context).profileBlock,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/post.dart';
@@ -15,14 +16,11 @@ class ShareService {
     return baseUri.resolve('/post/$postId').toString();
   }
 
-  Future<void> sharePost(PostDto post) {
-    final title = post.title?.trim().isNotEmpty == true
-        ? post.title!.trim()
-        : '';
+  Future<void> sharePost(PostDto post, {Rect? sharePositionOrigin}) {
     return SharePlus.instance.share(
       ShareParams(
-        text: title,
         uri: Uri.parse(buildPostShareUrl(post.id)),
+        sharePositionOrigin: sharePositionOrigin,
       ),
     );
   }

@@ -17,7 +17,11 @@ class PostCard extends StatelessWidget {
 
   Future<void> _handleShare(BuildContext context) async {
     try {
-      await _shareService.sharePost(post);
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = box != null && box.hasSize
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null;
+      await _shareService.sharePost(post, sharePositionOrigin: origin);
     } catch (_) {
       if (context.mounted) {
         await AppFeedback.showError(context, message: '分享失败，请稍后重试');
@@ -309,7 +313,11 @@ class SimplePostCard extends StatelessWidget {
 
   Future<void> _handleShare(BuildContext context) async {
     try {
-      await _shareService.sharePost(post);
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = box != null && box.hasSize
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null;
+      await _shareService.sharePost(post, sharePositionOrigin: origin);
     } catch (_) {
       if (context.mounted) {
         await AppFeedback.showError(context, message: '分享失败，请稍后重试');

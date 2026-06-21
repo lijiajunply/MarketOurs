@@ -318,7 +318,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     if (post == null) return;
 
     try {
-      await _shareService.sharePost(post);
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = box != null && box.hasSize
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null;
+      await _shareService.sharePost(post, sharePositionOrigin: origin);
       if (!mounted) return;
     } catch (error) {
       if (!mounted) return;
